@@ -1,0 +1,58 @@
+svg {
+  overflow: visible;
+}
+
+.node-container {
+  cursor: move;
+}
+
+.node-background {
+  fill: #1a1c1d;
+}
+
+.node-header {
+  fill: #426D92;
+
+  .header-title {
+    font-size: 20px;
+    fill: #fff;
+    text-anchor: middle;
+  }
+}
+
+.node-content {
+  fill: #3C3C3C;
+}
+
+.port {
+  cursor: pointer;
+}
+
+.port-scrim {
+  fill: transparent;
+}
+
+.port-outer {
+  fill: #777777;
+}
+
+.port-inner {
+  fill: #202020;
+}
+
+.port-label {
+  font-size: 12px;
+  fill: #fff;
+}
+
+.input-field {
+  .port-label {
+    text-anchor: start;
+  }
+}
+
+.output-field {
+  .port-label {
+    text-anchor: end;
+  }
+}

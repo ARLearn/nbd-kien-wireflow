@@ -1,0 +1,40 @@
+<svg>
+  <g class="node-container">
+    <rect class="node-background" width="204" [attr.height]="height + 51" x="0" y="0" rx="6" ry="6" />
+
+    <g class="node-header">
+      <rect class="header-round-rect" width="200" height="40" x="2" y="2" rx="4" ry="4" />
+      <rect class="header-rect" width="200" height="36" x="2" y="6" />
+      <text class="header-title" x="102" y="30">{{ node.title }}</text>
+    </g>
+
+    <g class="node-content">
+
+      <rect class="content-round-rect" width="200" [attr.height]="height + 5" x="2" y="44" rx="4" ry="4" />
+      <rect class="content-rect" width="200" [attr.height]="height" x="2" y="44" />
+
+      <g class="inputs">
+        <g class="input-field" *ngFor="let input of node.inputs; let i = index;" [attr.transform]="'translate(0, ' + 25 * (2 + i) + ')'" [attr.custom-id]="input.id">
+          <g class="port">
+            <circle class="port-outer" cx="15" cy="10" r="7.5" />
+            <circle class="port-inner" cx="15" cy="10" r="5" [id]="node.id + '-' + input.id" />
+            <circle class="port-scrim" cx="15" cy="10" r="7.5" />
+          </g>
+          <text class="port-label" x="28" y="14">{{ input.title }}</text>
+        </g>
+      </g>
+
+      <g class="outputs">
+        <g class="output-field" *ngFor="let output of node.outputs; let i = index;" [attr.transform]="'translate(0, ' + 25 * (2 + i) + ')'" [attr.custom-id]="output.id">
+          <g class="port" data-clickable="false">
+            <circle class="port-outer" cx="189" cy="10" r="7.5" />
+            <circle class="port-inner" cx="189" cy="10" r="5" />
+            <circle class="port-scrim" cx="189" cy="10" r="7.5" data-clickable="false" />
+          </g>
+          <text class="port-label" x="176" y="14">{{ output.title }}</text>
+        </g>
+      </g>
+
+    </g>
+  </g>
+</svg>
