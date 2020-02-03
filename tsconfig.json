@@ -16,9 +16,16 @@
     ],
     "lib": [
       "es2018",
-      "es2019",
       "dom"
-    ]
+    ],
+    "paths": {
+      "wireflow": [
+        "dist/wireflow"
+      ],
+      "wireflow/*": [
+        "dist/wireflow/*"
+      ]
+    }
   },
   "angularCompilerOptions": {
     "fullTemplateTypeCheck": true,
