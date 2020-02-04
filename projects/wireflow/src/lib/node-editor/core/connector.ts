@@ -1,5 +1,3 @@
-import { TweenLite } from 'gsap/gsap-core';
-import { Draggable } from 'gsap/all';
 import { bezierWeight, connectorElement, connectorLayer, connectorPool, shapes, getNumberFromPixels, idCounter, } from './base';
 
 export class Connector {
@@ -51,6 +49,7 @@ export class Connector {
     this.dragElement.setAttribute('data-drag', `${this.id}:connector`);
     this.staticElement.setAttribute('data-drag', `${port.id}:port`);
 
+    // @ts-ignore
     TweenLite.set([this.inputHandle, this.outputHandle], {
       x: port.global.x,
       y: port.global.y
@@ -91,6 +90,7 @@ export class Connector {
 
     if (port === this.inputPort) {
 
+      // @ts-ignore
       TweenLite.set(this.inputHandle, {
         x: port.global.x,
         y: port.global.y
@@ -98,6 +98,7 @@ export class Connector {
 
     } else if (port === this.outputPort) {
 
+      // @ts-ignore
       TweenLite.set(this.outputHandle, {
         x: port.global.x,
         y: port.global.y
@@ -119,12 +120,14 @@ export class Connector {
         continue;
       }
 
+      // @ts-ignore
       if (Draggable.hitTest(this.dragElement, shape.element)) {
 
         const ports = this.isInput ? shape.outputs : shape.inputs;
 
         for (const port of ports) {
 
+          // @ts-ignore
           if (Draggable.hitTest(this.dragElement, port.portElement)) {
             hitPort = port;
             break;

@@ -1,5 +1,3 @@
-import { Draggable } from 'gsap/all';
-import { TweenLite } from 'gsap/gsap-core';
 import {
   connectorElement,
   connectorLayer,
@@ -39,6 +37,7 @@ export class Diagram {
     this.prepareTarget = this.prepareTarget.bind(this);
     this.stopDragging = this.stopDragging.bind(this);
 
+    // @ts-ignore
     this.draggable = new Draggable(dragProxy, {
       allowContextMenu: true,
       trigger: svg,
@@ -91,6 +90,7 @@ export class Diagram {
 
   dragTarget() {
 
+    // @ts-ignore
     TweenLite.set(this.target.dragElement, {
       x: `+=${this.draggable.deltaX}`,
       y: `+=${this.draggable.deltaY}`,

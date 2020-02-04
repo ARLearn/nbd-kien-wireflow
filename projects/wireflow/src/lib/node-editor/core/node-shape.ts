@@ -1,4 +1,3 @@
-import { TweenLite } from 'gsap/gsap-core';
 import { NodePort } from './node-port';
 import { idCounter, portLookup, ports } from './base';
 
@@ -20,6 +19,7 @@ export class NodeShape {
     this.element = element;
     this.dragElement = element;
 
+    // @ts-ignore
     TweenLite.set(element, { x, y });
 
     const inputElements = Array.from(element.querySelectorAll('.input-field'));

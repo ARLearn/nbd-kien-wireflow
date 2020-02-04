@@ -30,7 +30,17 @@
             "styles": [
               "projects/app/src/styles.scss"
             ],
-            "scripts": []
+            "scripts": [
+              "./node_modules/gsap/dist/CSSRulePlugin.js",
+              "./node_modules/gsap/dist/Draggable.js",
+              "./node_modules/gsap/dist/EaselPlugin.js",
+              "./node_modules/gsap/dist/EasePack.js",
+              "./node_modules/gsap/dist/MotionPathPlugin.js",
+              "./node_modules/gsap/dist/PixiPlugin.js",
+              "./node_modules/gsap/dist/ScrollToPlugin.js",
+              "./node_modules/gsap/dist/TextPlugin.js",
+              "./node_modules/gsap/dist/gsap.js"
+            ]
           },
           "configurations": {
             "production": {
@@ -95,7 +105,9 @@
             "styles": [
               "projects/app/src/styles.scss"
             ],
-            "scripts": []
+            "scripts": [
+              "./node_modules/gsap/gsap-core.js"
+            ]
           }
         },
         "lint": {

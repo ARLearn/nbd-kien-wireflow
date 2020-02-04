@@ -3,9 +3,7 @@ import { Component, OnInit } from '@angular/core';
 @Component({
   selector: 'lib-wireflow',
   template: `
-    <p>
-      wireflow works!
-    </p>
+      <app-node-editor></app-node-editor>
   `,
   styles: []
 })

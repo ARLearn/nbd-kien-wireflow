@@ -1,8 +1,4 @@
 import { BehaviorSubject } from 'rxjs';
-import { gsap, TweenLite } from 'gsap/gsap-core';
-import { Draggable } from 'gsap/all';
-
-gsap.registerPlugin(Draggable, TweenLite);
 
 // @ts-ignore
 SVGElement.prototype.getTransformToElement = SVGElement.prototype.getTransformToElement || function(toElement) {
