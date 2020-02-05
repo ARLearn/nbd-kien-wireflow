@@ -35,6 +35,7 @@ export class WireflowComponent implements OnInit, AfterViewInit {
     this.wireflowService
       .connectorsOutputSubject
       .subscribe(x => {
+        console.log('FROM CONNS', x);
         this.connectors = x;
         const connectors = this.getConnectors(x);
         this.connectorsOutput = connectors;
@@ -78,17 +79,28 @@ export class WireflowComponent implements OnInit, AfterViewInit {
     if (this.messages && this.messages.length > 0) {
 
       return this.messages.map(x => {
-        const dependsOn = {
+        let dependsOn = {
           ...(x.dependsOn || {}),
         };
 
-        if (!dependsOn.dependencies) {
-          dependsOn.dependencies = [];
-        }
+        if (dependsOn.type && (dependsOn.type === 'org.celstec.arlearn2.beans.dependencies.AndDependency'
+         || dependsOn.type === 'org.celstec.arlearn2.beans.dependencies.OrDependency')) {
+          if (!dependsOn.dependencies) {
+            dependsOn.dependencies = [];
+          }
 
-        dependsOn.dependencies = messages
-          .filter(y => y.inputNode == x.id)
-          .map(c => ({ type: c.type, action: c.action, generalItemId: c.generalItemId }));
+          dependsOn.dependencies = messages
+            .filter(y => y.inputNode == x.id)
+            .map(c => ({ type: c.type, action: c.action, generalItemId: c.generalItemId }));
+        } else {
+          const mess = messages.find(y => y.inputNode == x.id);
+
+          if (mess) {
+            const { inputNode , ...depend } = mess;
+
+            dependsOn = depend;
+          }
+        }
 
         return { ...x, dependsOn };
       });
@@ -133,7 +145,8 @@ export class WireflowComponent implements OnInit, AfterViewInit {
       }
 
       if (x.type === 'org.celstec.arlearn2.beans.generalItem.MultipleChoiceAnswerItem'
-        || x.type === 'org.celstec.arlearn2.beans.generalItem.SingleChoiceTest') {
+        || x.type === 'org.celstec.arlearn2.beans.generalItem.SingleChoiceTest'
+      || x.type === 'org.celstec.arlearn2.beans.generalItem.MultipleChoiceTest') {
         outputs.push(
           {
             type: 'org.celstec.arlearn2.beans.dependencies.ActionDependency',
@@ -179,5 +192,7 @@ export class WireflowComponent implements OnInit, AfterViewInit {
       this.connectorElement,
       this.connectorLayer
     );
+
+    setTimeout(() => this.diagram.initState(this.messages), 200);
   }
 }

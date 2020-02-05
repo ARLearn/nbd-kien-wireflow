@@ -4,7 +4,7 @@ import {
   connectorLookup,
   diagramElement,
   dragProxy,
-  frag, init, portLookup,
+  frag, init, portLookup, ports,
   shapeElements,
   shapeLookup, shapes,
   svg
@@ -47,6 +47,43 @@ export class Diagram {
       onDragEnd: this.stopDragging,
       onPress: this.prepareTarget,
     });
+
+
+    console.log(shapeElements, 'SHAPE');
+    console.log(ports, 'PORTS');
+  }
+
+  initState(baseState: any[]) {
+    baseState.forEach(message => {
+
+      if (message.dependsOn && message.dependsOn.type && (
+           message.dependsOn.type === 'org.celstec.arlearn2.beans.dependencies.AndDependency' ||
+           message.dependsOn.type === 'org.celstec.arlearn2.beans.dependencies.OrDependency')) {
+
+        if (message.dependsOn && message.dependsOn.dependencies) {
+            message.dependsOn.dependencies.forEach(dep => {
+              this.drawConnector(dep, message);
+            });
+        }
+
+      } else {
+        if (message.dependsOn && message.dependsOn.generalItemId && message.dependsOn.action) {
+          this.drawConnector(message.dependsOn, message);
+        }
+
+      }
+    });
+  }
+
+  private drawConnector(dependency, message) {
+    const inputPort = ports.find(x => x.generalItemId == message.id && x.isInput);
+    const outputPort = ports.find(x => x.generalItemId == dependency.generalItemId && x.action === dependency.action && !x.isInput);
+
+    inputPort.createConnector();
+    inputPort.lastConnector.outputPort = outputPort;
+    outputPort.addConnector(inputPort.lastConnector);
+    inputPort.update();
+    outputPort.update();
   }
 
   stopDragging() {
