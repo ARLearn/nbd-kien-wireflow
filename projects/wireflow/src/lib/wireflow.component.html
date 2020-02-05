@@ -1,25 +1,12 @@
 <div class="content">
   <aside class="sidebar">
-    <div>
-      <h3 class="sidebar__title">Nodes: ()</h3>
+      <h3 class="sidebar__title">Dependencies: ({{ connectors.length }})</h3>
       <ul>
-        <li *ngFor="let node of messages" class="list-item">
-          <span class="list-item__heading">1</span>
-          <span class="list-item__meta">Inputs: 0 &bull; Outputs: 0</span>
+        <li *ngFor="let dependency of dependenciesOutput; let i = index" class="list-item list-item--orange">
+          <span class="list-item__heading">Dependency {{ i + 1 }}</span>
+          <span>{{ dependency | json }}</span>
         </li>
       </ul>
-    </div>
-    <div>
-      <h3 class="sidebar__title">Connectors: ({{ connectors.length }})</h3>
-      <ul>
-        <li *ngFor="let connector of connectorsOutput; let i = index" class="list-item list-item--orange">
-          <span class="list-item__heading">Connector {{ i + 1 }}</span>
-          <span>{{ connector | json }}</span>
-          <!--          <span class="list-item__meta">{{ connector.input.title }} - {{ connector.output.action }}</span>-->
-        </li>
-      </ul>
-    </div>
-
   </aside>
 
   <div class="main">
@@ -28,7 +15,7 @@
       <g id="diagram" data-drag="diagram:diagram" data-drag-type="diagram">
         <g id="node-layer">
 <!--          <g node *ngFor="let node of populatedNodes" [node]="node"></g>-->
-          <g class="node-container" *ngFor="let node of populatedNodes">
+          <g class="node-container" *ngFor="let node of populatedNodes" [attr.general-item-id]="node.id">
             <rect class="node-background" width="204" [attr.height]="getHeight(node) + 51" x="0" y="0" rx="6" ry="6" />
 
             <g class="node-header">

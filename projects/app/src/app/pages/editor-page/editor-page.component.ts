@@ -14,7 +14,6 @@ export class EditorPageComponent implements OnInit {
 
   async ngOnInit() {
     this.nodes = await (this.service.getData().toPromise());
-    console.log(this.nodes);
   }
 
   messagesChange(messages) {

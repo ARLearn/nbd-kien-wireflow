@@ -1,4 +1,8 @@
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, Subject } from 'rxjs';
+import { NodeShape } from './node-shape';
+import { NodePort } from './node-port';
+import { Connector } from './connector';
+import { ObjectMap } from '../utils';
 
 // @ts-ignore
 SVGElement.prototype.getTransformToElement = SVGElement.prototype.getTransformToElement || function(toElement) {
@@ -6,9 +10,9 @@ SVGElement.prototype.getTransformToElement = SVGElement.prototype.getTransformTo
 };
 
 export const bezierWeight = 0.675;
-export const shapeLookup = {};
-export const portLookup = {};
-export const connectorLookup = {};
+export const shapeLookup = {} as ObjectMap<NodeShape>;
+export const portLookup = {} as ObjectMap<NodePort>;
+export const connectorLookup = {} as ObjectMap<Connector>;
 
 export const ports = [];
 export const shapes = [];
@@ -25,6 +29,7 @@ export let connectorLayer;
 
 export let connectorsOutput = [];
 export const connectorsOutput$ = new BehaviorSubject(connectorsOutput);
+export const coordinatesOutput$ = new Subject();
 
 export function getNumberFromPixels(str) {
   return Number(str.slice(0, -2));
@@ -47,8 +52,6 @@ export function init(_diagramElement, _shapeElements, _svg, _dragProxy, _frag, _
   frag = _frag;
   connectorElement = _connectorEl;
   connectorLayer = _connectorLayer;
-
-  console.log(_diagramElement, _shapeElements, _svg, _dragProxy, _frag, _connectorEl, _connectorLayer, '====');
 }
 
 export const idCounter = counter();

@@ -1,8 +1,9 @@
 import { NodePort } from './node-port';
-import { idCounter, portLookup, ports } from './base';
+import { coordinatesOutput$, idCounter, portLookup, ports } from './base';
 
 export class NodeShape {
   id: string;
+  generalItemId: string;
   dragType: string;
   element: any;
   dragElement: any;
@@ -15,6 +16,8 @@ export class NodeShape {
     this.dragType = 'shape';
 
     element.setAttribute('data-drag', `${this.id}:shape`);
+
+    this.generalItemId = element.getAttribute('general-item-id');
 
     this.element = element;
     this.dragElement = element;
@@ -48,5 +51,9 @@ export class NodeShape {
     for (const output of this.outputs) {
       output.update();
     }
+  }
+
+  onDragEnd(x = null, y = null) {
+    coordinatesOutput$.next({ x, y, messageId: this.generalItemId });
   }
 }

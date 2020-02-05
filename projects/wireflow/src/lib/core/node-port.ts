@@ -1,5 +1,4 @@
 import {
-  connectorLayer,
   connectorLookup,
   connectorPool,
   connectorsOutput,
@@ -56,7 +55,7 @@ export class NodePort {
   }
 
   createConnector() {
-    let connector;
+    let connector: Connector;
 
     if (connectorPool.length) {
       connector = connectorPool.pop();

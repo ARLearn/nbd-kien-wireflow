@@ -10,14 +10,13 @@ import { Connector } from './core/connector';
   styleUrls: ['./wireflow.component.scss'],
 })
 export class WireflowComponent implements OnInit, AfterViewInit {
-
   @Input() messages: any[];
 
   @Output() messagesChange: any = new EventEmitter<any>();
 
   public populatedNodes: any;
   public connectors: any;
-  public connectorsOutput: any;
+  public dependenciesOutput: any;
 
   private diagram: Diagram;
   private svg: HTMLElement;
@@ -35,11 +34,23 @@ export class WireflowComponent implements OnInit, AfterViewInit {
     this.wireflowService
       .connectorsOutputSubject
       .subscribe(x => {
-        console.log('FROM CONNS', x);
         this.connectors = x;
         const connectors = this.getConnectors(x);
-        this.connectorsOutput = connectors;
+        this.dependenciesOutput = connectors;
         this.messagesChange.emit(this.populate(connectors));
+      });
+
+    this.wireflowService
+      .coordinatesOutputSubject
+      .subscribe((coordindates: any) => {
+        const result = this.populate(this.dependenciesOutput);
+        const mess = result.find(r => r.id == coordindates.messageId);
+        mess.authoringX = coordindates.x;
+        mess.authoringY = coordindates.y;
+
+        this.messages = result;
+
+        this.messagesChange.emit(result);
       });
   }
 
@@ -176,7 +187,6 @@ export class WireflowComponent implements OnInit, AfterViewInit {
 
     this.dragProxy = document.querySelector('#drag-proxy');
     this.shapeElements = Array.from(document.querySelectorAll('.node-container'));
-    console.log(document.querySelectorAll('.node-container'), '---0000');
 
     this.frag = document.createDocumentFragment();
     this.frag.appendChild(document.querySelector('.connector'));
@@ -190,7 +200,8 @@ export class WireflowComponent implements OnInit, AfterViewInit {
       this.dragProxy,
       this.frag,
       this.connectorElement,
-      this.connectorLayer
+      this.connectorLayer,
+      this.messages,
     );
 
     setTimeout(() => this.diagram.initState(this.messages), 200);

@@ -1,10 +1,8 @@
 import {
-  connectorElement,
-  connectorLayer,
   connectorLookup,
   diagramElement,
   dragProxy,
-  frag, init, portLookup, ports,
+  init, portLookup, ports,
   shapeElements,
   shapeLookup, shapes,
   svg
@@ -19,38 +17,45 @@ export class Diagram {
   draggable: any;
 
   // tslint:disable-next-line:variable-name
-  constructor(_diagramElement, _shapeElements, _svg, _dragProxy, _frag, _connectorEl, _connectorLayer) {
+  constructor(_diagramElement, _shapeElements, _svg, _dragProxy, _frag, _connectorEl, _connectorLayer, messages) {
     init(_diagramElement, _shapeElements, _svg, _dragProxy, _frag, _connectorEl, _connectorLayer);
 
     this.dragElement = this.element = diagramElement;
 
     shapeElements.forEach((element, i) => {
-      const shape = new NodeShape(element, 50 + i * 250, 50);
+      const message = messages.find(x => element.getAttribute('general-item-id') == x.id);
+      const shape = new NodeShape(element, Number(message.authoringX), Number(message.authoringY));
       shapeLookup[shape.id] = shape;
       shapes.push(shape);
     });
 
-    console.log(shapeElements);
-
     this.target = null;
     this.dragType = null;
-
-    this.dragTarget = this.dragTarget.bind(this);
-    this.prepareTarget = this.prepareTarget.bind(this);
-    this.stopDragging = this.stopDragging.bind(this);
 
     // @ts-ignore
     this.draggable = new Draggable(dragProxy, {
       allowContextMenu: true,
       trigger: svg,
-      onDrag: this.dragTarget,
-      onDragEnd: this.stopDragging,
-      onPress: this.prepareTarget,
+      onDrag: () => this.dragTarget(),
+      onDragEnd: e => this.stopDragging(this.getDragArgs(e)),
+      onPress: e => this.prepareTarget(this.getDragArgs(e)),
     });
 
+  }
 
-    console.log(shapeElements, 'SHAPE');
-    console.log(ports, 'PORTS');
+  private getDragArgs({target}: any) {
+    let drag;
+
+    // tslint:disable-next-line:no-conditional-assignment
+    while (!(drag = target.getAttribute('data-drag')) && target !== svg) {
+      target = target.parentNode;
+    }
+
+    drag = drag || 'diagram:diagram';
+    const split = drag.split(':');
+    const id = split[0];
+    const dragType = split[1];
+    return {target, id, dragType};
   }
 
   initState(baseState: any[]) {
@@ -86,25 +91,7 @@ export class Diagram {
     outputPort.update();
   }
 
-  stopDragging() {
-    this.target.onDragEnd && this.target.onDragEnd();
-  }
-
-  prepareTarget(event) {
-
-    let element = event.target;
-    let drag;
-
-    // tslint:disable-next-line:no-conditional-assignment
-    while (!(drag = element.getAttribute('data-drag')) && element !== svg) {
-      element = element.parentNode;
-    }
-
-    drag = drag || 'diagram:diagram';
-    const split = drag.split(':');
-    const id = split[0];
-    const dragType = split[1];
-
+  prepareTarget({id, dragType}) {    
     switch (dragType) {
       case 'diagram':
         this.target = this;
@@ -128,7 +115,6 @@ export class Diagram {
   }
 
   dragTarget() {
-
     // @ts-ignore
     TweenLite.set(this.target.dragElement, {
       x: `+=${this.draggable.deltaX}`,
@@ -136,5 +122,20 @@ export class Diagram {
     });
 
     this.target.onDrag && this.target.onDrag();
+  }
+
+  stopDragging({id, dragType}) {
+    switch (dragType) {
+      
+      case 'shape':
+        this.target = shapeLookup[id];
+        const {e, f} = this.target.dragElement.getCTM();
+        this.target.onDragEnd(e, f);
+        break;
+      
+      default:
+        this.target.onDragEnd && this.target.onDragEnd();
+        break;
+    }
   }
 }
