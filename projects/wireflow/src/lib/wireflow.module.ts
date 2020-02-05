@@ -1,14 +1,16 @@
 import { NgModule } from '@angular/core';
 import { WireflowComponent } from './wireflow.component';
-import { NodeEditorModule } from './node-editor/node-editor.module';
+import { WireflowService } from './wireflow.service';
+import { CommonModule } from '@angular/common';
 
 
 
 @NgModule({
   declarations: [WireflowComponent],
   imports: [
-    NodeEditorModule
+    CommonModule
   ],
-  exports: [WireflowComponent]
+  exports: [WireflowComponent],
+  providers: [WireflowService]
 })
 export class WireflowModule { }

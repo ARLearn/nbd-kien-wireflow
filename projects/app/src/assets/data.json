@@ -1,0 +1,141 @@
+[{
+  "type": "org.celstec.arlearn2.beans.generalItem.VideoObject",
+  "gameId": 5634472569470976,
+  "deleted": false,
+  "lastModificationDate": 1580734993352,
+  "id": 5645612305350656,
+  "scope": "user",
+  "name": "watch this video (if you have both the single and multiple choice correct)",
+  "dependsOn": {
+    "type": "org.celstec.arlearn2.beans.dependencies.AndDependency",
+    "dependencies": [{
+      "type": "org.celstec.arlearn2.beans.dependencies.ActionDependency",
+      "action": "answer_correct",
+      "generalItemId": 5732934090752000
+    },
+      {
+        "type": "org.celstec.arlearn2.beans.dependencies.ActionDependency",
+        "action": "read",
+        "generalItemId": 5738284646924288
+      }
+    ]
+  },
+  "description": "",
+  "autoLaunch": false,
+  "message": true
+}, {
+  "type": "org.celstec.arlearn2.beans.generalItem.NarratorItem",
+  "gameId": 5634472569470976,
+  "deleted": false,
+  "lastModificationDate": 1580719919259,
+  "id": 5657382461898752,
+  "scope": "user",
+  "name": "introduction",
+  "description": "",
+  "autoLaunch": false,
+  "message": true
+}, {
+  "type": "org.celstec.arlearn2.beans.generalItem.NarratorItem",
+  "gameId": 5634472569470976,
+  "deleted": false,
+  "lastModificationDate": 1580734840575,
+  "id": 5694038866919424,
+  "scope": "user",
+  "name": "You found me",
+  "description": "",
+  "dependsOn": {
+    "type": "org.celstec.arlearn2.beans.dependencies.ActionDependency",
+    "action": "read",
+    "generalItemId": 5724948068827136
+  },
+  "autoLaunch": false,
+  "richText": "You found the QR code and scanned it, now this message is unlocked",
+  "message": true
+}, {
+  "type": "org.celstec.arlearn2.beans.generalItem.ScanTag",
+  "gameId": 5634472569470976,
+  "deleted": false,
+  "lastModificationDate": 1580734759109,
+  "id": 5724948068827136,
+  "scope": "user",
+  "name": "Find a QR tag and scan it",
+  "description": "",
+  "autoLaunch": false,
+  "lng": 4.60214213281256,
+  "lat": 52.00731869088851,
+  "message": false
+}, {
+  "type": "org.celstec.arlearn2.beans.generalItem.NarratorItem",
+  "dependsOn": {
+    "type": "org.celstec.arlearn2.beans.dependencies.ProximityDependency",
+    "lng": 4.60214213281256,
+    "lat": 52.00731869088851,
+    "radius": 30
+  },
+  "gameId": 5634472569470976,
+  "deleted": false,
+  "lastModificationDate": 1580734959038,
+  "id": 5728005179572224,
+  "scope": "user",
+  "name": "location based",
+  "description": "",
+  "autoLaunch": false,
+  "richText": "I will appear when you enter Amsterdam",
+  "message": true
+}, {
+  "type": "org.celstec.arlearn2.beans.generalItem.SingleChoiceTest",
+  "gameId": 5634472569470976,
+  "deleted": false,
+  "lastModificationDate": 1580734280364,
+  "id": 5732934090752000,
+  "scope": "user",
+  "name": "An apple is a",
+  "description": "",
+  "autoLaunch": false,
+  "answers": [{
+    "type": "org.celstec.arlearn2.beans.generalItem.MultipleChoiceAnswerItem",
+    "isCorrect": true,
+    "feedback": "well done!",
+    "answer": "fruit",
+    "id": "u3GLP"
+  }, {
+    "type": "org.celstec.arlearn2.beans.generalItem.MultipleChoiceAnswerItem",
+    "isCorrect": false,
+    "feedback": "Nope, try again.",
+    "answer": "vegetable",
+    "id": "J7CyL"
+  }],
+  "showFeedback": true,
+  "message": true
+}, {
+  "type": "org.celstec.arlearn2.beans.generalItem.MultipleChoiceTest",
+  "gameId": 5634472569470976,
+  "deleted": false,
+  "lastModificationDate": 1580734403892,
+  "id": 5738284646924288,
+  "scope": "user",
+  "name": "What are mammals",
+  "description": "",
+  "label": "",
+  "autoLaunch": false,
+  "answers": [{
+    "type": "org.celstec.arlearn2.beans.generalItem.MultipleChoiceAnswerItem",
+    "isCorrect": true,
+    "feedback": "",
+    "answer": "a monkey",
+    "id": "T3t8m"
+  }, {
+    "type": "org.celstec.arlearn2.beans.generalItem.MultipleChoiceAnswerItem",
+    "isCorrect": true,
+    "feedback": "",
+    "answer": "a human",
+    "id": "MR7Gh"
+  }, {
+    "type": "org.celstec.arlearn2.beans.generalItem.MultipleChoiceAnswerItem",
+    "isCorrect": false,
+    "feedback": "",
+    "answer": "salmon",
+    "id": "ZqKEy"
+  }],
+  "message": true
+}]

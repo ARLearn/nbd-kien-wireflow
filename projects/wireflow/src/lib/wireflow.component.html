@@ -1,0 +1,91 @@
+<div class="content">
+  <aside class="sidebar">
+    <div>
+      <h3 class="sidebar__title">Nodes: ()</h3>
+      <ul>
+        <li *ngFor="let node of messages" class="list-item">
+          <span class="list-item__heading">1</span>
+          <span class="list-item__meta">Inputs: 0 &bull; Outputs: 0</span>
+        </li>
+      </ul>
+    </div>
+    <div>
+      <h3 class="sidebar__title">Connectors: ({{ connectors.length }})</h3>
+      <ul>
+        <li *ngFor="let connector of connectorsOutput; let i = index" class="list-item list-item--orange">
+          <span class="list-item__heading">Connector {{ i + 1 }}</span>
+          <span>{{ connector | json }}</span>
+          <!--          <span class="list-item__meta">{{ connector.input.title }} - {{ connector.output.action }}</span>-->
+        </li>
+      </ul>
+    </div>
+
+  </aside>
+
+  <div class="main">
+    <svg id="svg">
+
+      <g id="diagram" data-drag="diagram:diagram" data-drag-type="diagram">
+        <g id="node-layer">
+<!--          <g node *ngFor="let node of populatedNodes" [node]="node"></g>-->
+          <g class="node-container" *ngFor="let node of populatedNodes">
+            <rect class="node-background" width="204" [attr.height]="getHeight(node) + 51" x="0" y="0" rx="6" ry="6" />
+
+            <g class="node-header">
+              <rect class="header-round-rect" width="200" height="40" x="2" y="2" rx="4" ry="4" />
+              <rect class="header-rect" width="200" height="36" x="2" y="6" />
+              <text class="header-title" x="102" y="30">{{ node.name }}</text>
+            </g>
+
+            <g class="node-content">
+
+              <rect class="content-round-rect" width="200" [attr.height]="getHeight(node) + 5" x="2" y="44" rx="4" ry="4" />
+              <rect class="content-rect" width="200" [attr.height]="getHeight(node)" x="2" y="44" />
+
+              <g class="inputs">
+                <g class="input-field" *ngFor="let input of node.inputs; let i = index;" [attr.transform]="'translate(0, ' + 25 * (2 + i) + ')'" [attr.general-item-id]="input.generalItemId">
+                  <g class="port">
+                    <circle class="port-outer" cx="15" cy="10" r="7.5" />
+                    <circle class="port-inner" cx="15" cy="10" r="5" [id]="node.id + '-' + input.generalItemId" />
+                    <circle class="port-scrim" cx="15" cy="10" r="7.5" />
+                  </g>
+                  <text class="port-label" x="28" y="14">{{ input.title }}</text>
+                </g>
+              </g>
+
+              <g class="outputs">
+                <g class="output-field" *ngFor="let output of node.outputs; let i = index;"
+                   [attr.transform]="'translate(0, ' + 25 * (2 + i) + ')'"
+                   [attr.general-item-id]="output.generalItemId"
+                   [attr.action]="output.action"
+                   [attr.node-type]="output.type"
+                >
+                  <g class="port" data-clickable="false">
+                    <circle class="port-outer" cx="189" cy="10" r="7.5" />
+                    <circle class="port-inner" cx="189" cy="10" r="5" />
+                    <circle class="port-scrim" cx="189" cy="10" r="7.5" data-clickable="false" />
+                  </g>
+                  <text class="port-label" x="176" y="14">{{ output.action }}</text>
+                </g>
+              </g>
+
+            </g>
+          </g>
+        </g>
+
+        <g id="connections-layer"></g>
+
+        <g class="connector">
+
+          <path class="connector-path-outline" />
+          <path class="connector-path" />
+
+          <circle class="connector-handle input-handle" cx="0" cy="0" r="4" />
+          <circle class="connector-handle output-handle" cx="0" cy="0" r="4" />
+        </g>
+
+        <circle id="drag-proxy" cx="0" cy="0" r="1" fill="none" />
+      </g>
+    </svg>
+  </div>
+</div>

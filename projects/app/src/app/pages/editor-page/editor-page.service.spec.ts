@@ -1,12 +1,12 @@
 import { TestBed } from '@angular/core/testing';
 
-import { WireflowService } from './wireflow.service';
+import { EditorPageService } from './editor-page.service';
 
-describe('NodeEditorService', () => {
+describe('EditorPageService', () => {
   beforeEach(() => TestBed.configureTestingModule({}));
 
   it('should be created', () => {
-    const service: WireflowService = TestBed.get(WireflowService);
+    const service: EditorPageService = TestBed.get(EditorPageService);
     expect(service).toBeTruthy();
   });
 });
