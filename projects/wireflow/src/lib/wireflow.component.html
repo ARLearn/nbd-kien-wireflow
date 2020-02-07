@@ -1,6 +1,6 @@
 <div class="content">
   <aside class="sidebar">
-      <h3 class="sidebar__title">Dependencies: ({{ connectors.length }})</h3>
+      <h3 class="sidebar__title">Dependencies: ({{ dependenciesOutput.length }})</h3>
       <ul>
         <li *ngFor="let dependency of dependenciesOutput; let i = index" class="list-item list-item--orange">
           <span class="list-item__heading">Dependency {{ i + 1 }}</span>
@@ -68,6 +68,11 @@
           <path class="connector-path" />
 
           <circle class="connector-handle input-handle" cx="0" cy="0" r="4" />
+          <circle class="connector-handle middle-point" cx="2" cy="2" r="8" />
+          <g class="middle-point-add">
+            <circle class="connector-handle" cx="2" cy="2" r="16" />
+            <text x="-5" y="9" class="middle-point-font">+</text>
+          </g>
           <circle class="connector-handle output-handle" cx="0" cy="0" r="4" />
         </g>
 

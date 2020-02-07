@@ -15,6 +15,8 @@ export class Connector {
   staticElement: any;
   outputPort: any;
   staticPort: any;
+  middlePoint: any;
+  middlePointAdd: any;
 
   constructor() {
     this.id = `connector_${idCounter()}`;
@@ -25,9 +27,15 @@ export class Connector {
     this.pathOutline = this.element.querySelector('.connector-path-outline');
     this.inputHandle = this.element.querySelector('.input-handle');
     this.outputHandle = this.element.querySelector('.output-handle');
+    this.middlePoint = this.element.querySelector('.middle-point');
+    this.middlePointAdd = this.element.querySelector('.middle-point-add');
     this.element.setAttribute('focusable', 'true');
 
     this.element.onclick = this.onClick.bind(this);
+    this.middlePoint.onclick = (e) => this.onMiddlePointClick(e);
+    this.middlePointAdd.onclick = (e) => this.onMiddlePointAddClick(e);
+    this.element.onmouseenter = (e) => this.onHover(e);
+    this.element.onmouseleave = (e) => this.onHoverLeave(e);
   }
 
   init(port) {
@@ -55,7 +63,8 @@ export class Connector {
       y: port.global.y
     });
 
-
+    this.middlePoint.style.display = 'none';
+    this.middlePointAdd.style.display = 'none';
   }
 
   updatePath() {
@@ -83,6 +92,9 @@ export class Connector {
 
     this.path.setAttribute('d', data);
     this.pathOutline.setAttribute('d', data);
+
+    this.moveMiddlePoint(this.middlePoint);
+    this.moveMiddlePoint(this.middlePointAdd);
 
   }
 
@@ -209,5 +221,50 @@ export class Connector {
   deselect() {
     this.isSelected = false;
     this.initViewState();
+  }
+
+  private onHover(e: MouseEvent) {
+    this.moveMiddlePoint(this.middlePoint);
+
+    console.log(e, '---- HOVER');
+    this.middlePoint.style.display = 'block';
+  }
+
+  private onHoverLeave(e: MouseEvent) {
+    console.log(e, '---- LEAVE');
+    this.middlePoint.style.display = 'none';
+  }
+
+  private moveMiddlePoint(point) {
+    const prev = this.inputHandle._gsap;
+    const prevX = getNumberFromPixels(prev.x);
+    const prevY = getNumberFromPixels(prev.y);
+
+    const next = this.outputHandle._gsap;
+
+    const nextX = getNumberFromPixels(next.x);
+    const nextY = getNumberFromPixels(next.y);
+
+    // @ts-ignore
+    TweenLite.set(point, {
+      x: (prevX + nextX) / 2 - 1,
+      y: (prevY + nextY) / 2 - 3
+    });
+  }
+
+  private onMiddlePointClick(e: MouseEvent | Event) {
+    console.log('MIDDLE CLICK');
+
+    this.moveMiddlePoint(this.middlePointAdd);
+
+    this.middlePoint.style.display = 'none';
+    this.middlePointAdd.style.display = 'block';
+    e.stopPropagation();
+  }
+
+  private onMiddlePointAddClick(e: MouseEvent | Event) {
+    this.middlePointAdd.style.display = 'none';
+
+    e.stopPropagation();
   }
 }

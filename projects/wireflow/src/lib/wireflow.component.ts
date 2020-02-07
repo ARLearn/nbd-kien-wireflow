@@ -2,6 +2,7 @@ import { AfterViewInit, Component, EventEmitter, HostListener, Input, OnInit, Ou
 import { Diagram } from './core/diagram';
 import { WireflowService } from './wireflow.service';
 import { Connector } from './core/connector';
+import { Dependency, GameMessageCommon, DependencyUnion, MultipleChoiceScreen, ActionDependency, AndDependency } from './models/core';
 
 @Component({
   selector: 'lib-wireflow',
@@ -10,7 +11,7 @@ import { Connector } from './core/connector';
   styleUrls: ['./wireflow.component.scss'],
 })
 export class WireflowComponent implements OnInit, AfterViewInit {
-  @Input() messages: any[];
+  @Input() messages: GameMessageCommon[];
 
   @Output() messagesChange: any = new EventEmitter<any>();
 
@@ -32,30 +33,38 @@ export class WireflowComponent implements OnInit, AfterViewInit {
 
   constructor(private wireflowService: WireflowService) {
     this.wireflowService
-      .connectorsOutputSubject
+      .dependenciesOutput
       .subscribe(x => {
         this.connectors = x;
         const connectors = this.getConnectors(x);
-        this.dependenciesOutput = connectors;
-        this.messagesChange.emit(this.populate(connectors));
+        this.dependenciesOutput = this.populate(connectors);
+
+        this.wireflowService.initMessages(this.dependenciesOutput);
       });
 
     this.wireflowService
       .coordinatesOutputSubject
       .subscribe((coordindates: any) => {
-        const result = this.populate(this.dependenciesOutput);
+        const result = this.populate(this.getConnectors(this.connectors));
         const mess = result.find(r => r.id == coordindates.messageId);
+
         mess.authoringX = coordindates.x;
         mess.authoringY = coordindates.y;
 
         this.messages = result;
 
-        this.messagesChange.emit(result);
+        this.wireflowService.initMessages(this.messages);
       });
+
+    this.wireflowService.messagesChange.subscribe(x => {
+      this.messagesChange.emit(x);
+    });
   }
 
   async ngOnInit() {
     this.getNodes();
+
+    this.wireflowService.initMessages(this.populatedNodes);
   }
 
   getHeight(node) {
@@ -83,16 +92,16 @@ export class WireflowComponent implements OnInit, AfterViewInit {
       type: c.outputPort.nodeType,
       action: c.outputPort.action,
       generalItemId: c.outputPort.generalItemId,
-    }));
+    } as DependencyUnion));
   }
 
-  private populate(messages) {
+  private populate(messages: Dependency[]) {
     if (this.messages && this.messages.length > 0) {
 
       return this.messages.map(x => {
         let dependsOn = {
           ...(x.dependsOn || {}),
-        };
+        } as DependencyUnion & AndDependency;
 
         if (dependsOn.type && (dependsOn.type === 'org.celstec.arlearn2.beans.dependencies.AndDependency'
          || dependsOn.type === 'org.celstec.arlearn2.beans.dependencies.OrDependency')) {
@@ -101,19 +110,19 @@ export class WireflowComponent implements OnInit, AfterViewInit {
           }
 
           dependsOn.dependencies = messages
-            .filter(y => y.inputNode == x.id)
-            .map(c => ({ type: c.type, action: c.action, generalItemId: c.generalItemId }));
+            .filter((y: any) => y.inputNode == x.id)
+            .map((c: any) => ({ type: c.type, action: c.action, generalItemId: c.generalItemId } as ActionDependency));
         } else {
-          const mess = messages.find(y => y.inputNode == x.id);
+          const mess = messages.find((y: any) => y.inputNode == x.id);
 
           if (mess) {
-            const { inputNode , ...depend } = mess;
+            const { inputNode , ...depend } = mess as any;
 
             dependsOn = depend;
           }
         }
 
-        return { ...x, dependsOn };
+        return { ...x, dependsOn } as GameMessageCommon;
       });
     }
 
@@ -155,8 +164,7 @@ export class WireflowComponent implements OnInit, AfterViewInit {
         );
       }
 
-      if (x.type === 'org.celstec.arlearn2.beans.generalItem.MultipleChoiceAnswerItem'
-        || x.type === 'org.celstec.arlearn2.beans.generalItem.SingleChoiceTest'
+      if (x.type === 'org.celstec.arlearn2.beans.generalItem.SingleChoiceTest'
       || x.type === 'org.celstec.arlearn2.beans.generalItem.MultipleChoiceTest') {
         outputs.push(
           {
@@ -169,7 +177,7 @@ export class WireflowComponent implements OnInit, AfterViewInit {
             generalItemId: x.id,
             action: 'answer_incorrect'
           },
-          ...x.answers.map(a => ({
+          ...(x as MultipleChoiceScreen).answers.map(a => ({
             type: 'org.celstec.arlearn2.beans.dependencies.ActionDependency',
             generalItemId: x.id,
             action: `answer_${a.id}`

@@ -1,8 +1,10 @@
 import {
-  connectorLookup,
+  connectorElement,
+  connectorLayer,
+  connectorLookup, connectorsBaseState, connectorsOutput, connectorsOutput$,
   diagramElement,
   dragProxy,
-  init, portLookup, ports,
+  frag, init, portLookup, ports, setConnectorsOutput,
   shapeElements,
   shapeLookup, shapes,
   svg
@@ -78,20 +80,26 @@ export class Diagram {
 
       }
     });
+
+    setConnectorsOutput(connectorsBaseState);
   }
 
   private drawConnector(dependency, message) {
     const inputPort = ports.find(x => x.generalItemId == message.id && x.isInput);
     const outputPort = ports.find(x => x.generalItemId == dependency.generalItemId && x.action === dependency.action && !x.isInput);
 
-    inputPort.createConnector();
-    inputPort.lastConnector.outputPort = outputPort;
-    outputPort.addConnector(inputPort.lastConnector);
-    inputPort.update();
-    outputPort.update();
+    if (inputPort != null && outputPort != null) {
+      inputPort.createConnector();
+      inputPort.lastConnector.outputPort = outputPort;
+      outputPort.connectors.push(inputPort.lastConnector);
+      inputPort.update();
+      outputPort.update();
+
+      connectorsBaseState.push(inputPort.lastConnector);
+    }
   }
 
-  prepareTarget({id, dragType}) {    
+  prepareTarget({id, dragType}) {
     switch (dragType) {
       case 'diagram':
         this.target = this;
@@ -126,13 +134,13 @@ export class Diagram {
 
   stopDragging({id, dragType}) {
     switch (dragType) {
-      
+
       case 'shape':
         this.target = shapeLookup[id];
         const {e, f} = this.target.dragElement.getCTM();
         this.target.onDragEnd(e, f);
         break;
-      
+
       default:
         this.target.onDragEnd && this.target.onDragEnd();
         break;

@@ -1,10 +1,9 @@
 import {
+  addConnectorToOutput,
   connectorLookup,
   connectorPool,
-  connectorsOutput,
-  connectorsOutput$,
   diagramElement,
-  idCounter,
+  idCounter, removeConnectorFromOutput,
   svg
 } from './base';
 import { Connector } from './connector';
@@ -76,11 +75,7 @@ export class NodePort {
     if (index > -1) {
       this.connectors.splice(index, 1);
       if (connection.inputPort && connection.outputPort) {
-        const idx = connectorsOutput
-          .findIndex(c => c.inputPort.id === connection.inputPort.id && c.outputPort.id === connection.outputPort.id);
-
-        connectorsOutput.splice(idx, 1);
-        connectorsOutput$.next(connectorsOutput);
+        removeConnectorFromOutput(connection);
       }
     }
 
@@ -91,8 +86,7 @@ export class NodePort {
 
     if (!this.connectors.some(c => c.inputPort.id === connection.inputPort.id && c.outputPort.id === connection.outputPort.id)) {
       this.connectors.push(connection);
-      connectorsOutput.push(connection);
-      connectorsOutput$.next(connectorsOutput);
+      addConnectorToOutput(connection);
     }
   }
 

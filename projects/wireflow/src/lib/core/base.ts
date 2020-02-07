@@ -27,6 +27,7 @@ export let frag;
 export let connectorElement;
 export let connectorLayer;
 
+export let connectorsBaseState = [];
 export let connectorsOutput = [];
 export const connectorsOutput$ = new BehaviorSubject(connectorsOutput);
 export const coordinatesOutput$ = new Subject();
@@ -55,3 +56,20 @@ export function init(_diagramElement, _shapeElements, _svg, _dragProxy, _frag, _
 }
 
 export const idCounter = counter();
+
+export function setConnectorsOutput(connectors) {
+  connectorsOutput = [ ...connectors ];
+  connectorsOutput$.next(connectorsOutput);
+}
+
+export function addConnectorToOutput(connector) {
+  connectorsOutput = [ ...connectorsOutput, connector ];
+  connectorsOutput$.next(connectorsOutput);
+}
+
+export function removeConnectorFromOutput(connector) {
+  connectorsOutput = connectorsOutput
+    .filter(c => !(c.inputPort.id === connector.inputPort.id && c.outputPort.id === connector.outputPort.id));
+
+  connectorsOutput$.next(connectorsOutput);
+}
