@@ -26,8 +26,26 @@
   }
 }
 
+.connector-toolbar {
+  z-index: 100;
+
+  &__btn {
+    cursor: pointer;
+
+    rect {
+      fill: #b4b4b4;
+    }
+
+    &:hover {
+      rect {
+        fill: #e88802;
+      }
+    }
+  }
+}
+
 .middle-point,
-.middle-point-add {
+.connector-middle-point {
   cursor: pointer;
 }
 .middle-point-font {

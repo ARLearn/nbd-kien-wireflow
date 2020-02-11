@@ -1,4 +1,14 @@
-import { bezierWeight, connectorElement, connectorLayer, connectorPool, shapes, getNumberFromPixels, idCounter, } from './base';
+import {
+  bezierWeight,
+  connectorElement,
+  connectorLayer,
+  connectorPool,
+  shapes,
+  getNumberFromPixels,
+  idCounter,
+  singleDependenciesOutput$,
+} from './base';
+import { DependencyTypeAnd } from '../models/core';
 
 export class Connector {
   id: string;
@@ -17,6 +27,9 @@ export class Connector {
   staticPort: any;
   middlePoint: any;
   middlePointAdd: any;
+  connectorToolbar: any;
+  toolbarBtnAnd: any;
+  toolbarBtnOr: any;
 
   constructor() {
     this.id = `connector_${idCounter()}`;
@@ -28,14 +41,27 @@ export class Connector {
     this.inputHandle = this.element.querySelector('.input-handle');
     this.outputHandle = this.element.querySelector('.output-handle');
     this.middlePoint = this.element.querySelector('.middle-point');
-    this.middlePointAdd = this.element.querySelector('.middle-point-add');
+    this.middlePointAdd = this.element.querySelector('.connector-middle-point');
+    this.connectorToolbar = this.element.querySelector('.connector-toolbar');
+    this.toolbarBtnAnd = this.connectorToolbar.querySelector('.connector-toolbar__btn--and');
+    this.toolbarBtnOr = this.connectorToolbar.querySelector('.connector-toolbar__btn--or');
     this.element.setAttribute('focusable', 'true');
+
+    this.inputHandle.onmouseenter = (e) => e.stopPropagation();
+    this.outputHandle.onmouseenter = (e) => e.stopPropagation();
+    this.inputHandle.onmouseleave = (e) => e.stopPropagation();
+    this.outputHandle.onmouseleave = (e) => e.stopPropagation();
 
     this.element.onclick = this.onClick.bind(this);
     this.middlePoint.onclick = (e) => this.onMiddlePointClick(e);
     this.middlePointAdd.onclick = (e) => this.onMiddlePointAddClick(e);
     this.element.onmouseenter = (e) => this.onHover(e);
     this.element.onmouseleave = (e) => this.onHoverLeave(e);
+
+    this.toolbarBtnAnd.onclick = (e) => this.onToolbarClickAnd(e);
+    this.toolbarBtnOr.onclick = (e) => this.onToolbarClickOr(e);
+
+    this.connectorToolbar.style.display = 'none';
   }
 
   init(port) {
@@ -96,6 +122,15 @@ export class Connector {
     this.moveMiddlePoint(this.middlePoint);
     this.moveMiddlePoint(this.middlePointAdd);
 
+    if (this.middlePointAdd.style.display === 'block') {
+
+      if (this.outputPort && this.outputPort.nodeType !== 'org.celstec.arlearn2.beans.dependencies.AndDependency' &&
+          this.outputPort.nodeType !== 'org.celstec.arlearn2.beans.dependencies.OrDependency' &&
+          this.inputPort.connectors.length < 2
+      ) {
+        this.moveToolbar();
+      }
+    }
   }
 
   updateHandle(port) {
@@ -197,10 +232,16 @@ export class Connector {
   }
 
   onDrag() {
+    this.middlePoint.style.display = 'none';
+    this.middlePointAdd.style.display = 'none';
+
     this.updatePath();
   }
 
   onDragEnd() {
+    this.middlePoint.style.display = 'none';
+    this.middlePointAdd.style.display = 'none';
+
     this.placeHandle();
   }
 
@@ -214,7 +255,6 @@ export class Connector {
 
   onClick() {
     this.isSelected = !this.isSelected;
-
     this.initViewState();
   }
 
@@ -226,16 +266,23 @@ export class Connector {
   private onHover(e: MouseEvent) {
     this.moveMiddlePoint(this.middlePoint);
 
-    console.log(e, '---- HOVER');
-    this.middlePoint.style.display = 'block';
+    if ((this.inputPort && this.outputPort &&
+        this.outputPort.nodeType !== 'org.celstec.arlearn2.beans.dependencies.AndDependency' &&
+        this.outputPort.nodeType !== 'org.celstec.arlearn2.beans.dependencies.OrDependency'  &&
+        this.inputPort.connectors.length < 2)
+    ) {
+      this.middlePoint.style.display = 'block';
+    } else {
+      this.middlePointAdd.style.display = 'block';
+    }
   }
 
   private onHoverLeave(e: MouseEvent) {
-    console.log(e, '---- LEAVE');
     this.middlePoint.style.display = 'none';
+    this.middlePointAdd.style.display = 'none';
   }
 
-  private moveMiddlePoint(point) {
+  private getMiddlePointCoordinates() {
     const prev = this.inputHandle._gsap;
     const prevX = getNumberFromPixels(prev.x);
     const prevY = getNumberFromPixels(prev.y);
@@ -245,25 +292,95 @@ export class Connector {
     const nextX = getNumberFromPixels(next.x);
     const nextY = getNumberFromPixels(next.y);
 
+    return { x: (prevX + nextX) / 2 - 1, y: (prevY + nextY) / 2 - 3 };
+  }
+
+  private moveMiddlePoint(point) {
+    const coords = this.getMiddlePointCoordinates();
+
     // @ts-ignore
-    TweenLite.set(point, {
-      x: (prevX + nextX) / 2 - 1,
-      y: (prevY + nextY) / 2 - 3
+    TweenLite.set(point, coords);
+  }
+
+  private moveToolbar() {
+    const coords = this.getMiddlePointCoordinates();
+
+    // @ts-ignore
+    TweenLite.set(this.connectorToolbar, {
+      x: coords.x - 48,
+      y: coords.y + 16,
+      onStart: () => {
+        const middlePoints: any = document.querySelectorAll('.connector-middle-point');
+        const toolbars: any = document.querySelectorAll('.connector-toolbar');
+
+        Array.from(toolbars).forEach((t: any, i: number) => {
+          t.style.display = 'none';
+          middlePoints[i].style.display = 'none';
+        });
+
+      },
+      onComplete: () => {
+        this.connectorToolbar.style.display = 'block';
+        this.middlePointAdd.style.display = 'block';
+      }
     });
+
   }
 
   private onMiddlePointClick(e: MouseEvent | Event) {
-    console.log('MIDDLE CLICK');
-
     this.moveMiddlePoint(this.middlePointAdd);
 
     this.middlePoint.style.display = 'none';
     this.middlePointAdd.style.display = 'block';
+
+    if (this.outputPort.nodeType !== 'org.celstec.arlearn2.beans.dependencies.AndDependency' &&
+        this.outputPort.nodeType !== 'org.celstec.arlearn2.beans.dependencies.OrDependency'  &&
+        this.inputPort.connectors.length < 2
+    ) {
+      this.connectorToolbar.style.display = 'block';
+      this.moveToolbar();
+    }
+
     e.stopPropagation();
   }
 
   private onMiddlePointAddClick(e: MouseEvent | Event) {
-    this.middlePointAdd.style.display = 'none';
+    if (this.outputPort.nodeType !== 'org.celstec.arlearn2.beans.dependencies.AndDependency' &&
+        this.outputPort.nodeType !== 'org.celstec.arlearn2.beans.dependencies.OrDependency' &&
+        this.inputPort.connectors.length < 2
+    ) {
+      if (this.connectorToolbar.style.display === 'none') {
+        this.connectorToolbar.style.display = 'block';
+      } else {
+        this.connectorToolbar.style.display = 'none';
+        this.middlePointAdd.style.display = 'none';
+      }
+    }
+
+    e.stopPropagation();
+  }
+
+  private changeSingleDependencyType(type) {
+    if (this.outputPort.nodeType === 'org.celstec.arlearn2.beans.dependencies.ActionDependency') {
+      singleDependenciesOutput$.next({
+        connector: this,
+        type
+      });
+
+      this.outputPort.nodeType = type;
+
+      this.connectorToolbar.style.display = 'none';
+    }
+  }
+
+  private onToolbarClickAnd(e: MouseEvent | Event) {
+    this.changeSingleDependencyType('org.celstec.arlearn2.beans.dependencies.AndDependency');
+
+    e.stopPropagation();
+  }
+
+  private onToolbarClickOr(e: MouseEvent | Event) {
+    this.changeSingleDependencyType('org.celstec.arlearn2.beans.dependencies.OrDependency');
 
     e.stopPropagation();
   }

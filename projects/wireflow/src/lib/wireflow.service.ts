@@ -3,7 +3,7 @@ import { BehaviorSubject, Subject } from 'rxjs';
 import { distinct, map, pairwise } from 'rxjs/operators';
 import * as hash from 'object-hash';
 
-import { connectorsOutput$, coordinatesOutput$ } from './core/base';
+import { connectorsOutput$, coordinatesOutput$, singleDependenciesOutput$ } from './core/base';
 import { GameMessageCommon } from './models/core';
 
 interface MessageEditorStateModel {
@@ -23,6 +23,7 @@ export class WireflowService {
 
   get dependenciesOutput() { return connectorsOutput$.pipe(distinct()); }
   get coordinatesOutputSubject() { return coordinatesOutput$.pipe(distinct()); }
+  get singleDependenciesOutput() { return singleDependenciesOutput$.pipe(distinct()); }
 
   get messagesChange() {
     return this.stateSubject

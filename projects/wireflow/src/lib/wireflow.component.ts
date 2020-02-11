@@ -56,6 +56,12 @@ export class WireflowComponent implements OnInit, AfterViewInit {
         this.wireflowService.initMessages(this.messages);
       });
 
+    this.wireflowService.singleDependenciesOutput.subscribe((x: any) => {
+      const newMess = this.changeSingleDependency(x.type, x.connector);
+
+      this.wireflowService.initMessages(newMess);
+    });
+
     this.wireflowService.messagesChange.subscribe(x => {
       this.messagesChange.emit(x);
     });
@@ -213,5 +219,26 @@ export class WireflowComponent implements OnInit, AfterViewInit {
     );
 
     setTimeout(() => this.diagram.initState(this.messages), 200);
+  }
+
+  private changeSingleDependency(type, connector) {
+    const newMessages = this.messages.slice();
+
+    const message = newMessages.find(x => x.id == connector.inputPort.generalItemId);
+
+    const dependencySingle: any = { ...message.dependsOn };
+
+    if (!dependencySingle.action) {
+      dependencySingle.type = 'org.celstec.arlearn2.beans.dependencies.ActionDependency';
+      dependencySingle.action = connector.outputPort.action;
+      dependencySingle.generalItemId = connector.outputPort.id;
+    }
+
+    message.dependsOn = {
+      type,
+      dependencies: [ dependencySingle ]
+    };
+
+    return newMessages;
   }
 }
