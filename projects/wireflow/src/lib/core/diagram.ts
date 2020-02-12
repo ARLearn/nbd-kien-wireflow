@@ -100,6 +100,8 @@ export class Diagram {
       outputPort.update();
 
       connectorsBaseState.push(inputPort.lastConnector);
+
+      return inputPort.lastConnector;
     }
   }
 

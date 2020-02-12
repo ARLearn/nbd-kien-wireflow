@@ -37,8 +37,7 @@ export class WireflowService {
           }
 
           return hash.MD5(a) !== hash.MD5(b) ? b : a;
-        }),
-        distinct()
+        })
       );
   }
 

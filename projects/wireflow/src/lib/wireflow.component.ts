@@ -12,7 +12,7 @@ import {
 import { Diagram } from './core/diagram';
 import { WireflowService } from './wireflow.service';
 import { Connector } from './core/connector';
-import {init, shapeLookup, shapes} from './core/base';
+import {addConnectorToOutput, init, shapeLookup, shapes} from './core/base';
 import { ActionDependency, AndDependency, Dependency, DependencyUnion, GameMessageCommon, MultipleChoiceScreen } from './models/core';
 import { NodeShape } from './core/node-shape';
 
@@ -23,7 +23,7 @@ import { NodeShape } from './core/node-shape';
   styleUrls: ['./wireflow.component.scss'],
 })
 export class WireflowComponent implements OnInit, AfterViewInit {
-  @ViewChildren('label') public label: any;
+  @ViewChildren('nodes') public nodesFor: any;
 
   @Input() messages: GameMessageCommon[];
 
@@ -82,7 +82,14 @@ export class WireflowComponent implements OnInit, AfterViewInit {
       const message = this.populateNode({ name: '23123', type: x.dependency.type, id: x.dependency.generalItemId });
       const oldNodes = [ ...this.populatedNodes, message ];
 
+      const dependsNode: any = this.messages.find(y => y.id == x.id);
+
       const n = oldNodes.find(node => node.id == x.id);
+
+      if (dependsNode && dependsNode.dependsOn && dependsNode.dependsOn.dependencies) {
+        n.dependsOn = dependsNode.dependsOn;
+      }
+
       n.dependsOn.dependencies.push(x.dependency);
 
       this.lastAddedNode = message;
@@ -277,7 +284,7 @@ export class WireflowComponent implements OnInit, AfterViewInit {
   ngAfterViewInit(): void {
     this.init();
 
-    this.label.changes.subscribe(() => this.handleEndOfNgfor());
+    this.nodesFor.changes.subscribe(() => this.handleNodesRender());
   }
 
   private changeSingleDependency(type, connector) {
@@ -301,7 +308,7 @@ export class WireflowComponent implements OnInit, AfterViewInit {
     return newMessages;
   }
 
-  private handleEndOfNgfor() {
+  private handleNodesRender() {
     if (this.lastAddedNode) {
       const node = document.querySelector(`.node-container[general-item-id="${ this.lastAddedNode.id }"]`);
 
@@ -319,11 +326,11 @@ export class WireflowComponent implements OnInit, AfterViewInit {
 
       const dependency = message.dependsOn.dependencies.find(x => x.generalItemId == this.lastAddedNode.id);
 
-      this.diagram.drawConnector(dependency, message);
+      const connector = this.diagram.drawConnector(dependency, message);
+      addConnectorToOutput(connector);
 
       this.lastAddedNode = undefined;
-
-      this.wireflowService.initMessages(this.populatedNodes);
+      this.wireflowService.initMessages(this.messages);
     }
   }
 }
