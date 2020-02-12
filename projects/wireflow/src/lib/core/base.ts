@@ -32,6 +32,7 @@ export let connectorsOutput = [];
 export const connectorsOutput$ = new BehaviorSubject(connectorsOutput);
 export const coordinatesOutput$ = new Subject();
 export const singleDependenciesOutput$ = new Subject();
+export const newNodeOutput$ = new Subject();
 
 export function getNumberFromPixels(str) {
   return Number(str.slice(0, -2));

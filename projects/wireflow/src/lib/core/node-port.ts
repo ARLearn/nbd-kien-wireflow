@@ -23,6 +23,7 @@ export class NodePort {
   global: any;
   center: SVGPoint;
   lastConnector: any;
+  inputNodeType: any;
 
   constructor(parentNode, element, isInput) {
 
@@ -33,6 +34,7 @@ export class NodePort {
     this.isInput = isInput;
     this.generalItemId = element.getAttribute('general-item-id');
     this.nodeType = element.getAttribute('node-type');
+    this.inputNodeType = element.getAttribute('input-node-type');
     this.action = element.getAttribute('action');
 
     this.element = element;

@@ -1,8 +1,20 @@
-import { AfterViewInit, Component, EventEmitter, HostListener, Input, OnInit, Output } from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  EventEmitter,
+  HostListener,
+  Input,
+  OnInit,
+  Output,
+  ViewChild,
+  ViewChildren
+} from '@angular/core';
 import { Diagram } from './core/diagram';
 import { WireflowService } from './wireflow.service';
 import { Connector } from './core/connector';
-import { Dependency, GameMessageCommon, DependencyUnion, MultipleChoiceScreen, ActionDependency, AndDependency } from './models/core';
+import {init, shapeLookup, shapes} from './core/base';
+import { ActionDependency, AndDependency, Dependency, DependencyUnion, GameMessageCommon, MultipleChoiceScreen } from './models/core';
+import { NodeShape } from './core/node-shape';
 
 @Component({
   selector: 'lib-wireflow',
@@ -11,6 +23,8 @@ import { Dependency, GameMessageCommon, DependencyUnion, MultipleChoiceScreen, A
   styleUrls: ['./wireflow.component.scss'],
 })
 export class WireflowComponent implements OnInit, AfterViewInit {
+  @ViewChildren('label') public label: any;
+
   @Input() messages: GameMessageCommon[];
 
   @Output() messagesChange: any = new EventEmitter<any>();
@@ -27,6 +41,8 @@ export class WireflowComponent implements OnInit, AfterViewInit {
   private frag: DocumentFragment;
   private connectorElement: HTMLElement;
   private connectorLayer: HTMLElement;
+
+  private lastAddedNode: any;
 
   private heightPoint = 25.6;
 
@@ -48,8 +64,8 @@ export class WireflowComponent implements OnInit, AfterViewInit {
         const result = this.populate(this.getConnectors(this.connectors));
         const mess = result.find(r => r.id == coordindates.messageId);
 
-        mess.authoringX = coordindates.x;
-        mess.authoringY = coordindates.y;
+        mess.authoringX = coordindates.x || 0;
+        mess.authoringY = coordindates.y || 0;
 
         this.messages = result;
 
@@ -60,6 +76,17 @@ export class WireflowComponent implements OnInit, AfterViewInit {
       const newMess = this.changeSingleDependency(x.type, x.connector);
 
       this.wireflowService.initMessages(newMess);
+    });
+
+    this.wireflowService.newNodeOutput.subscribe((x: any) => {
+      const message = this.populateNode({ name: '23123', type: x.dependency.type, id: x.dependency.generalItemId });
+      const oldNodes = [ ...this.populatedNodes, message ];
+
+      const n = oldNodes.find(node => node.id == x.id);
+      n.dependsOn.dependencies.push(x.dependency);
+
+      this.lastAddedNode = message;
+      this.populatedNodes = this.messages = oldNodes;
     });
 
     this.wireflowService.messagesChange.subscribe(x => {
@@ -128,6 +155,10 @@ export class WireflowComponent implements OnInit, AfterViewInit {
           }
         }
 
+        if (dependsOn.dependencies && dependsOn.dependencies.length === 0) {
+          dependsOn = {} as any;
+        }
+
         return { ...x, dependsOn } as GameMessageCommon;
       });
     }
@@ -135,13 +166,35 @@ export class WireflowComponent implements OnInit, AfterViewInit {
     return [];
   }
 
+  private populateNode(message) {
+    return {
+      ...message,
+      inputs: [
+        {
+          generalItemId: message.id,
+          title: 'Input',
+          type: message.type || 'org.celstec.arlearn2.beans.dependencies.ActionDependency'
+        }
+      ],
+      outputs: [
+        {
+          type: message.type,
+          generalItemId: message.id,
+          action: 'read'
+        },
+      ]
+    };
+  }
+
   public getNodes() {
 
     this.populatedNodes = this.messages.map(x => {
+
       const inputs = [
         {
           generalItemId: x.id,
-          title: 'Input'
+          title: 'Input',
+          type: x.dependsOn.type || 'org.celstec.arlearn2.beans.dependencies.ActionDependency'
         }
       ];
       const outputs = [];
@@ -195,7 +248,7 @@ export class WireflowComponent implements OnInit, AfterViewInit {
     });
   }
 
-  ngAfterViewInit(): void {
+  private init() {
     this.svg = document.querySelector('#svg');
     this.diagramElement = document.querySelector('#diagram');
 
@@ -221,6 +274,12 @@ export class WireflowComponent implements OnInit, AfterViewInit {
     setTimeout(() => this.diagram.initState(this.messages), 200);
   }
 
+  ngAfterViewInit(): void {
+    this.init();
+
+    this.label.changes.subscribe(() => this.handleEndOfNgfor());
+  }
+
   private changeSingleDependency(type, connector) {
     const newMessages = this.messages.slice();
 
@@ -240,5 +299,31 @@ export class WireflowComponent implements OnInit, AfterViewInit {
     };
 
     return newMessages;
+  }
+
+  private handleEndOfNgfor() {
+    if (this.lastAddedNode) {
+      const node = document.querySelector(`.node-container[general-item-id="${ this.lastAddedNode.id }"]`);
+
+      const shape = new NodeShape(node, 0, 0);
+      shapeLookup[shape.id] = shape;
+      shapes.push(shape);
+
+      const message: any = this.messages
+        .find((x: any) =>
+          x.dependsOn && x.dependsOn.dependencies
+            && x.dependsOn.dependencies
+              .map(y => y.generalItemId)
+              .includes(this.lastAddedNode.id)
+        );
+
+      const dependency = message.dependsOn.dependencies.find(x => x.generalItemId == this.lastAddedNode.id);
+
+      this.diagram.drawConnector(dependency, message);
+
+      this.lastAddedNode = undefined;
+
+      this.wireflowService.initMessages(this.populatedNodes);
+    }
   }
 }

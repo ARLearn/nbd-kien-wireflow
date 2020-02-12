@@ -15,7 +15,7 @@
       <g id="diagram" data-drag="diagram:diagram" data-drag-type="diagram">
         <g id="node-layer">
 <!--          <g node *ngFor="let node of populatedNodes" [node]="node"></g>-->
-          <g class="node-container" *ngFor="let node of populatedNodes" [attr.general-item-id]="node.id">
+          <g class="node-container" #label *ngFor="let node of populatedNodes" [attr.general-item-id]="node.id">
             <rect class="node-background" width="204" [attr.height]="getHeight(node) + 51" x="0" y="0" rx="6" ry="6" />
 
             <g class="node-header">
@@ -30,7 +30,11 @@
               <rect class="content-rect" width="200" [attr.height]="getHeight(node)" x="2" y="44" />
 
               <g class="inputs">
-                <g class="input-field" *ngFor="let input of node.inputs; let i = index;" [attr.transform]="'translate(0, ' + 25 * (2 + i) + ')'" [attr.general-item-id]="input.generalItemId">
+                <g class="input-field" *ngFor="let input of node.inputs; let i = index;"
+                   [attr.transform]="'translate(0, ' + 25 * (2 + i) + ')'"
+                   [attr.general-item-id]="input.generalItemId"
+                   [attr.input-node-type]="input.type"
+                >
                   <g class="port">
                     <circle class="port-outer" cx="15" cy="10" r="7.5" />
                     <circle class="port-inner" cx="15" cy="10" r="5" [id]="node.id + '-' + input.generalItemId" />
@@ -73,7 +77,7 @@
             <circle class="connector-handle" cx="2" cy="2" r="16" />
             <text x="-5" y="9" class="middle-point-font">+</text>
           </g>
-          <g class="connector-toolbar">
+          <g class="connector-toolbar dependency-type-toolbar">
             <g class="connector-toolbar__btn connector-toolbar__btn--and" transform="translate(0, 0)">
               <rect width="32" height="32" class="connector-toolbar__btn" fill="red" />
               <svg version="1.1" x="4" y="4" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 512.008 512.008" width="24" height="24"><g><path d="M507.331,100.68l-96-96c-6.24-6.24-16.384-6.24-22.624,0l-96,96c-4.576,4.608-5.952,11.456-3.488,17.44 s8.32,9.888,14.784,9.888h48v44.48c0,16.288-7.968,31.264-21.344,40.128l-58.464,38.976c-5.472,3.584-10.848,7.744-16.192,12.576 c-5.344-4.832-10.688-8.96-16.096-12.512l-58.624-39.072c-13.312-8.832-21.28-23.808-21.28-40.096v-44.48h48 c6.464,0,12.32-3.904,14.784-9.888s1.088-12.832-3.456-17.44l-96-96c-6.24-6.24-16.384-6.24-22.624,0l-96,96c-4.576,4.608-5.952,11.456-3.488,17.44s8.32,9.888,14.784,9.888h48v44.48c0,48.32,23.968,93.12,64.096,119.872l58.624,39.072c13.312,8.832,21.28,23.808,21.28,40.096v124.48c0,8.832,7.168,16,16,16h64c8.832,0,16-7.168,16-16v-124.48 c0-16.288,7.968-31.264,21.344-40.128l58.56-39.04c40.128-26.752,64.096-71.552,64.096-119.872v-44.48h48 c6.464,0,12.32-3.904,14.784-9.888S511.875,105.288,507.331,100.68z"/></g></svg>
@@ -87,6 +91,23 @@
             <g class="connector-toolbar__btn" transform="translate(68, 0)">
               <rect width="32" height="32" class="connector-toolbar__btn" fill="red" />
               <svg x="4" y="4" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M12 2c5.514 0 10 4.486 10 10s-4.486 10-10 10-10-4.486-10-10 4.486-10 10-10zm0-2c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm1 12v-6h-2v8h7v-2h-5z"/></svg>
+            </g>
+          </g>
+
+          <g class="connector-toolbar action-toolbar">
+            <g class="connector-toolbar__btn connector-toolbar__btn--action-dependency" transform="translate(0, 0)">
+              <rect width="32" height="32" class="connector-toolbar__btn" fill="red" />
+              <svg x="4" y="4" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M24 17h-3v-3h-2v3h-3v2h3v3h2v-3h3v-2zm-10 5h-14v-20h7c1.695 1.942 2.371 3 4 3h13v7h-2v-5h-11c-2.34 0-3.537-1.388-4.916-3h-4.084v16h12v2z"/></svg>
+            </g>
+
+            <g class="connector-toolbar__btn connector-toolbar__btn--location" transform="translate(34, 0)">
+              <rect width="32" height="32" class="connector-toolbar__btn" fill="red" />
+              <svg x="4" y="4" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M12 0c-4.198 0-8 3.403-8 7.602 0 4.198 3.469 9.21 8 16.398 4.531-7.188 8-12.2 8-16.398 0-4.199-3.801-7.602-8-7.602zm0 11c-1.657 0-3-1.343-3-3s1.343-3 3-3 3 1.343 3 3-1.343 3-3 3z"/></svg>
+            </g>
+
+            <g class="connector-toolbar__btn connector-toolbar__btn--qr-scan" transform="translate(68, 0)">
+              <rect width="32" height="32" class="connector-toolbar__btn" fill="red" />
+              <svg x="4" y="4" width="24" height="24" viewBox="0 0 16 16"      xmlns="http://www.w3.org/2000/svg" version="1.1"      xmlns:xlink="http://www.w3.org/1999/xlink" id="s1">    <title>QR coder</title>    <desc>Manually edited diagram of qr code</desc>    <!--  <rect x="0" y="0" width="300" height="422" stroke="none" fill="#CFA"/>  -->  <g transform="scale(.5,.5)" fill="none" stroke="#000" stroke-width="2" stroke-linecap="butt">    <path id="A" d="M3,3 h8 v8 h-8 v-8 z M6,7 h2"/>    <use xlink:href="#A" x="18" y="0" />    <use xlink:href="#A" x="0" y="18" />    <path d="M18,3 h-3 v4 h2 v4 h-2 v3" />    <path d="M2,15 h2 m2,0 h4 m6,0 h2 m2,0 h4 m4,0 h2"/>    <path d="M4,17 h2 m2,0 h8 m6,0 h2 m2,0 h4" />    <path d="M14,19 h2 m2,0 h2 m6,0 h2" />    <path d="M16,21 h2 m2,0 h8"/>     <path d="M14,23 h2 m2,0 h2 m4,0 h2 m2,0 h2" />    <path d="M14,25 h4 m2,0 h2 m2, 0 h4" />    <path d="M14,27 h2 m6,0 h2 m4,0 h2" />    <path d="M16,29 h8 m2,0 h2"/>    </g>  <!-- vim:nowrap:sw=2:so=2:et:ai: -->  </svg>
             </g>
           </g>
           <circle class="connector-handle output-handle" cx="0" cy="0" r="4" />

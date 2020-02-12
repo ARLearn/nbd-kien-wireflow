@@ -6,7 +6,7 @@ import {
   shapes,
   getNumberFromPixels,
   idCounter,
-  singleDependenciesOutput$,
+  singleDependenciesOutput$, newNodeOutput$,
 } from './base';
 import { DependencyTypeAnd } from '../models/core';
 
@@ -28,8 +28,12 @@ export class Connector {
   middlePoint: any;
   middlePointAdd: any;
   connectorToolbar: any;
+  actionToolbar: any;
   toolbarBtnAnd: any;
   toolbarBtnOr: any;
+  toolbarBtnActionDependency: any;
+  toolbarBtnLocation: any;
+  toolbarBtnQrScan: any;
 
   constructor() {
     this.id = `connector_${idCounter()}`;
@@ -42,9 +46,17 @@ export class Connector {
     this.outputHandle = this.element.querySelector('.output-handle');
     this.middlePoint = this.element.querySelector('.middle-point');
     this.middlePointAdd = this.element.querySelector('.connector-middle-point');
-    this.connectorToolbar = this.element.querySelector('.connector-toolbar');
+
+    this.connectorToolbar = this.element.querySelector('.dependency-type-toolbar');
+    this.actionToolbar = this.element.querySelector('.action-toolbar');
+
     this.toolbarBtnAnd = this.connectorToolbar.querySelector('.connector-toolbar__btn--and');
     this.toolbarBtnOr = this.connectorToolbar.querySelector('.connector-toolbar__btn--or');
+
+    this.toolbarBtnActionDependency = this.actionToolbar.querySelector('.connector-toolbar__btn--action-dependency');
+    this.toolbarBtnLocation = this.actionToolbar.querySelector('.connector-toolbar__btn--location');
+    this.toolbarBtnQrScan = this.actionToolbar.querySelector('.connector-toolbar__btn--qr-scan');
+
     this.element.setAttribute('focusable', 'true');
 
     this.inputHandle.onmouseenter = (e) => e.stopPropagation();
@@ -61,7 +73,12 @@ export class Connector {
     this.toolbarBtnAnd.onclick = (e) => this.onToolbarClickAnd(e);
     this.toolbarBtnOr.onclick = (e) => this.onToolbarClickOr(e);
 
+    this.toolbarBtnActionDependency.onclick = (e) => this.onToolbarClickActionDependency(e);
+    this.toolbarBtnLocation.onclick = (e) => this.onToolbarClickLocation(e);
+    this.toolbarBtnQrScan.onclick = (e) => this.onToolbarClickQrScan(e);
+
     this.connectorToolbar.style.display = 'none';
+    this.actionToolbar.style.display = 'none';
   }
 
   init(port) {
@@ -90,7 +107,15 @@ export class Connector {
     });
 
     this.middlePoint.style.display = 'none';
-    this.middlePointAdd.style.display = 'none';
+
+    if (this.inputPort && (
+        this.inputPort.inputNodeType === 'org.celstec.arlearn2.beans.dependencies.AndDependency' ||
+        this.inputPort.inputNodeType === 'org.celstec.arlearn2.beans.dependencies.OrDependency')) {
+      this.middlePointAdd.style.display = 'block';
+      this.connectorToolbar.style.display = 'none';
+    } else {
+      this.middlePointAdd.style.display = 'none';
+    }
   }
 
   updatePath() {
@@ -122,15 +147,8 @@ export class Connector {
     this.moveMiddlePoint(this.middlePoint);
     this.moveMiddlePoint(this.middlePointAdd);
 
-    if (this.middlePointAdd.style.display === 'block') {
-
-      if (this.outputPort && this.outputPort.nodeType !== 'org.celstec.arlearn2.beans.dependencies.AndDependency' &&
-          this.outputPort.nodeType !== 'org.celstec.arlearn2.beans.dependencies.OrDependency' &&
-          this.inputPort.connectors.length < 2
-      ) {
-        this.moveToolbar();
-      }
-    }
+    this.moveToolbar(this.connectorToolbar);
+    this.moveToolbar(this.actionToolbar);
   }
 
   updateHandle(port) {
@@ -208,6 +226,7 @@ export class Connector {
   remove() {
 
     if (this.inputPort) {
+      this.inputPort.inputNodeType = 'org.celstec.arlearn2.beans.dependencies.ActionDependency';
       this.inputPort.removeConnector(this);
     } else if (this.outputPort) {
       this.outputPort.removeConnector(this);
@@ -232,15 +251,23 @@ export class Connector {
   }
 
   onDrag() {
-    this.middlePoint.style.display = 'none';
-    this.middlePointAdd.style.display = 'none';
+    // this.middlePoint.style.display = 'none';
+    // this.middlePointAdd.style.display = 'none';
 
     this.updatePath();
   }
 
   onDragEnd() {
     this.middlePoint.style.display = 'none';
-    this.middlePointAdd.style.display = 'none';
+
+    if ((this.inputPort && this.outputPort &&
+      this.inputPort.inputNodeType !== 'org.celstec.arlearn2.beans.dependencies.AndDependency' &&
+      this.inputPort.inputNodeType !== 'org.celstec.arlearn2.beans.dependencies.OrDependency')
+    ) {
+      this.middlePointAdd.style.display = 'none';
+    } else {
+      this.middlePointAdd.style.display = 'block';
+    }
 
     this.placeHandle();
   }
@@ -267,9 +294,8 @@ export class Connector {
     this.moveMiddlePoint(this.middlePoint);
 
     if ((this.inputPort && this.outputPort &&
-        this.outputPort.nodeType !== 'org.celstec.arlearn2.beans.dependencies.AndDependency' &&
-        this.outputPort.nodeType !== 'org.celstec.arlearn2.beans.dependencies.OrDependency'  &&
-        this.inputPort.connectors.length < 2)
+        this.inputPort.inputNodeType !== 'org.celstec.arlearn2.beans.dependencies.AndDependency' &&
+        this.inputPort.inputNodeType !== 'org.celstec.arlearn2.beans.dependencies.OrDependency')
     ) {
       this.middlePoint.style.display = 'block';
     } else {
@@ -279,7 +305,13 @@ export class Connector {
 
   private onHoverLeave(e: MouseEvent) {
     this.middlePoint.style.display = 'none';
-    this.middlePointAdd.style.display = 'none';
+
+    if (this.inputPort && (
+        this.inputPort.inputNodeType !== 'org.celstec.arlearn2.beans.dependencies.AndDependency' &&
+        this.inputPort.inputNodeType !== 'org.celstec.arlearn2.beans.dependencies.OrDependency')) {
+
+      this.middlePointAdd.style.display = 'none';
+    }
   }
 
   private getMiddlePointCoordinates() {
@@ -302,29 +334,19 @@ export class Connector {
     TweenLite.set(point, coords);
   }
 
-  private moveToolbar() {
+  private moveToolbar(toolbar) {
     const coords = this.getMiddlePointCoordinates();
 
     // @ts-ignore
-    TweenLite.set(this.connectorToolbar, {
+    TweenLite.set(toolbar, {
       x: coords.x - 48,
       y: coords.y + 16,
       onStart: () => {
-        const middlePoints: any = document.querySelectorAll('.connector-middle-point');
-        const toolbars: any = document.querySelectorAll('.connector-toolbar');
+        const toolbars: any = document.querySelectorAll(`.${toolbar.classList.value.split(' ').join('.')}`);
 
-        Array.from(toolbars).forEach((t: any, i: number) => {
-          t.style.display = 'none';
-          middlePoints[i].style.display = 'none';
-        });
-
-      },
-      onComplete: () => {
-        this.connectorToolbar.style.display = 'block';
-        this.middlePointAdd.style.display = 'block';
+        Array.from(toolbars).forEach((t: any) => t.style.display = 'none');
       }
     });
-
   }
 
   private onMiddlePointClick(e: MouseEvent | Event) {
@@ -333,27 +355,30 @@ export class Connector {
     this.middlePoint.style.display = 'none';
     this.middlePointAdd.style.display = 'block';
 
-    if (this.outputPort.nodeType !== 'org.celstec.arlearn2.beans.dependencies.AndDependency' &&
-        this.outputPort.nodeType !== 'org.celstec.arlearn2.beans.dependencies.OrDependency'  &&
+    if (this.inputPort.inputNodeType &&
+        this.inputPort.inputNodeType.nodeType !== 'org.celstec.arlearn2.beans.dependencies.AndDependency' &&
+        this.inputPort.inputNodeType.nodeType !== 'org.celstec.arlearn2.beans.dependencies.OrDependency'  &&
         this.inputPort.connectors.length < 2
     ) {
+      this.moveToolbar(this.connectorToolbar);
       this.connectorToolbar.style.display = 'block';
-      this.moveToolbar();
     }
 
     e.stopPropagation();
   }
 
   private onMiddlePointAddClick(e: MouseEvent | Event) {
-    if (this.outputPort.nodeType !== 'org.celstec.arlearn2.beans.dependencies.AndDependency' &&
-        this.outputPort.nodeType !== 'org.celstec.arlearn2.beans.dependencies.OrDependency' &&
-        this.inputPort.connectors.length < 2
-    ) {
-      if (this.connectorToolbar.style.display === 'none') {
-        this.connectorToolbar.style.display = 'block';
+    if (this.inputPort.inputNodeType && (
+        this.inputPort.inputNodeType === 'org.celstec.arlearn2.beans.dependencies.AndDependency' ||
+        this.inputPort.inputNodeType === 'org.celstec.arlearn2.beans.dependencies.OrDependency'
+    )) {
+      if (this.actionToolbar.style.display === 'none') {
+
+        this.moveToolbar(this.actionToolbar);
+        this.actionToolbar.style.display = 'block';
+
       } else {
-        this.connectorToolbar.style.display = 'none';
-        this.middlePointAdd.style.display = 'none';
+        this.actionToolbar.style.display = 'none';
       }
     }
 
@@ -367,9 +392,10 @@ export class Connector {
         type
       });
 
-      this.outputPort.nodeType = type;
+      this.inputPort.inputNodeType = type;
 
       this.connectorToolbar.style.display = 'none';
+      this.middlePointAdd.style.display = 'block';
     }
   }
 
@@ -383,5 +409,45 @@ export class Connector {
     this.changeSingleDependencyType('org.celstec.arlearn2.beans.dependencies.OrDependency');
 
     e.stopPropagation();
+  }
+
+  private onToolbarClickActionDependency(e: any) {
+    e.stopPropagation();
+
+    newNodeOutput$.next({
+      id: this.inputPort.generalItemId,
+      dependency: {
+        type: 'org.celstec.arlearn2.beans.dependencies.ActionDependency',
+        action: 'read',
+        // probably should be generated by random
+        generalItemId: Math.floor(Math.random() * 1000000000)
+      }
+    });
+  }
+
+  private onToolbarClickLocation(e: any) {
+    e.stopPropagation();
+
+    newNodeOutput$.next({
+      id: this.inputPort.generalItemId,
+      dependency: {
+        type: 'org.celstec.arlearn2.beans.dependencies.ProximityDependency',
+        action: 'read',
+        generalItemId: Math.floor(Math.random() * 1000000000)
+      }
+    });
+  }
+
+  private onToolbarClickQrScan(e: any) {
+    e.stopPropagation();
+
+    newNodeOutput$.next({
+      id: this.inputPort.generalItemId,
+      dependency: {
+        type: 'org.celstec.arlearn2.beans.dependencies.ScanTagDependency',
+        action: 'read',
+        generalItemId: Math.floor(Math.random() * 1000000000)
+      }
+    });
   }
 }

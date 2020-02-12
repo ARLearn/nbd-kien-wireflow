@@ -24,12 +24,7 @@ export class Diagram {
 
     this.dragElement = this.element = diagramElement;
 
-    shapeElements.forEach((element, i) => {
-      const message = messages.find(x => element.getAttribute('general-item-id') == x.id);
-      const shape = new NodeShape(element, Number(message.authoringX), Number(message.authoringY));
-      shapeLookup[shape.id] = shape;
-      shapes.push(shape);
-    });
+    this.initShapes(messages);
 
     this.target = null;
     this.dragType = null;
@@ -43,6 +38,15 @@ export class Diagram {
       onPress: e => this.prepareTarget(this.getDragArgs(e)),
     });
 
+  }
+
+  initShapes(messages) {
+    shapeElements.forEach((element, i) => {
+      const message = messages.find(x => element.getAttribute('general-item-id') == x.id);
+      const shape = new NodeShape(element, Number(message.authoringX), Number(message.authoringY));
+      shapeLookup[shape.id] = shape;
+      shapes.push(shape);
+    });
   }
 
   private getDragArgs({target}: any) {
@@ -84,7 +88,7 @@ export class Diagram {
     setConnectorsOutput(connectorsBaseState);
   }
 
-  private drawConnector(dependency, message) {
+  public drawConnector(dependency, message) {
     const inputPort = ports.find(x => x.generalItemId == message.id && x.isInput);
     const outputPort = ports.find(x => x.generalItemId == dependency.generalItemId && x.action === dependency.action && !x.isInput);
 
