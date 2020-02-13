@@ -12,9 +12,10 @@ import {
 import { Diagram } from './core/diagram';
 import { WireflowService } from './wireflow.service';
 import { Connector } from './core/connector';
-import {addConnectorToOutput, init, shapeLookup, shapes} from './core/base';
+import {addConnectorToOutput, createMiddleConnector, init, shapeLookup, shapes} from './core/base';
 import { ActionDependency, AndDependency, Dependency, DependencyUnion, GameMessageCommon, MultipleChoiceScreen } from './models/core';
 import { NodeShape } from './core/node-shape';
+import { MiddleConnector } from './core/middle-connector';
 
 @Component({
   selector: 'lib-wireflow',
@@ -45,6 +46,8 @@ export class WireflowComponent implements OnInit, AfterViewInit {
   private lastAddedNode: any;
 
   private heightPoint = 25.6;
+  private currentMiddleConnector: MiddleConnector;
+  private middleConnectors: any[] = [];
 
 
   constructor(private wireflowService: WireflowService) {
@@ -79,21 +82,32 @@ export class WireflowComponent implements OnInit, AfterViewInit {
     });
 
     this.wireflowService.newNodeOutput.subscribe((x: any) => {
-      const message = this.populateNode({ name: '23123', type: x.dependency.type, id: x.dependency.generalItemId });
-      const oldNodes = [ ...this.populatedNodes, message ];
+      this.currentMiddleConnector = new MiddleConnector(x.message.authoringX, x.message.authoringY, x.connector);
 
-      const dependsNode: any = this.messages.find(y => y.id == x.id);
+      x.connector.addMiddleConnector(this.currentMiddleConnector);
 
-      const n = oldNodes.find(node => node.id == x.id);
+      this.currentMiddleConnector.onClick = (event: MouseEvent) => {
+        const message = this.populateNode({ ...x.message, name: '23123', type: x.dependency.type, id: x.dependency.generalItemId });
+        const oldNodes = [ ...this.populatedNodes, message ];
 
-      if (dependsNode && dependsNode.dependsOn && dependsNode.dependsOn.dependencies) {
-        n.dependsOn = dependsNode.dependsOn;
-      }
+        const dependsNode: any = this.messages.find(y => y.id == x.id);
 
-      n.dependsOn.dependencies.push(x.dependency);
+        const n = oldNodes.find(node => node.id == x.id);
 
-      this.lastAddedNode = message;
-      this.populatedNodes = this.messages = oldNodes;
+        if (dependsNode && dependsNode.dependsOn && dependsNode.dependsOn.dependencies) {
+          n.dependsOn = dependsNode.dependsOn;
+        }
+
+        n.dependsOn.dependencies.push(x.dependency);
+
+        message.authoringX = event.offsetX;
+        message.authoringY = event.offsetY;
+
+        this.lastAddedNode = message;
+        this.populatedNodes = this.messages = oldNodes;
+      };
+
+      this.middleConnectors.push(this.currentMiddleConnector);
     });
 
     this.wireflowService.messagesChange.subscribe(x => {
@@ -127,12 +141,24 @@ export class WireflowComponent implements OnInit, AfterViewInit {
   }
 
   private getConnectors(connectors: Connector[]) {
-    return connectors.map(c => ({
+    // console.log(this.middleConnectors);
+    // tslint:disable-next-line:variable-name
+    const __connectors = connectors.map(c => ({
       inputNode: c.inputPort.generalItemId,
       type: c.outputPort.nodeType,
       action: c.outputPort.action,
       generalItemId: c.outputPort.generalItemId,
     } as DependencyUnion));
+
+    // tslint:disable-next-line:variable-name
+    const __middleConnectors = this.middleConnectors.map(c => ({
+      inputNode: c.parentConnector.inputPort.generalItemId,
+      type: c.outputPort.nodeType,
+      action: c.outputPort.action,
+      generalItemId: c.outputPort.generalItemId
+    } as DependencyUnion));
+
+    return [ ...__connectors, ...__middleConnectors ];
   }
 
   private populate(messages: Dependency[]) {
@@ -310,24 +336,27 @@ export class WireflowComponent implements OnInit, AfterViewInit {
 
   private handleNodesRender() {
     if (this.lastAddedNode) {
-      const node = document.querySelector(`.node-container[general-item-id="${ this.lastAddedNode.id }"]`);
-
-      const shape = new NodeShape(node, 0, 0);
-      shapeLookup[shape.id] = shape;
-      shapes.push(shape);
-
-      const message: any = this.messages
-        .find((x: any) =>
-          x.dependsOn && x.dependsOn.dependencies
-            && x.dependsOn.dependencies
-              .map(y => y.generalItemId)
-              .includes(this.lastAddedNode.id)
-        );
-
-      const dependency = message.dependsOn.dependencies.find(x => x.generalItemId == this.lastAddedNode.id);
-
-      const connector = this.diagram.drawConnector(dependency, message);
-      addConnectorToOutput(connector);
+      createMiddleConnector(this.lastAddedNode, this.currentMiddleConnector);
+      // const node = document.querySelector(`.node-container[general-item-id="${ this.lastAddedNode.id }"]`);
+      //
+      // const shape = new NodeShape(node, this.lastAddedNode.authoringX, this.lastAddedNode.authoringY);
+      // shapeLookup[shape.id] = shape;
+      // shapes.push(shape);
+      //
+      // // const message: any = this.messages
+      // //   .find((x: any) =>
+      // //     x.dependsOn && x.dependsOn.dependencies
+      // //       && x.dependsOn.dependencies
+      // //         .map(y => y.generalItemId)
+      // //         .includes(this.lastAddedNode.id)
+      // //   );
+      // //
+      // // const dependency = message.dependsOn.dependencies.find(x => x.generalItemId == this.lastAddedNode.id);
+      //
+      // shape.outputs[0].addMiddleConnector(this.currentMiddleConnector);
+      // this.currentMiddleConnector.setOutputPort(shape.outputs[0]);
+      // this.currentMiddleConnector.updateHandle(shape.outputs[0]);
+      // this.currentMiddleConnector.remove();
 
       this.lastAddedNode = undefined;
       this.wireflowService.initMessages(this.messages);

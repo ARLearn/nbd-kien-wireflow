@@ -9,6 +9,7 @@ import {
   singleDependenciesOutput$, newNodeOutput$,
 } from './base';
 import { DependencyTypeAnd } from '../models/core';
+import {MiddleConnector} from './middle-connector';
 
 export class Connector {
   id: string;
@@ -34,6 +35,7 @@ export class Connector {
   toolbarBtnActionDependency: any;
   toolbarBtnLocation: any;
   toolbarBtnQrScan: any;
+  middleConnectors: any[] = [];
 
   constructor() {
     this.id = `connector_${idCounter()}`;
@@ -149,10 +151,15 @@ export class Connector {
 
     this.moveToolbar(this.connectorToolbar);
     this.moveToolbar(this.actionToolbar);
+
+    const coords = this.getMiddlePointCoordinates();
+
+    for (const mc of this.middleConnectors) {
+      mc.updateMiddlePoint(coords.x, coords.y);
+    }
   }
 
   updateHandle(port) {
-
     if (port === this.inputPort) {
 
       // @ts-ignore
@@ -174,7 +181,6 @@ export class Connector {
   }
 
   placeHandle() {
-
     const skipShape = this.staticPort.parentNode.element;
 
     let hitPort;
@@ -441,13 +447,39 @@ export class Connector {
   private onToolbarClickQrScan(e: any) {
     e.stopPropagation();
 
+    const coords = this.getMiddlePointCoordinates();
+
     newNodeOutput$.next({
       id: this.inputPort.generalItemId,
+      message: {
+        authoringX: coords.x,
+        authoringY: coords.y
+      },
+      connector: this,
       dependency: {
         type: 'org.celstec.arlearn2.beans.dependencies.ScanTagDependency',
         action: 'read',
         generalItemId: Math.floor(Math.random() * 1000000000)
       }
     });
+
+    // const middleConnector = new MiddleConnector(coords.x, coords.y);
+    //
+    // middleConnector.onClick = (event: MouseEvent) => {
+    //
+    //
+    //   middleConnector.remove();
+    // };
+
+  }
+
+  public addMiddleConnector(middleConnector) {
+    this.middleConnectors.push(middleConnector);
+  }
+
+  public removeMiddleConnector(middleConnector) {
+    const idx = this.middleConnectors.indexOf(middleConnector);
+
+    this.middleConnectors.splice(idx, 1);
   }
 }

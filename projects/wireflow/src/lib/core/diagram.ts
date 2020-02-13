@@ -1,10 +1,8 @@
 import {
-  connectorElement,
-  connectorLayer,
-  connectorLookup, connectorsBaseState, connectorsOutput, connectorsOutput$,
+  connectorLookup, connectorsBaseState,
   diagramElement,
   dragProxy,
-  frag, init, portLookup, ports, setConnectorsOutput,
+  init, portLookup, ports, setConnectorsOutput,
   shapeElements,
   shapeLookup, shapes,
   svg
@@ -37,7 +35,6 @@ export class Diagram {
       onDragEnd: e => this.stopDragging(this.getDragArgs(e)),
       onPress: e => this.prepareTarget(this.getDragArgs(e)),
     });
-
   }
 
   initShapes(messages) {

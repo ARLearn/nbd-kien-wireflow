@@ -24,6 +24,7 @@ export class NodePort {
   center: SVGPoint;
   lastConnector: any;
   inputNodeType: any;
+  middleConnector: any;
 
   constructor(parentNode, element, isInput) {
 
@@ -99,9 +100,21 @@ export class NodePort {
     for (const connector of this.connectors) {
       connector.updateHandle(this);
     }
+
+    if (this.middleConnector) {
+      this.middleConnector.updateHandle(this);
+    }
   }
 
   clear() {
     this.connectors = this.connectors.filter(x => x.inputPort && x.outputPort);
+  }
+
+  public addMiddleConnector(middleConnector) {
+    this.middleConnector = middleConnector;
+  }
+
+  public removeMiddleConnector() {
+    this.middleConnector = undefined;
   }
 }
