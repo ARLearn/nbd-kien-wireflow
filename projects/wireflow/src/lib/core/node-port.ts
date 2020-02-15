@@ -3,7 +3,7 @@ import {
   connectorLookup,
   connectorPool,
   diagramElement,
-  idCounter, removeConnectorFromOutput,
+  idCounter,
   svg
 } from './base';
 import { Connector } from './connector';
@@ -77,9 +77,6 @@ export class NodePort {
 
     if (index > -1) {
       this.connectors.splice(index, 1);
-      if (connection.inputPort && connection.outputPort) {
-        removeConnectorFromOutput(connection);
-      }
     }
 
   }

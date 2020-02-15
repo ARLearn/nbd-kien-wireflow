@@ -1,13 +1,20 @@
-import {bezierWeight, connectorLayer, getNumberFromPixels, idCounter, svg} from './base';
-import {isNumber} from "util";
+import {
+  bezierWeight,
+  connectorLayer,
+  getNumberFromPixels,
+  idCounter,
+  ports,
+  removeMiddleConnectorFromOutput,
+  svg
+} from './base';
 
 export class MiddleConnector {
   id: string;
   onClick: any;
 
   connectorElement: any;
-  private readonly inputHandle: any;
-  private readonly outputHandle: any;
+  private inputHandle: any;
+  private outputHandle: any;
   private path: any;
   private pathOutline: any;
   outputPort: any;
@@ -15,6 +22,7 @@ export class MiddleConnector {
   baseX: number;
   baseY: number;
   parentConnector: any;
+  isSelected: boolean;
 
 
   constructor(x = 0, y = 0, parentConnector = null) {
@@ -30,6 +38,9 @@ export class MiddleConnector {
     this.baseX = x;
     this.baseY = y;
     this.parentConnector = parentConnector;
+    this.isSelected = false;
+
+    this.initViewState();
 
     // @ts-ignore
     TweenLite.set([this.inputHandle, this.outputHandle], {
@@ -38,9 +49,19 @@ export class MiddleConnector {
 
     svg.onmousemove = (e) => this.move(e);
 
-    this.connectorElement.onclick = (e) => this.onClick && this.onClick(e);
+    this.connectorElement.onclick = (e) => this.__onClick(e);
 
     connectorLayer.append(this.connectorElement);
+  }
+
+  private __onClick(e) {
+    if (this.outputPort) {
+      this.isSelected = !this.isSelected;
+      this.initViewState();
+    }
+
+    // tslint:disable-next-line:no-unused-expression
+    this.onClick && this.onClick(e);
   }
 
   move(e: MouseEvent) {
@@ -53,12 +74,45 @@ export class MiddleConnector {
     this.updatePath(e.offsetX, e.offsetY);
   }
 
+  remove() {
+    this.inputHandle = null;
+    this.outputHandle = null;
+    this.path = null;
+    this.pathOutline = null;
+
+    const port = ports.find(x => x.middleConnector == this);
+
+    if (port) {
+      port.removeMiddleConnector();
+    }
+
+    if (this.parentConnector) {
+      this.parentConnector.removeMiddleConnector(this);
+    }
+
+    connectorLayer.removeChild(this.connectorElement);
+    removeMiddleConnectorFromOutput(this);
+  }
+
+  initViewState() {
+    if (this.isSelected) {
+      this.pathOutline.classList.add('connector-path-outline--selected');
+    } else {
+      this.pathOutline.classList.remove('connector-path-outline--selected');
+    }
+  }
+
+  deselect() {
+    this.isSelected = false;
+    this.initViewState();
+  }
+
   updatePath(x = null, y = null) {
     const x1 = this.baseX;
     const y1 = this.baseY;
 
-    const x4 = isNumber(x) ? x : getNumberFromPixels(this.outputHandle._gsap.x);
-    const y4 = isNumber(y) ? y : getNumberFromPixels(this.outputHandle._gsap.y);
+    const x4 = Number.isFinite(x) ? x : getNumberFromPixels(this.outputHandle._gsap.x);
+    const y4 = Number.isFinite(y) ? y : getNumberFromPixels(this.outputHandle._gsap.y);
 
     const dx = Math.abs(x1 - x4) * bezierWeight;
 
@@ -80,7 +134,7 @@ export class MiddleConnector {
     this.pathOutline.setAttribute('d', data);
   }
 
-  public remove() {
+  public removeHandlers() {
     // connectorLayer.removeChild(this.connectorElement);
     svg.onmousemove = null;
     this.onClick = null;

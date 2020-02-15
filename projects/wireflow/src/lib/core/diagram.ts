@@ -1,5 +1,5 @@
 import {
-  connectorLookup, connectorsBaseState,
+  connectorLookup, connectorsBaseState, createMiddleConnector,
   diagramElement,
   dragProxy,
   init, portLookup, ports, setConnectorsOutput,
@@ -8,6 +8,7 @@ import {
   svg
 } from './base';
 import { NodeShape } from './node-shape';
+import { MiddleConnector } from './middle-connector';
 
 export class Diagram {
   dragElement: any;
@@ -68,10 +69,27 @@ export class Diagram {
            message.dependsOn.type === 'org.celstec.arlearn2.beans.dependencies.AndDependency' ||
            message.dependsOn.type === 'org.celstec.arlearn2.beans.dependencies.OrDependency')) {
 
-        if (message.dependsOn && message.dependsOn.dependencies) {
-            message.dependsOn.dependencies.forEach(dep => {
-              this.drawConnector(dep, message);
-            });
+        if (message.dependsOn && message.dependsOn.dependencies && message.dependsOn.dependencies.length > 0) {
+
+          const connector = this.drawConnector(message.dependsOn.dependencies[0], message);
+          const coords = connector.getMiddlePointCoordinates();
+
+          const shape = shapes.find(s => s.generalItemId == message.id);
+
+          for (let i = 1; i < message.dependsOn.dependencies.length; i++) {
+            const mc = createMiddleConnector(
+              message,
+              new MiddleConnector(coords.x, coords.y, connector),
+              shape || null, message.dependsOn.dependencies[i]
+            );
+
+            connector.addMiddleConnector(mc);
+          }
+
+          //
+          // message.dependsOn.dependencies.forEach(dep => {
+          //   this.drawConnector(dep, message);
+          // });
         }
 
       } else {

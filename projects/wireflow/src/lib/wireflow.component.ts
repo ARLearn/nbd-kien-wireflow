@@ -5,17 +5,25 @@ import {
   HostListener,
   Input,
   OnInit,
-  Output,
-  ViewChild,
+  Output, TemplateRef, ViewChild,
   ViewChildren
 } from '@angular/core';
+import { BsModalRef, BsModalService } from 'ngx-bootstrap';
+
 import { Diagram } from './core/diagram';
 import { WireflowService } from './wireflow.service';
 import { Connector } from './core/connector';
-import {addConnectorToOutput, createMiddleConnector, init, shapeLookup, shapes} from './core/base';
+import {
+  addConnectorToOutput, connectorsOutput, connectorsOutput$,
+  createMiddleConnector,
+  init,
+  middleConnectorsOutput,
+  shapeLookup,
+  shapes
+} from './core/base';
 import { ActionDependency, AndDependency, Dependency, DependencyUnion, GameMessageCommon, MultipleChoiceScreen } from './models/core';
-import { NodeShape } from './core/node-shape';
 import { MiddleConnector } from './core/middle-connector';
+import { ActionModalComponent } from './shared/action-modal/action-modal.component';
 
 @Component({
   selector: 'lib-wireflow',
@@ -47,10 +55,11 @@ export class WireflowComponent implements OnInit, AfterViewInit {
 
   private heightPoint = 25.6;
   private currentMiddleConnector: MiddleConnector;
-  private middleConnectors: any[] = [];
+  // private middleConnectors: any[] = [];
 
+  modalRef: BsModalRef;
 
-  constructor(private wireflowService: WireflowService) {
+  constructor(private wireflowService: WireflowService, private modalService: BsModalService) {
     this.wireflowService
       .dependenciesOutput
       .subscribe(x => {
@@ -82,32 +91,12 @@ export class WireflowComponent implements OnInit, AfterViewInit {
     });
 
     this.wireflowService.newNodeOutput.subscribe((x: any) => {
-      this.currentMiddleConnector = new MiddleConnector(x.message.authoringX, x.message.authoringY, x.connector);
 
-      x.connector.addMiddleConnector(this.currentMiddleConnector);
-
-      this.currentMiddleConnector.onClick = (event: MouseEvent) => {
-        const message = this.populateNode({ ...x.message, name: '23123', type: x.dependency.type, id: x.dependency.generalItemId });
-        const oldNodes = [ ...this.populatedNodes, message ];
-
-        const dependsNode: any = this.messages.find(y => y.id == x.id);
-
-        const n = oldNodes.find(node => node.id == x.id);
-
-        if (dependsNode && dependsNode.dependsOn && dependsNode.dependsOn.dependencies) {
-          n.dependsOn = dependsNode.dependsOn;
-        }
-
-        n.dependsOn.dependencies.push(x.dependency);
-
-        message.authoringX = event.offsetX;
-        message.authoringY = event.offsetY;
-
-        this.lastAddedNode = message;
-        this.populatedNodes = this.messages = oldNodes;
-      };
-
-      this.middleConnectors.push(this.currentMiddleConnector);
+      if (x.dependency.type.includes('ScanTag')) {
+        this.openModal(ActionModalComponent, { data: x, onSubmit: this.onQrTagSubmit.bind(this) });
+      } else {
+        this.initializeMiddleConnector(x);
+      }
     });
 
     this.wireflowService.messagesChange.subscribe(x => {
@@ -121,19 +110,33 @@ export class WireflowComponent implements OnInit, AfterViewInit {
     this.wireflowService.initMessages(this.populatedNodes);
   }
 
+  onQrTagSubmit(formValue: any, data: any) {
+    data.dependency.action = formValue.action;
+    this.modalRef.hide();
+    this.initializeMiddleConnector(data);
+  }
+
+  openModal(template: any, initialState = {}) {
+    this.modalRef = this.modalService.show(template, { initialState });
+  }
+
   getHeight(node) {
     return this.heightPoint * Math.max(node.inputs.length, node.outputs.length);
-    // return this.heightPoint * Math.max(4, 3);
   }
 
   @HostListener('document:keydown', ['$event'])
   onkeypress(event) {
     switch (event.code) {
       case 'Backspace':
-      case 'Delete':
+      case 'Delete': {
         this.connectors.filter(c => c.isSelected).forEach(x => x.remove());
+        middleConnectorsOutput.filter(mc => mc.isSelected).forEach(x => x.remove());
+        connectorsOutput$.next(connectorsOutput);
+      }
+      // tslint:disable-next-line:no-switch-case-fall-through
       case 'Escape':
         this.connectors.forEach(c => c.deselect());
+        middleConnectorsOutput.forEach(x => x.deselect());
         event.preventDefault();
         event.stopPropagation();
         break;
@@ -141,7 +144,6 @@ export class WireflowComponent implements OnInit, AfterViewInit {
   }
 
   private getConnectors(connectors: Connector[]) {
-    // console.log(this.middleConnectors);
     // tslint:disable-next-line:variable-name
     const __connectors = connectors.map(c => ({
       inputNode: c.inputPort.generalItemId,
@@ -151,7 +153,7 @@ export class WireflowComponent implements OnInit, AfterViewInit {
     } as DependencyUnion));
 
     // tslint:disable-next-line:variable-name
-    const __middleConnectors = this.middleConnectors.map(c => ({
+    const __middleConnectors = middleConnectorsOutput.map(c => ({
       inputNode: c.parentConnector.inputPort.generalItemId,
       type: c.outputPort.nodeType,
       action: c.outputPort.action,
@@ -183,8 +185,9 @@ export class WireflowComponent implements OnInit, AfterViewInit {
 
           if (mess) {
             const { inputNode , ...depend } = mess as any;
-
             dependsOn = depend;
+          } else {
+            dependsOn = {} as any;
           }
         }
 
@@ -213,7 +216,7 @@ export class WireflowComponent implements OnInit, AfterViewInit {
         {
           type: message.type,
           generalItemId: message.id,
-          action: 'read'
+          action: message.action || 'read'
         },
       ]
     };
@@ -313,6 +316,41 @@ export class WireflowComponent implements OnInit, AfterViewInit {
     this.nodesFor.changes.subscribe(() => this.handleNodesRender());
   }
 
+  private initializeMiddleConnector(x: any) {
+    this.currentMiddleConnector = new MiddleConnector(x.message.authoringX, x.message.authoringY, x.connector);
+
+    x.connector.addMiddleConnector(this.currentMiddleConnector);
+
+    this.currentMiddleConnector.onClick = (event: MouseEvent) => {
+      console.log('____', x);
+
+      const message = this.populateNode({
+        ...x.message,
+        name: '23123',
+        type: x.dependency.type,
+        action: x.dependency.action,
+        id: x.dependency.generalItemId
+      });
+      const oldNodes = [ ...this.populatedNodes, message ];
+
+      const dependsNode: any = this.messages.find(y => y.id == x.id);
+
+      const n = oldNodes.find(node => node.id == x.id);
+
+      if (dependsNode && dependsNode.dependsOn && dependsNode.dependsOn.dependencies) {
+        n.dependsOn = dependsNode.dependsOn;
+      }
+
+      n.dependsOn.dependencies.push(x.dependency);
+
+      message.authoringX = event.offsetX;
+      message.authoringY = event.offsetY;
+
+      this.lastAddedNode = message;
+      this.populatedNodes = this.messages = oldNodes;
+    };
+  }
+
   private changeSingleDependency(type, connector) {
     const newMessages = this.messages.slice();
 
@@ -337,27 +375,6 @@ export class WireflowComponent implements OnInit, AfterViewInit {
   private handleNodesRender() {
     if (this.lastAddedNode) {
       createMiddleConnector(this.lastAddedNode, this.currentMiddleConnector);
-      // const node = document.querySelector(`.node-container[general-item-id="${ this.lastAddedNode.id }"]`);
-      //
-      // const shape = new NodeShape(node, this.lastAddedNode.authoringX, this.lastAddedNode.authoringY);
-      // shapeLookup[shape.id] = shape;
-      // shapes.push(shape);
-      //
-      // // const message: any = this.messages
-      // //   .find((x: any) =>
-      // //     x.dependsOn && x.dependsOn.dependencies
-      // //       && x.dependsOn.dependencies
-      // //         .map(y => y.generalItemId)
-      // //         .includes(this.lastAddedNode.id)
-      // //   );
-      // //
-      // // const dependency = message.dependsOn.dependencies.find(x => x.generalItemId == this.lastAddedNode.id);
-      //
-      // shape.outputs[0].addMiddleConnector(this.currentMiddleConnector);
-      // this.currentMiddleConnector.setOutputPort(shape.outputs[0]);
-      // this.currentMiddleConnector.updateHandle(shape.outputs[0]);
-      // this.currentMiddleConnector.remove();
-
       this.lastAddedNode = undefined;
       this.wireflowService.initMessages(this.messages);
     }

@@ -21,7 +21,7 @@ export class WireflowService {
   };
   private stateSubject: Subject<MessageEditorStateModel> = new BehaviorSubject<MessageEditorStateModel>(this.state);
 
-  get dependenciesOutput() { return connectorsOutput$.pipe(distinct()); }
+  get dependenciesOutput() { return connectorsOutput$; }
   get coordinatesOutputSubject() { return coordinatesOutput$.pipe(distinct()); }
   get singleDependenciesOutput() { return singleDependenciesOutput$.pipe(distinct()); }
   get newNodeOutput() { return newNodeOutput$.pipe(distinct()); }
