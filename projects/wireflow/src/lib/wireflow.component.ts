@@ -5,7 +5,7 @@ import {
   HostListener,
   Input,
   OnInit,
-  Output, TemplateRef, ViewChild,
+  Output,
   ViewChildren
 } from '@angular/core';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap';
@@ -14,12 +14,9 @@ import { Diagram } from './core/diagram';
 import { WireflowService } from './wireflow.service';
 import { Connector } from './core/connector';
 import {
-  addConnectorToOutput, connectorsOutput, connectorsOutput$,
+  connectorsOutput, connectorsOutput$,
   createMiddleConnector,
-  init,
   middleConnectorsOutput,
-  shapeLookup,
-  shapes
 } from './core/base';
 import { ActionDependency, AndDependency, Dependency, DependencyUnion, GameMessageCommon, MultipleChoiceScreen } from './models/core';
 import { MiddleConnector } from './core/middle-connector';
@@ -85,9 +82,7 @@ export class WireflowComponent implements OnInit, AfterViewInit {
       });
 
     this.wireflowService.singleDependenciesOutput.subscribe((x: any) => {
-      const newMess = this.changeSingleDependency(x.type, x.connector);
-
-      this.wireflowService.initMessages(newMess);
+      this.changeSingleDependency(x.type, x.connector);
     });
 
     this.wireflowService.newNodeOutput.subscribe((x: any) => {
@@ -104,10 +99,9 @@ export class WireflowComponent implements OnInit, AfterViewInit {
     });
   }
 
-  async ngOnInit() {
-    this.getNodes();
-
-    this.wireflowService.initMessages(this.populatedNodes);
+  ngOnInit() {
+    this.messages = this.getNodes();
+    this.populatedNodes = this.messages.slice();
   }
 
   onQrTagSubmit(formValue: any, data: any) {
@@ -137,6 +131,13 @@ export class WireflowComponent implements OnInit, AfterViewInit {
       case 'Escape':
         this.connectors.forEach(c => c.deselect());
         middleConnectorsOutput.forEach(x => x.deselect());
+
+        if (this.currentMiddleConnector) {
+          this.currentMiddleConnector.removeHandlers();
+          this.currentMiddleConnector.remove();
+          this.currentMiddleConnector = null;
+        }
+
         event.preventDefault();
         event.stopPropagation();
         break;
@@ -187,7 +188,9 @@ export class WireflowComponent implements OnInit, AfterViewInit {
             const { inputNode , ...depend } = mess as any;
             dependsOn = depend;
           } else {
-            dependsOn = {} as any;
+            if (!( dependsOn.type && dependsOn.type.includes('Proximity'))) {
+              dependsOn = {} as any;
+            }
           }
         }
 
@@ -223,8 +226,7 @@ export class WireflowComponent implements OnInit, AfterViewInit {
   }
 
   public getNodes() {
-
-    this.populatedNodes = this.messages.map(x => {
+    return this.messages.map(x => {
 
       const inputs = [
         {
@@ -322,14 +324,13 @@ export class WireflowComponent implements OnInit, AfterViewInit {
     x.connector.addMiddleConnector(this.currentMiddleConnector);
 
     this.currentMiddleConnector.onClick = (event: MouseEvent) => {
-      console.log('____', x);
-
       const message = this.populateNode({
         ...x.message,
+        id: x.dependency.generalItemId,
         name: '23123',
         type: x.dependency.type,
         action: x.dependency.action,
-        id: x.dependency.generalItemId
+        dependsOn: {}
       });
       const oldNodes = [ ...this.populatedNodes, message ];
 
@@ -347,14 +348,14 @@ export class WireflowComponent implements OnInit, AfterViewInit {
       message.authoringY = event.offsetY;
 
       this.lastAddedNode = message;
-      this.populatedNodes = this.messages = oldNodes;
+      this.populatedNodes = oldNodes;
+      this.messages = this.populatedNodes;
     };
   }
 
   private changeSingleDependency(type, connector) {
-    const newMessages = this.messages.slice();
-
-    const message = newMessages.find(x => x.id == connector.inputPort.generalItemId);
+    const result = this.populate(this.getConnectors(this.connectors));
+    const message = result.find(r => r.id == connector.inputPort.generalItemId);
 
     const dependencySingle: any = { ...message.dependsOn };
 
@@ -369,13 +370,16 @@ export class WireflowComponent implements OnInit, AfterViewInit {
       dependencies: [ dependencySingle ]
     };
 
-    return newMessages;
+    this.messages = result;
+
+    this.wireflowService.initMessages(this.messages);
   }
 
   private handleNodesRender() {
     if (this.lastAddedNode) {
       createMiddleConnector(this.lastAddedNode, this.currentMiddleConnector);
-      this.lastAddedNode = undefined;
+      this.lastAddedNode = null;
+      this.currentMiddleConnector = null;
       this.wireflowService.initMessages(this.messages);
     }
   }

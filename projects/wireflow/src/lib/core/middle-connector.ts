@@ -1,6 +1,7 @@
 import {
   bezierWeight,
   connectorLayer,
+  getDiagramCoords,
   getNumberFromPixels,
   idCounter,
   ports,
@@ -24,11 +25,12 @@ export class MiddleConnector {
   parentConnector: any;
   isSelected: boolean;
 
-
-  constructor(x = 0, y = 0, parentConnector = null) {
+  constructor(x = 0, y = 0, parentConnector) {
     this.id = `connector_${idCounter()}`;
 
     this.connectorElement = document.querySelector('.middle-connector').cloneNode(true);
+
+    this.connectorElement.style.display = 'block';
 
     this.inputHandle = this.connectorElement.querySelector('.input-handle');
     this.outputHandle = this.connectorElement.querySelector('.output-handle');
@@ -47,11 +49,13 @@ export class MiddleConnector {
       x, y
     });
 
+    console.log({ svg });
+
     svg.onmousemove = (e) => this.move(e);
 
     this.connectorElement.onclick = (e) => this.__onClick(e);
 
-    connectorLayer.append(this.connectorElement);
+    connectorLayer.insertBefore(this.connectorElement, this.parentConnector.element);
   }
 
   private __onClick(e) {
@@ -65,13 +69,17 @@ export class MiddleConnector {
   }
 
   move(e: MouseEvent) {
+    const coords = getDiagramCoords();
+    const dx = coords.x;
+    const dy = coords.y;
+
     // @ts-ignore
     TweenLite.set(this.outputHandle, {
-      x: e.offsetX,
-      y: e.offsetY,
+      x: e.x - dx,
+      y: e.y - dy,
     });
 
-    this.updatePath(e.offsetX, e.offsetY);
+    this.updatePath(e.x - dx, e.y - dy);
   }
 
   remove() {
@@ -135,7 +143,6 @@ export class MiddleConnector {
   }
 
   public removeHandlers() {
-    // connectorLayer.removeChild(this.connectorElement);
     svg.onmousemove = null;
     this.onClick = null;
   }

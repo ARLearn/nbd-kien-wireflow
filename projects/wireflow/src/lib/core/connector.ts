@@ -34,6 +34,8 @@ export class Connector {
   toolbarBtnLocation: any;
   toolbarBtnQrScan: any;
   middleConnectors: any[] = [];
+  private pointAnd: any;
+  private pointOr: any;
 
   constructor() {
     this.id = `connector_${idCounter()}`;
@@ -46,6 +48,8 @@ export class Connector {
     this.outputHandle = this.element.querySelector('.output-handle');
     this.middlePoint = this.element.querySelector('.middle-point');
     this.middlePointAdd = this.element.querySelector('.connector-middle-point');
+    this.pointAnd = document.querySelector('.connector-middle-point-and').cloneNode(true);
+    this.pointOr = document.querySelector('.connector-middle-point-or').cloneNode(true);
 
     this.connectorToolbar = this.element.querySelector('.dependency-type-toolbar');
     this.actionToolbar = this.element.querySelector('.action-toolbar');
@@ -112,6 +116,17 @@ export class Connector {
         this.inputPort.inputNodeType === 'org.celstec.arlearn2.beans.dependencies.AndDependency' ||
         this.inputPort.inputNodeType === 'org.celstec.arlearn2.beans.dependencies.OrDependency')) {
       this.middlePointAdd.style.display = 'block';
+
+      if (this.inputPort.inputNodeType === 'org.celstec.arlearn2.beans.dependencies.AndDependency') {
+        this.middlePointAdd.appendChild(this.pointAnd);
+
+        this.pointAnd.style.display = 'block';
+      } else {
+        this.middlePointAdd.appendChild(this.pointOr);
+
+        this.pointOr.style.display = 'block';
+      }
+
       this.connectorToolbar.style.display = 'none';
     } else {
       this.middlePointAdd.style.display = 'none';
@@ -151,7 +166,7 @@ export class Connector {
     this.moveToolbar(this.actionToolbar);
 
     const coords = this.getMiddlePointCoordinates();
-    // console.log(this.middleConnectors);
+
     for (const mc of this.middleConnectors) {
       mc.updateMiddlePoint(coords.x, coords.y);
     }
@@ -415,6 +430,16 @@ export class Connector {
 
       this.connectorToolbar.style.display = 'none';
       this.middlePointAdd.style.display = 'block';
+
+      if (this.inputPort.inputNodeType === 'org.celstec.arlearn2.beans.dependencies.AndDependency') {
+        this.middlePointAdd.appendChild(this.pointAnd);
+
+        this.pointAnd.style.display = 'block';
+      } else {
+        this.middlePointAdd.appendChild(this.pointOr);
+
+        this.pointOr.style.display = 'block';
+      }
     }
   }
 
@@ -458,7 +483,7 @@ export class Connector {
       dependency: {
         type,
         action: 'read',
-        generalItemId: Math.floor(Math.random() * 1000000000)
+        generalItemId: Math.floor(Math.random() * 1000000000).toString()
       }
     });
   }

@@ -29,6 +29,7 @@ export let connectorLayer;
 
 export let connectorsBaseState = [];
 export let connectorsOutput = [];
+export let middleConnectorsOutput = [];
 export const connectorsOutput$ = new BehaviorSubject(connectorsOutput);
 export const coordinatesOutput$ = new Subject();
 export const singleDependenciesOutput$ = new Subject();
@@ -71,7 +72,64 @@ export function addConnectorToOutput(connector) {
 
 export function removeConnectorFromOutput(connector) {
   connectorsOutput = connectorsOutput
-    .filter(c => !(c.inputPort.id === connector.inputPort.id && c.outputPort.id === connector.outputPort.id));
+    .filter(c => c.id !== connector.id);
 
-  connectorsOutput$.next(connectorsOutput);
+  // connectorsOutput$.next(connectorsOutput);
+}
+
+export function addMiddleConnectorToOutput(mc) {
+  middleConnectorsOutput = [ ...middleConnectorsOutput, mc ];
+}
+
+export function removeMiddleConnectorFromOutput(mc) {
+  middleConnectorsOutput = middleConnectorsOutput.filter(m => m.id !== mc.id);
+}
+
+export function createMiddleConnector(node: any, currentMiddleConnector = null, nodeShape = null, dependency = null) {
+  // tslint:disable-next-line:variable-name
+  const __node = document.querySelector(`.node-container[general-item-id="${ node.id }"]`);
+
+  let shape = nodeShape;
+
+  if (nodeShape === null) {
+    const coords = getDiagramCoords();
+    const dx = coords.x;
+    const dy = coords.y;
+    shape = new NodeShape(__node, node.authoringX - dx, node.authoringY - dy);
+  }
+
+  shapeLookup[shape.id] = shape;
+  shapes.push(shape);
+
+  let output;
+
+  if (dependency !== null) {
+    output = ports.find(x => x.generalItemId == dependency.generalItemId && x.action === dependency.action && !x.isInput);
+  } else {
+    output = shape.outputs[0];
+  }
+
+  if (currentMiddleConnector) {
+    output.addMiddleConnector(currentMiddleConnector);
+    currentMiddleConnector.setOutputPort(output);
+    currentMiddleConnector.updateHandle(output);
+    currentMiddleConnector.removeHandlers();
+  }
+
+  addMiddleConnectorToOutput(currentMiddleConnector);
+  // middleConnectorsOutput.push(currentMiddleConnector);
+
+  return currentMiddleConnector;
+}
+
+export function getDiagramCoords() {
+  let x = 0;
+  let y = 0;
+
+  if (diagramElement._gsap) {
+    x = getNumberFromPixels(diagramElement._gsap.x);
+    y = getNumberFromPixels(diagramElement._gsap.y);
+  }
+
+  return { x, y };
 }

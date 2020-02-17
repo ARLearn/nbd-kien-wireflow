@@ -39,7 +39,7 @@ export class Diagram {
   }
 
   initShapes(messages) {
-    shapeElements.forEach((element, i) => {
+    shapeElements.forEach((element) => {
       const message = messages.find(x => element.getAttribute('general-item-id') == x.id);
       const shape = new NodeShape(element, Number(message.authoringX), Number(message.authoringY));
       shapeLookup[shape.id] = shape;
@@ -85,11 +85,6 @@ export class Diagram {
 
             connector.addMiddleConnector(mc);
           }
-
-          //
-          // message.dependsOn.dependencies.forEach(dep => {
-          //   this.drawConnector(dep, message);
-          // });
         }
 
       } else {
@@ -144,13 +139,16 @@ export class Diagram {
   }
 
   dragTarget() {
-    // @ts-ignore
-    TweenLite.set(this.target.dragElement, {
-      x: `+=${this.draggable.deltaX}`,
-      y: `+=${this.draggable.deltaY}`,
-    });
+    if (this.target) {
+      // @ts-ignore
 
-    this.target.onDrag && this.target.onDrag();
+      TweenLite.set(this.target.dragElement, {
+        x: `+=${this.draggable.deltaX}`,
+        y: `+=${this.draggable.deltaY}`,
+      });
+
+      this.target.onDrag && this.target.onDrag();
+    }
   }
 
   stopDragging({id, dragType}) {
@@ -162,9 +160,12 @@ export class Diagram {
         this.target.onDragEnd(e, f);
         break;
 
-      default:
-        this.target.onDragEnd && this.target.onDragEnd();
+      default: {
+        if (this.target) {
+          this.target.onDragEnd && this.target.onDragEnd();
+        }
         break;
+      }
     }
   }
 }

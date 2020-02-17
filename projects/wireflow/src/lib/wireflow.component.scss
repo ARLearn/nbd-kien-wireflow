@@ -52,48 +52,13 @@
   font-size: 1.5rem;
 }
 
-$sidebar-background: #426D92;
-//#426D92 - dark blue
-// #3C3C3C
 .content {
   display: flex;
   min-height: 100vh;
 }
-.sidebar {
-  max-width: 300px;
-  padding: 2rem 3rem;
-  background-color: $sidebar-background;
-
-  &__title {
-    margin: 1rem 0;
-    font-size: 1.2rem;
-    color: #ffffff;
-  }
-}
 .main {
   flex: 1;
 }
-.list-item {
-  padding: 0.5rem;
-  margin-bottom: 0.45rem;
-  background-color: #3C3C3C;
-  color: #ffffff;
-  border: 2px solid #1a1c1d;
-  border-radius: 6px;
-
-  &__heading {
-    display: block;
-    font-size: 1.1rem;
-    margin-bottom: 0.35rem;
-  }
-  &__meta {
-    font-size: 0.8rem;
-  }
-  &--orange {
-    background-color: #E88802;
-  }
-}
-
 svg {
   overflow: visible;
 }

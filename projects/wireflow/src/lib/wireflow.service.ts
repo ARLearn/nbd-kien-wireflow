@@ -15,7 +15,7 @@ interface MessageEditorStateModel {
   providedIn: 'root'
 })
 export class WireflowService {
-  private state: MessageEditorStateModel = {
+  state: MessageEditorStateModel = {
     messages: [],
     status: 'loading'
   };
@@ -32,17 +32,23 @@ export class WireflowService {
         map(x => x.messages),
         pairwise(),
         map(([a, b]: any) => {
-          if (a.length === b.length) {
-            return b.filter((el, i) => hash.MD5(el) !== hash.MD5(a[i]));
-          }
+          const minL = a.length <  b.length ? a : b;
+          const maxL = a.length >= b.length ? a : b;
 
-          return hash.MD5(a) !== hash.MD5(b) ? b : a;
+          return [
+            ...minL
+              .map((el, i) => hash.MD5(a[i]) !== hash.MD5(b[i]) ? b[i] : undefined)
+              .filter(x => !!x),
+            ...maxL.slice(minL.length)
+          ];
         })
       );
   }
 
   constructor() {
-    this.stateSubject.subscribe(x => { this.state = x; });
+    this.stateSubject.subscribe(x => {
+      this.state = x;
+    });
   }
 
   initMessages(messages: any[]) {
@@ -51,5 +57,4 @@ export class WireflowService {
       messages,
     });
   }
-
 }

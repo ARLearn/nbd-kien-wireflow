@@ -92,4 +92,4 @@ export interface ProximityDependency extends Dependency {
   radius: number;
 }
 
-export type DependencyUnion = ProximityDependency | AndDependency | OrDependency | TimeDependency | ActionDependency ;
+export type DependencyUnion = AndDependency | OrDependency | TimeDependency | ActionDependency | ProximityDependency;
