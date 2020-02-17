@@ -1,0 +1,116 @@
+[
+  {
+    "type": "org.celstec.arlearn2.beans.generalItem.VideoObject",
+    "gameId": 5634472569470976,
+    "deleted": false,
+    "lastModificationDate": 1580734993352,
+    "id": 5645612305350656,
+    "scope": "user",
+    "name": "watch this video (if you have both the single and multiple choice correct)",
+    "authoringX": 757.4480206205844,
+    "authoringY": 390.07700747480976,
+    "dependsOn": {
+      "type": "org.celstec.arlearn2.beans.dependencies.OrDependency",
+      "dependencies": [
+        {
+          "type": "org.celstec.arlearn2.beans.dependencies.TimeDependency",
+          "timeDelta": 30000,
+          "offset": {
+            "type": "org.celstec.arlearn2.beans.dependencies.ActionDependency",
+            "action": "answer_given",
+            "generalItemId": 5732934090752000
+          }
+        },
+        {
+          "type": "org.celstec.arlearn2.beans.dependencies.AndDependency",
+          "dependencies": [
+            {
+              "type": "org.celstec.arlearn2.beans.dependencies.ActionDependency",
+              "action": "answer_correct",
+              "generalItemId": "5732934090752000"
+            },
+            {
+              "type": "org.celstec.arlearn2.beans.dependencies.ActionDependency",
+              "action": "read",
+              "generalItemId": "5738284646924288"
+            }
+          ]
+        }
+      ]
+    },
+    "description": "",
+    "autoLaunch": false,
+    "message": true
+  },
+  {
+    "type": "org.celstec.arlearn2.beans.generalItem.SingleChoiceTest",
+    "gameId": 5634472569470976,
+    "deleted": false,
+    "lastModificationDate": 1580734280364,
+    "id": 5732934090752000,
+    "authoringX": 420.3946999999999,
+    "authoringY": 244.72069999999997,
+    "scope": "user",
+    "name": "An apple is a",
+    "description": "",
+    "autoLaunch": false,
+    "answers": [
+      {
+        "type": "org.celstec.arlearn2.beans.generalItem.MultipleChoiceAnswerItem",
+        "isCorrect": true,
+        "feedback": "well done!",
+        "answer": "fruit",
+        "id": "u3GLP"
+      },
+      {
+        "type": "org.celstec.arlearn2.beans.generalItem.MultipleChoiceAnswerItem",
+        "isCorrect": false,
+        "feedback": "Nope, try again.",
+        "answer": "vegetable",
+        "id": "J7CyL"
+      }
+    ],
+    "showFeedback": true,
+    "message": true,
+    "dependsOn": {}
+  },
+  {
+    "type": "org.celstec.arlearn2.beans.generalItem.MultipleChoiceTest",
+    "gameId": 5634472569470976,
+    "deleted": false,
+    "lastModificationDate": 1580734403892,
+    "id": 5738284646924288,
+    "scope": "user",
+    "authoringX": 420.33500398203705,
+    "authoringY": 481.7500143572688,
+    "name": "What are mammals",
+    "description": "",
+    "label": "",
+    "autoLaunch": false,
+    "answers": [
+      {
+        "type": "org.celstec.arlearn2.beans.generalItem.MultipleChoiceAnswerItem",
+        "isCorrect": true,
+        "feedback": "",
+        "answer": "a monkey",
+        "id": "T3t8m"
+      },
+      {
+        "type": "org.celstec.arlearn2.beans.generalItem.MultipleChoiceAnswerItem",
+        "isCorrect": true,
+        "feedback": "",
+        "answer": "a human",
+        "id": "MR7Gh"
+      },
+      {
+        "type": "org.celstec.arlearn2.beans.generalItem.MultipleChoiceAnswerItem",
+        "isCorrect": false,
+        "feedback": "",
+        "answer": "salmon",
+        "id": "ZqKEy"
+      }
+    ],
+    "message": true,
+    "dependsOn": {}
+  }
+]
