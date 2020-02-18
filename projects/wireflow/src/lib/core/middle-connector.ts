@@ -8,6 +8,7 @@ import {
   removeMiddleConnectorFromOutput,
   svg
 } from './base';
+import { NodeShape } from './node-shape';
 
 export class MiddleConnector {
   id: string;
@@ -24,13 +25,17 @@ export class MiddleConnector {
   baseY: number;
   parentConnector: any;
   isSelected: boolean;
+  dependencyType: any;
+  subType: any;
+  shape: NodeShape;
 
-  constructor(x = 0, y = 0, parentConnector) {
+  constructor(x = 0, y = 0, parentConnector, dependencyType = null, subtype = null) {
     this.id = `connector_${idCounter()}`;
 
     this.connectorElement = document.querySelector('.middle-connector').cloneNode(true);
 
     this.connectorElement.style.display = 'block';
+    this.connectorElement.classList.add('middle-connector--new');
 
     this.inputHandle = this.connectorElement.querySelector('.input-handle');
     this.outputHandle = this.connectorElement.querySelector('.output-handle');
@@ -40,6 +45,9 @@ export class MiddleConnector {
     this.baseX = x;
     this.baseY = y;
     this.parentConnector = parentConnector;
+    this.dependencyType = dependencyType;
+    this.subType = subtype;
+
     this.isSelected = false;
 
     this.initViewState();
@@ -49,9 +57,8 @@ export class MiddleConnector {
       x, y
     });
 
-    console.log({ svg });
-
     svg.onmousemove = (e) => this.move(e);
+    svg.onclick = (e) => this.__onClick(e);
 
     this.connectorElement.onclick = (e) => this.__onClick(e);
 
@@ -82,7 +89,7 @@ export class MiddleConnector {
     this.updatePath(e.x - dx, e.y - dy);
   }
 
-  remove() {
+  remove(onlyMiddleConnector = true) {
     this.inputHandle = null;
     this.outputHandle = null;
     this.path = null;
@@ -94,9 +101,13 @@ export class MiddleConnector {
       port.removeMiddleConnector();
     }
 
-    if (this.parentConnector) {
+    if (this.parentConnector && onlyMiddleConnector) {
       this.parentConnector.removeMiddleConnector(this);
+    } else {
+      this.parentConnector = null;
     }
+
+    // this.parentConnector = null;
 
     connectorLayer.removeChild(this.connectorElement);
     removeMiddleConnectorFromOutput(this);
@@ -144,11 +155,16 @@ export class MiddleConnector {
 
   public removeHandlers() {
     svg.onmousemove = null;
+    svg.onclick = null;
     this.onClick = null;
   }
 
   public setOutputPort(port) {
     this.outputPort = port;
+  }
+
+  public setShape(shape: NodeShape) {
+    this.shape = shape;
   }
 
   public updateMiddlePoint(x, y) {
@@ -169,7 +185,9 @@ export class MiddleConnector {
       x: port.global.x,
       y: port.global.y
     });
-    //
+
+    this.connectorElement.classList.remove('middle-connector--new');
+
     this.updatePath();
   }
 }

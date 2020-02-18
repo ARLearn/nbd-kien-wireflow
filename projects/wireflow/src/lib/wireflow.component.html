@@ -4,7 +4,13 @@
 
       <g id="diagram" data-drag="diagram:diagram" data-drag-type="diagram">
         <g id="node-layer">
-          <g class="node-container" #nodes *ngFor="let node of populatedNodes" [attr.general-item-id]="node.id">
+          <g
+            class="node-container" #nodes *ngFor="let node of populatedNodes"
+            [attr.general-item-id]="node.id"
+            [attr.dependency-type]="node.type"
+            (mouseenter)="onNodeMouseEnter($event)"
+            (mouseleave)="onNodeMouseLeave($event)"
+          >
             <rect class="node-background" width="204" [attr.height]="getHeight(node) + 51" x="0" y="0" rx="6" ry="6" />
 
             <g class="node-header">
@@ -102,7 +108,7 @@
           <circle class="connector-handle output-handle" cx="0" cy="0" r="4" />
         </g>
 
-        <g class="middle-connector" style="display: none;">
+        <g class="middle-connector middle-connector--new" style="display: none;">
 
           <path class="connector-path-outline" />
           <path class="connector-path" />

@@ -79,8 +79,12 @@ export class Diagram {
           for (let i = 1; i < message.dependsOn.dependencies.length; i++) {
             const mc = createMiddleConnector(
               message,
-              new MiddleConnector(coords.x, coords.y, connector),
-              shape || null, message.dependsOn.dependencies[i]
+              new MiddleConnector(
+                coords.x, coords.y, connector,
+                message.dependsOn.dependencies[i].type,
+                message.dependsOn.dependencies[i].subtype
+              ),
+              shape || null, message.dependsOn.dependencies[i],
             );
 
             connector.addMiddleConnector(mc);

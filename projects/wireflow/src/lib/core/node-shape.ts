@@ -9,6 +9,7 @@ export class NodeShape {
   dragElement: any;
   inputs: NodePort[];
   outputs: NodePort[];
+  dependencyType: string;
 
   constructor(element, x, y) {
 
@@ -18,6 +19,7 @@ export class NodeShape {
     element.setAttribute('data-drag', `${this.id}:shape`);
 
     this.generalItemId = element.getAttribute('general-item-id');
+    this.dependencyType = element.getAttribute('dependency-type');
 
     this.element = element;
     this.dragElement = element;

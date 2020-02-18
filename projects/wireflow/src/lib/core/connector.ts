@@ -6,7 +6,9 @@ import {
   shapes,
   getNumberFromPixels,
   idCounter,
-  singleDependenciesOutput$, newNodeOutput$, removeConnectorFromOutput,
+  singleDependenciesOutput$,
+  newNodeOutput$,
+  removeConnectorFromOutput,
 } from './base';
 
 export class Connector {
@@ -274,10 +276,10 @@ export class Connector {
     connectorLayer.removeChild(this.element);
 
     for (const mc of this.middleConnectors) {
-      mc.remove();
-      this.removeMiddleConnector(mc);
+      mc.remove(false);
     }
 
+    this.middleConnectors = [];
     removeConnectorFromOutput(this);
 
     this.initViewState();
@@ -467,10 +469,11 @@ export class Connector {
 
   private onToolbarClickQrScan(e: any) {
     e.stopPropagation();
-    this.createNode('org.celstec.arlearn2.beans.dependencies.ScanTagDependency');
+    this.createNode('org.celstec.arlearn2.beans.dependencies.ActionDependency', 'scantag');
   }
 
-  private createNode(type) {
+  // tslint:disable-next-line:no-unnecessary-initializer
+  private createNode(type, subtype = undefined) {
     const coords = this.getMiddlePointCoordinates();
 
     newNodeOutput$.next({
@@ -482,6 +485,7 @@ export class Connector {
       connector: this,
       dependency: {
         type,
+        subtype,
         action: 'read',
         generalItemId: Math.floor(Math.random() * 1000000000).toString()
       }

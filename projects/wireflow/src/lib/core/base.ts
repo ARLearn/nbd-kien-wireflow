@@ -91,15 +91,16 @@ export function createMiddleConnector(node: any, currentMiddleConnector = null, 
 
   let shape = nodeShape;
 
+  const coords = getDiagramCoords();
+  const dx = coords.x;
+  const dy = coords.y;
+
   if (nodeShape === null) {
-    const coords = getDiagramCoords();
-    const dx = coords.x;
-    const dy = coords.y;
     shape = new NodeShape(__node, node.authoringX - dx, node.authoringY - dy);
+    shapeLookup[shape.id] = shape;
+    shapes.push(shape);
   }
 
-  shapeLookup[shape.id] = shape;
-  shapes.push(shape);
 
   let output;
 

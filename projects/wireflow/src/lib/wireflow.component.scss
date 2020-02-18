@@ -65,10 +65,22 @@ svg {
 
 .node-container {
   cursor: move;
+
+  &.border--danger {
+    .node-background {
+      stroke: var(--danger);
+    }
+  }
+  &.border--success {
+    .node-background {
+      stroke: var(--success);
+    }
+  }
 }
 
 .node-background {
   fill: #1a1c1d;
+  stroke-width: 3px;
 }
 
 .node-header {
@@ -116,4 +128,9 @@ svg {
   .port-label {
     text-anchor: end;
   }
+}
+
+
+.middle-connector--new {
+  pointer-events: none;
 }

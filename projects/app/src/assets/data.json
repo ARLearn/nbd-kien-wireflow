@@ -21,6 +21,12 @@
           "type": "org.celstec.arlearn2.beans.dependencies.ActionDependency",
           "action": "read",
           "generalItemId": "5738284646924288"
+        },
+        {
+          "type": "org.celstec.arlearn2.beans.dependencies.ActionDependency",
+          "action": "1234",
+          "generalItemId": "5724948068827136",
+          "subtype": "scantag"
         }
       ]
     },
