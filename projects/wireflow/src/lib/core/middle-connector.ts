@@ -9,27 +9,30 @@ import {
   svg
 } from './base';
 import { NodeShape } from './node-shape';
+import { BaseConnector } from './base-connector';
+import { MiddlePoint } from './middle-point';
+import { NodePort } from './node-port';
 
-export class MiddleConnector {
+export class MiddleConnector extends BaseConnector {
   id: string;
   onClick: any;
 
   connectorElement: any;
-  private inputHandle: any;
-  private outputHandle: any;
+
   private path: any;
   private pathOutline: any;
-  outputPort: any;
+  outputPort: NodePort;
 
   baseX: number;
   baseY: number;
-  parentConnector: any;
+  middlePoint: MiddlePoint;
   isSelected: boolean;
   dependencyType: any;
   subType: any;
   shape: NodeShape;
 
-  constructor(x = 0, y = 0, parentConnector, dependencyType = null, subtype = null) {
+  constructor(x = 0, y = 0, middlePoint, dependencyType = null, subtype = null) {
+    super();
     this.id = `connector_${idCounter()}`;
 
     this.connectorElement = document.querySelector('.middle-connector').cloneNode(true);
@@ -44,7 +47,7 @@ export class MiddleConnector {
 
     this.baseX = x;
     this.baseY = y;
-    this.parentConnector = parentConnector;
+    this.middlePoint = middlePoint;
     this.dependencyType = dependencyType;
     this.subType = subtype;
 
@@ -62,7 +65,11 @@ export class MiddleConnector {
 
     this.connectorElement.onclick = (e) => this.__onClick(e);
 
-    connectorLayer.insertBefore(this.connectorElement, this.parentConnector.element);
+    if (this.middlePoint && this.middlePoint.element) {
+      connectorLayer.insertBefore(this.connectorElement, this.middlePoint.element);
+    } else {
+      connectorLayer.append(this.connectorElement);
+    }
   }
 
   private __onClick(e) {
@@ -101,13 +108,15 @@ export class MiddleConnector {
       port.removeMiddleConnector();
     }
 
-    if (this.parentConnector && onlyMiddleConnector) {
-      this.parentConnector.removeMiddleConnector(this);
+    if (this.outputPort && this.outputPort.isInput) {
+      this.middlePoint.remove();
     } else {
-      this.parentConnector = null;
+      if (this.middlePoint && onlyMiddleConnector) {
+        this.middlePoint.removeOutputConnector(this);
+      } else {
+        this.middlePoint = null;
+      }
     }
-
-    // this.parentConnector = null;
 
     connectorLayer.removeChild(this.connectorElement);
     removeMiddleConnectorFromOutput(this);
@@ -127,11 +136,17 @@ export class MiddleConnector {
   }
 
   updatePath(x = null, y = null) {
-    const x1 = this.baseX;
-    const y1 = this.baseY;
+    let x1 = this.baseX;
+    let y1 = this.baseY;
 
-    const x4 = Number.isFinite(x) ? x : getNumberFromPixels(this.outputHandle._gsap.x);
-    const y4 = Number.isFinite(y) ? y : getNumberFromPixels(this.outputHandle._gsap.y);
+    let x4 = Number.isFinite(x) ? x : getNumberFromPixels(this.outputHandle._gsap.x);
+    let y4 = Number.isFinite(y) ? y : getNumberFromPixels(this.outputHandle._gsap.y);
+
+    if (this.outputPort && this.outputPort.isInput) {
+      // swap coords
+      [x1, x4] = [x4, x1];
+      [y1, y4] = [y4, y1];
+    }
 
     const dx = Math.abs(x1 - x4) * bezierWeight;
 
@@ -161,6 +176,10 @@ export class MiddleConnector {
 
   public setOutputPort(port) {
     this.outputPort = port;
+  }
+
+  public setMiddlePoint(mp: MiddlePoint) {
+    this.middlePoint = mp;
   }
 
   public setShape(shape: NodeShape) {

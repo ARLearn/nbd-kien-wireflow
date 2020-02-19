@@ -15,8 +15,8 @@ import { WireflowService } from './wireflow.service';
 import { Connector } from './core/connector';
 import {
   connectorsOutput, connectorsOutput$,
-  createMiddleConnector,
-  middleConnectorsOutput, portLookup, ports, shapeElements, shapes,
+  createMiddleConnector, drawMiddlePointGroup,
+  middleConnectorsOutput, middlePointsOutput, portLookup, ports, shapeElements, shapes,
 } from './core/base';
 import {
   ActionDependency,
@@ -135,16 +135,20 @@ export class WireflowComponent implements OnInit, AfterViewInit {
       case 'Delete': {
         this.connectors.filter(c => c.isSelected).forEach(x => x.remove());
         middleConnectorsOutput.filter(mc => mc.isSelected).forEach(x => x.remove());
+        middlePointsOutput.filter(mp => mp.inputConnector.isSelected).forEach(x => x.inputConnector.remove());
         connectorsOutput$.next(connectorsOutput);
       }
       // tslint:disable-next-line:no-switch-case-fall-through
       case 'Escape':
         this.connectors.forEach(c => c.deselect());
         middleConnectorsOutput.forEach(x => x.deselect());
+        middlePointsOutput
+          .filter(mp => mp.inputConnector.isSelected)
+          .forEach(x => x.inputConnector.deselect());
 
         if (this.currentMiddleConnector) {
           this.currentMiddleConnector.removeHandlers();
-          this.currentMiddleConnector.remove();
+          this.currentMiddleConnector.remove(true);
           this.currentMiddleConnector = null;
         }
 
@@ -165,7 +169,7 @@ export class WireflowComponent implements OnInit, AfterViewInit {
 
     // tslint:disable-next-line:variable-name
     const __middleConnectors = middleConnectorsOutput.map(c => ({
-      inputNode: c.parentConnector.inputPort.generalItemId,
+      inputNode: c.middlePoint.inputPort.generalItemId,
       type: c.outputPort.nodeType,
       action: c.outputPort.action,
       generalItemId: c.outputPort.generalItemId
@@ -367,10 +371,12 @@ export class WireflowComponent implements OnInit, AfterViewInit {
   private initializeMiddleConnector(x: any) {
     this.currentMiddleConnector = new MiddleConnector(
       x.message.authoringX, x.message.authoringY,
-      x.connector, x.dependency.type, x.dependency.subtype
+      x.middlePoint, x.dependency.type, x.dependency.subtype
     );
 
-    x.connector.addMiddleConnector(this.currentMiddleConnector);
+    x.middlePoint.addOutputConnector(this.currentMiddleConnector);
+
+    // x.connector.addMiddleConnector(this.currentMiddleConnector);
 
     this.currentMiddleConnector.onClick = (event: MouseEvent) => {
       let message;
@@ -439,6 +445,10 @@ export class WireflowComponent implements OnInit, AfterViewInit {
       type,
       dependencies: [ dependencySingle ]
     };
+    connector.remove();
+    this.connectors.splice(this.connectors.indexOf(connector), 1);
+
+    drawMiddlePointGroup(message);
 
     this.messages = result;
 
