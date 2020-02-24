@@ -1,20 +1,24 @@
 import { BaseToolbar } from '../base-toolbar';
 import { ConnectorMiddlePoint } from '../connector-middle-point';
-import {connectorLayer, singleDependenciesOutput$} from '../base';
+import { connectorLayer, singleDependenciesOutput$ } from '../base';
 import { Connector } from '../connector';
 
 export class ConnectorToolbar extends BaseToolbar {
   middlePoint: ConnectorMiddlePoint;
-  connector: Connector;
+  connector: any;
   btnAnd: any;
   btnOr: any;
 
-  constructor(connector: Connector) {
-    super(connector.middlePoint);
+  constructor(connector: any) {
+    if (connector instanceof Connector) {
+      super(connector.middlePoint);
+    } else {
+      super(connector.baseMiddlePoint);
+    }
+
+    this.connector = connector;
 
     this.element = document.querySelector('#diagram > .dependency-type-toolbar').cloneNode(true);
-    this.middlePoint = connector.middlePoint;
-    this.connector = connector;
 
     this.btnAnd = this.element.querySelector('.connector-toolbar__btn--and');
     this.btnOr = this.element.querySelector('.connector-toolbar__btn--or');

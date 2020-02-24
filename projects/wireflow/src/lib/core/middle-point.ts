@@ -1,4 +1,4 @@
-import { connectorLayer, getNumberFromPixels, idCounter, middlePointLookup, middlePointsOutput } from './base';
+import { connectorLayer, getNumberFromPixels, idCounter, middlePointsOutput } from './base';
 import { MiddleConnector } from './middle-connector';
 import { NodePort } from './node-port';
 import { ActionToolbar } from './toolbars/ActionToolbar';
@@ -6,6 +6,7 @@ import { BaseMiddlePoint } from './base-middle-point';
 
 export class MiddlePoint extends BaseMiddlePoint {
   id: string;
+  generalItemId: string;
 
   element: any;
 
@@ -14,11 +15,22 @@ export class MiddlePoint extends BaseMiddlePoint {
 
   inputConnector: MiddleConnector;
   outputConnectors: MiddleConnector[];
+  parentMiddlePoint: MiddlePoint;
+  childrenMiddlePoints: MiddlePoint[] = [];
+  dependency: any;
 
   dragElement: any;
   typeIcon: any;
 
-  constructor(baseCoords: { x: number; y: number }, inputConnector: MiddleConnector, outputConnectors: MiddleConnector[]) {
+  // tslint:disable-next-line:no-unnecessary-initializer
+  constructor(
+    // tslint:disable-next-line:no-unnecessary-initializer
+    baseCoords: { x: number; y: number } = undefined,
+    // tslint:disable-next-line:no-unnecessary-initializer
+    inputConnector: MiddleConnector = undefined,
+    // tslint:disable-next-line:no-unnecessary-initializer
+    outputConnectors: MiddleConnector[] = undefined
+  ) {
     super();
 
     this.id = `middle-point_${idCounter()}`;
@@ -31,21 +43,55 @@ export class MiddlePoint extends BaseMiddlePoint {
     this.inputConnector = inputConnector;
     this.outputConnectors = outputConnectors;
 
-    this.inputPort = this.inputConnector.outputPort;
+    // this.inputPort = this.inputConnector.outputPort;
     this.actionToolbar = new ActionToolbar(this);
 
-    this.inputConnector.setMiddlePoint(this);
-    this.outputConnectors.forEach(oc => oc.setMiddlePoint(this));
+    // this.inputConnector.setMiddlePoint(this);
+    // this.outputConnectors.forEach(oc => oc.setMiddlePoint(this));
 
-    this.move();
+    // this.move();
     this.show();
 
     this.element.setAttribute('data-drag', `${this.id}:middle-point`);
     this.element.onclick = () => this.__onClick();
 
-    this.refreshTypeIcon();
+    // this.refreshTypeIcon();
 
     connectorLayer.append(this.element);
+  }
+
+  init() {
+    this.move();
+    this.refreshTypeIcon();
+    this.outputConnectors.forEach(x => x.updateMiddlePoint(this.coordinates.x, this.coordinates.y));
+  }
+
+  setCoordinates(coords: { x: number, y: number }) {
+    this.coordinates = coords;
+  }
+
+  setDependency(dependency) {
+    this.dependency = dependency;
+  }
+
+  setInputPort(inputPort: NodePort) {
+    this.inputPort = inputPort;
+  }
+
+  setChildrenMiddlePoints(children: MiddlePoint[]) {
+    this.childrenMiddlePoints = children;
+  }
+
+  addChildMiddlePoint(child: MiddlePoint) {
+    this.childrenMiddlePoints.push(child);
+  }
+
+  removeChildMiddlePoint(child: MiddlePoint) {
+    this.childrenMiddlePoints.splice(this.childrenMiddlePoints.indexOf(child), 1);
+  }
+
+  setGeneralItemId(id: string) {
+    this.generalItemId = id;
   }
 
   show() {
@@ -56,22 +102,40 @@ export class MiddlePoint extends BaseMiddlePoint {
     this.element.style.display = 'none';
   }
 
-  setCoordinates(coordinates: { x: number, y: number }) {
-    this.coordinates = coordinates;
+  setInputConnector(inputConnector: MiddleConnector) {
+    this.inputConnector = inputConnector;
+  }
+
+  setOutputConnectors(outputConnectors: MiddleConnector[]) {
+    this.outputConnectors = outputConnectors;
   }
 
   move() {
     // @ts-ignore
     TweenLite.set(this.element, this.coordinates);
+
+    if (this.inputConnector) {
+      this.inputConnector.updateMiddlePoint(this.coordinates.x, this.coordinates.y);
+    }
+
+    if (this.outputConnectors) {
+      this.outputConnectors.forEach(oc => oc.updateMiddlePoint(this.coordinates.x, this.coordinates.y));
+    }
+
+    if (this.actionToolbar) {
+      this.actionToolbar.move();
+    }
+
+    if (this.childrenMiddlePoints) {
+      this.childrenMiddlePoints.forEach(cmp => cmp.inputConnector.updateHandleMiddlePoint(this));
+    }
   }
 
   onDrag() {
     this.coordinates.x = getNumberFromPixels(this.element._gsap.x);
     this.coordinates.y = getNumberFromPixels(this.element._gsap.y);
 
-    this.inputConnector.updateMiddlePoint(this.coordinates.x, this.coordinates.y);
-    this.outputConnectors.forEach(oc => oc.updateMiddlePoint(this.coordinates.x, this.coordinates.y));
-    this.actionToolbar.move();
+    this.move();
   }
 
   addOutputConnector(connector: MiddleConnector) {
@@ -90,19 +154,31 @@ export class MiddlePoint extends BaseMiddlePoint {
   remove() {
     this.outputConnectors.forEach(oc => oc.remove(false));
 
-    connectorLayer.removeChild(this.element);
-
-    middlePointsOutput.splice(middlePointsOutput.indexOf(this), 1);
-
     if (this.actionToolbar) {
       this.actionToolbar.remove();
     }
 
-    delete middlePointLookup[this.id];
+    if (this.parentMiddlePoint) {
+      const idx = this.parentMiddlePoint.dependency.dependencies.indexOf(this.dependency);
+      this.parentMiddlePoint.dependency.dependencies.splice(idx, 1);
+    }
+
+    if (this.childrenMiddlePoints.length > 0) {
+      this.childrenMiddlePoints.forEach(cmp => {
+        cmp.inputConnector.remove(true);
+        cmp.remove();
+      });
+    }
+
+    if (connectorLayer.contains(this.element)) {
+      connectorLayer.removeChild(this.element);
+    }
+
+    middlePointsOutput.splice(middlePointsOutput.indexOf(this), 1);
   }
 
   private __showTypeIcon() {
-    const isAndDependency = this.inputConnector.outputPort.inputNodeType.includes('AndDependency');
+    const isAndDependency = this.dependency.type.includes('AndDependency');
     const type: 'and' | 'or' = isAndDependency ? 'and' : 'or';
 
     this.typeIcon = document.querySelector('.connector-middle-point-' + type).cloneNode(true);
@@ -118,6 +194,7 @@ export class MiddlePoint extends BaseMiddlePoint {
   }
 
   private __onClick() {
+    this.actionToolbar.move();
     this.__updateToolbars();
 
     this.actionToolbar.toggle();
@@ -131,5 +208,9 @@ export class MiddlePoint extends BaseMiddlePoint {
         t.style.display = 'none';
       }
     });
+  }
+
+  setParentMiddlePoint(input: MiddlePoint) {
+    this.parentMiddlePoint = input;
   }
 }

@@ -1,12 +1,12 @@
 import {
   addConnectorToOutput,
-  connectorLookup,
   connectorPool,
   diagramElement,
   idCounter,
   svg
 } from './base';
 import { Connector } from './connector';
+import { MiddleConnector } from './middle-connector';
 
 export class NodePort {
   id: string;
@@ -61,7 +61,6 @@ export class NodePort {
 
     if (connectorPool.length) {
       connector = connectorPool.pop();
-      connectorLookup[connector.id] = connector;
     } else {
       connector = new Connector();
     }

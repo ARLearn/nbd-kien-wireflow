@@ -1,15 +1,21 @@
 import {
-  connectorLookup, connectorsBaseState, createInputMiddleConnector, createMiddleConnector,
+  connectorsBaseState,
   diagramElement,
-  dragProxy, drawMiddlePointGroup,
-  init, middlePointLookup, middlePointsOutput, portLookup, ports, setConnectorsOutput,
+  dragProxy,
+  getConnectorById,
+  getInputPortByGeneralItemId,
+  getMiddlePointById,
+  getOutputPortByGeneralItemId,
+  getPortById,
+  getShapeById,
+  init,
+  initNodeMessage,
+  setConnectorsOutput,
   shapeElements,
-  shapeLookup, shapes,
+  shapes,
   svg
 } from './base';
 import { NodeShape } from './node-shape';
-import { MiddleConnector } from './middle-connector';
-import { MiddlePoint } from './middle-point';
 
 export class Diagram {
   dragElement: any;
@@ -17,7 +23,7 @@ export class Diagram {
   target: any;
   dragType: any;
   draggable: any;
-
+  private openedConnector: any;
   // tslint:disable-next-line:variable-name
   constructor(_diagramElement, _shapeElements, _svg, _dragProxy, _frag, _connectorEl, _connectorLayer, messages) {
     init(_diagramElement, _shapeElements, _svg, _dragProxy, _frag, _connectorEl, _connectorLayer);
@@ -43,7 +49,6 @@ export class Diagram {
     shapeElements.forEach((element) => {
       const message = messages.find(x => element.getAttribute('general-item-id') == x.id);
       const shape = new NodeShape(element, Number(message.authoringX), Number(message.authoringY));
-      shapeLookup[shape.id] = shape;
       shapes.push(shape);
     });
   }
@@ -71,7 +76,7 @@ export class Diagram {
            message.dependsOn.type === 'org.celstec.arlearn2.beans.dependencies.OrDependency')) {
 
         if (message.dependsOn && message.dependsOn.dependencies && message.dependsOn.dependencies.length > 0) {
-          drawMiddlePointGroup(message);
+          initNodeMessage(JSON.parse(JSON.stringify(message)));
         }
       } else {
         if (message.dependsOn && message.dependsOn.generalItemId && message.dependsOn.action) {
@@ -85,8 +90,8 @@ export class Diagram {
   }
 
   public drawConnector(dependency, message) {
-    const inputPort = ports.find(x => x.generalItemId == message.id && x.isInput);
-    const outputPort = ports.find(x => x.generalItemId == dependency.generalItemId && x.action === dependency.action && !x.isInput);
+    const inputPort = getInputPortByGeneralItemId(message.id);
+    const outputPort = getOutputPortByGeneralItemId(dependency.generalItemId, dependency.action);
 
     if (inputPort != null && outputPort != null) {
       inputPort.createConnector();
@@ -108,22 +113,23 @@ export class Diagram {
         break;
 
       case 'shape':
-        this.target = shapeLookup[id];
+        this.target = getShapeById(id);
         break;
 
       case 'port':
-        const port = portLookup[id];
+        const port = getPortById(id);
         port.createConnector();
         this.target = port.lastConnector;
+        this.openedConnector = port.lastConnector;
         this.dragType = this.target.dragType;
         break;
 
       case 'connector':
-        this.target = connectorLookup[id];
+        this.target = getConnectorById(id);
         break;
 
       case 'middle-point':
-        this.target = middlePointLookup[id];
+        this.target = getMiddlePointById(id);
         break;
     }
   }
@@ -143,15 +149,19 @@ export class Diagram {
 
   stopDragging({id, dragType}) {
     switch (dragType) {
-
       case 'shape':
-        this.target = shapeLookup[id];
+        this.target = getShapeById(id);
         const {e, f} = this.target.dragElement.getCTM();
-        this.target.onDragEnd(e, f);
+        if (this.openedConnector && !(this.openedConnector.inputPort && this.openedConnector.outputPort)) {
+          this.openedConnector.remove();
+          this.openedConnector = undefined;
+        } else {
+          this.target.onDragEnd(e, f);
+        }
         break;
-
       default: {
         if (this.target) {
+          this.openedConnector = undefined;
           this.target.onDragEnd && this.target.onDragEnd();
         }
         break;

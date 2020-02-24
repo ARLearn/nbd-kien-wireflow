@@ -1,19 +1,25 @@
 import { connectorLayer, idCounter } from './base';
 import { Connector } from './connector';
 import { BaseMiddlePoint } from './base-middle-point';
+import { MiddleConnector } from './middle-connector';
 
 export class ConnectorMiddlePoint extends BaseMiddlePoint {
   id: string;
 
   element: any;
-  connector: Connector;
+  connector: any;
 
-  constructor(connector: Connector) {
+  constructor(connector: any) {
     super();
 
     this.id = `middle-point_${idCounter()}`;
     this.connector = connector;
-    this.element = this.connector.element.querySelector('.base-middle-point');
+
+    if (connector instanceof Connector) {
+      this.element = (this.connector as Connector).element.querySelector('.base-middle-point');
+    } else {
+      this.element = (this.connector as MiddleConnector).connectorElement.querySelector('.base-middle-point');
+    }
 
     this.element.onclick = (e) => this.__onClick(e);
   }
@@ -37,6 +43,8 @@ export class ConnectorMiddlePoint extends BaseMiddlePoint {
     event.stopPropagation();
 
     this.__updateToolbars();
+
+    this.connector.connectorToolbar.move();
 
     this.connector.connectorToolbar.toggle();
   }

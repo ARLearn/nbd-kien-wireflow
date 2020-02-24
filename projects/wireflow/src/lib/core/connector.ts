@@ -176,6 +176,10 @@ export class Connector extends BaseConnector {
 
       this.dragElement.setAttribute('data-drag', `${hitPort.id}:port`);
 
+      if (hitPort.middleConnector && hitPort.middleConnector.middlePoint) {
+        hitPort.middleConnector.remove();
+      }
+
       if (hitPort.connectors.length > 0) {
         const con = hitPort.connectors[0];
         con.remove();

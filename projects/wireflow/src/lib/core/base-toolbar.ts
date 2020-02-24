@@ -1,6 +1,6 @@
 import { Toolbar } from './interfaces/toolbar';
 import { BaseMiddlePoint } from './base-middle-point';
-import {connectorLayer} from "./base";
+import { connectorLayer } from './base';
 
 export class BaseToolbar implements Toolbar {
   element: any;
@@ -46,6 +46,8 @@ export class BaseToolbar implements Toolbar {
   }
 
   remove() {
-    connectorLayer.removeChild(this.element);
+    if (connectorLayer.contains(this.element)) {
+      connectorLayer.removeChild(this.element);
+    }
   }
 }

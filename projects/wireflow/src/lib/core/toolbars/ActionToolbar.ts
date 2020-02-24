@@ -24,7 +24,7 @@ export class ActionToolbar extends BaseToolbar {
     this.btnLocation.onclick = (e) => this.__onClickLocation(e);
     this.btnQrScan.onclick = (e) => this.__onClickQrScan(e);
 
-    this.move();
+    // this.move();
 
     connectorLayer.appendChild(this.element);
   }
@@ -34,7 +34,7 @@ export class ActionToolbar extends BaseToolbar {
     const coords = this.middlePoint.coordinates;
 
     newNodeOutput$.next({
-      id: this.middlePoint.inputPort.generalItemId,
+      id: this.middlePoint.generalItemId,
       message: {
         authoringX: coords.x,
         authoringY: coords.y

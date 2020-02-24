@@ -6,16 +6,20 @@ import {
   idCounter,
   ports,
   removeMiddleConnectorFromOutput,
-  svg
+  svg,
+  middlePointsOutput
 } from './base';
 import { NodeShape } from './node-shape';
 import { BaseConnector } from './base-connector';
 import { MiddlePoint } from './middle-point';
 import { NodePort } from './node-port';
+import { ConnectorToolbar } from './toolbars/ConnectorToolbar';
+import { ConnectorMiddlePoint } from './connector-middle-point';
 
 export class MiddleConnector extends BaseConnector {
   id: string;
   onClick: any;
+  isInput = false;
 
   connectorElement: any;
 
@@ -30,6 +34,8 @@ export class MiddleConnector extends BaseConnector {
   dependencyType: any;
   subType: any;
   shape: NodeShape;
+  connectorToolbar: ConnectorToolbar;
+  baseMiddlePoint: ConnectorMiddlePoint;
 
   constructor(x = 0, y = 0, middlePoint, dependencyType = null, subtype = null) {
     super();
@@ -48,6 +54,12 @@ export class MiddleConnector extends BaseConnector {
     this.baseX = x;
     this.baseY = y;
     this.middlePoint = middlePoint;
+
+    if (this.middlePoint && this.middlePoint.coordinates) {
+      this.baseX = this.middlePoint.coordinates.x;
+      this.baseY = this.middlePoint.coordinates.y;
+    }
+
     this.dependencyType = dependencyType;
     this.subType = subtype;
 
@@ -65,15 +77,22 @@ export class MiddleConnector extends BaseConnector {
 
     this.connectorElement.onclick = (e) => this.__onClick(e);
 
-    if (this.middlePoint && this.middlePoint.element) {
-      connectorLayer.insertBefore(this.connectorElement, this.middlePoint.element);
-    } else {
-      connectorLayer.append(this.connectorElement);
-    }
+    this.baseMiddlePoint = new ConnectorMiddlePoint(this);
+    this.baseMiddlePoint.hide();
+    this.connectorToolbar = new ConnectorToolbar(this);
+
+    this.connectorElement.onmouseenter = (e) => this.onHover(e);
+    this.connectorElement.onmouseleave = (e) => this.onHoverLeave(e);
+
+    connectorLayer.prepend(this.connectorElement);
+  }
+
+  setIsInput(isInput: boolean) {
+    this.isInput = isInput;
   }
 
   private __onClick(e) {
-    if (this.outputPort) {
+    if (this.outputPort || this.isInput) {
       this.isSelected = !this.isSelected;
       this.initViewState();
     }
@@ -108,17 +127,21 @@ export class MiddleConnector extends BaseConnector {
       port.removeMiddleConnector();
     }
 
-    if (this.outputPort && this.outputPort.isInput) {
+    if ((this.outputPort && this.outputPort.isInput) || this.isInput) {
       this.middlePoint.remove();
     } else {
       if (this.middlePoint && onlyMiddleConnector) {
         this.middlePoint.removeOutputConnector(this);
-      } else {
-        this.middlePoint = null;
       }
     }
 
-    connectorLayer.removeChild(this.connectorElement);
+    if (this.connectorToolbar) {
+      this.connectorToolbar.remove();
+    }
+
+    if (connectorLayer.contains(this.connectorElement)) {
+      connectorLayer.removeChild(this.connectorElement);
+    }
     removeMiddleConnectorFromOutput(this);
   }
 
@@ -142,7 +165,7 @@ export class MiddleConnector extends BaseConnector {
     let x4 = Number.isFinite(x) ? x : getNumberFromPixels(this.outputHandle._gsap.x);
     let y4 = Number.isFinite(y) ? y : getNumberFromPixels(this.outputHandle._gsap.y);
 
-    if (this.outputPort && this.outputPort.isInput) {
+    if ((this.outputPort && this.outputPort.isInput) || this.isInput) {
       // swap coords
       [x1, x4] = [x4, x1];
       [y1, y4] = [y4, y1];
@@ -166,6 +189,9 @@ export class MiddleConnector extends BaseConnector {
 
     this.path.setAttribute('d', data);
     this.pathOutline.setAttribute('d', data);
+
+    this.baseMiddlePoint.move();
+    this.connectorToolbar.move();
   }
 
   public removeHandlers() {
@@ -208,5 +234,30 @@ export class MiddleConnector extends BaseConnector {
     this.connectorElement.classList.remove('middle-connector--new');
 
     this.updatePath();
+  }
+
+  updateHandleMiddlePoint(parentMiddlePoint: MiddlePoint) {
+    // @ts-ignore
+    TweenLite.set(this.outputHandle, {
+      x: parentMiddlePoint.coordinates.x,
+      y: parentMiddlePoint.coordinates.y
+    });
+
+    this.updatePath();
+  }
+
+  private onHover(e: MouseEvent) {
+    if (!this.isInput) {
+      this.baseMiddlePoint.show();
+      this.baseMiddlePoint.move();
+    }
+  }
+
+  private onHoverLeave(e: MouseEvent) {
+    if (!this.isInput) {
+      if (this.connectorToolbar.isHidden()) {
+        this.baseMiddlePoint.hide();
+      }
+    }
   }
 }

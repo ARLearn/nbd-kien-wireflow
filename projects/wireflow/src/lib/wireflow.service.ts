@@ -8,6 +8,7 @@ import { GameMessageCommon } from './models/core';
 
 interface MessageEditorStateModel {
   messages: GameMessageCommon[];
+  lastMessagesJSON: string;
   status: string;
 }
 
@@ -17,7 +18,8 @@ interface MessageEditorStateModel {
 export class WireflowService {
   state: MessageEditorStateModel = {
     messages: [],
-    status: 'loading'
+    lastMessagesJSON: '[]',
+    status: 'loading',
   };
   private stateSubject: Subject<MessageEditorStateModel> = new BehaviorSubject<MessageEditorStateModel>(this.state);
 
@@ -31,7 +33,8 @@ export class WireflowService {
       .pipe(
         map(x => x.messages),
         pairwise(),
-        map(([a, b]: any) => {
+        map(([, b]: any) => {
+          const a = JSON.parse(this.state.lastMessagesJSON);
           const minL = a.length <  b.length ? a : b;
           const maxL = a.length >= b.length ? a : b;
 
@@ -47,13 +50,15 @@ export class WireflowService {
 
   constructor() {
     this.stateSubject.subscribe(x => {
-      this.state = x;
+      const json = JSON.stringify(this.state.messages);
+      this.state = { ...x, messages: JSON.parse(JSON.stringify(x.messages)) , lastMessagesJSON: json };
     });
   }
 
   initMessages(messages: any[]) {
     this.stateSubject.next({
       ...this.state,
+      status: 'ready',
       messages,
     });
   }

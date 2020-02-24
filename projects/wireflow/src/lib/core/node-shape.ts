@@ -1,5 +1,5 @@
 import { NodePort } from './node-port';
-import { coordinatesOutput$, idCounter, portLookup, ports } from './base';
+import { coordinatesOutput$, idCounter, ports } from './base';
 
 export class NodeShape {
   id: string;
@@ -32,14 +32,12 @@ export class NodeShape {
 
     this.inputs = inputElements.map(el => {
       const port = new NodePort(this, el, true);
-      portLookup[port.id] = port;
       ports.push(port);
       return port;
     });
 
     this.outputs = outputElements.map(el => {
       const port = new NodePort(this, el, false);
-      portLookup[port.id] = port;
       ports.push(port);
       return port;
     });
