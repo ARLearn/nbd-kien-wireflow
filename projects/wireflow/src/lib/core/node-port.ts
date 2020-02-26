@@ -1,12 +1,9 @@
 import {
-  addConnectorToOutput,
-  connectorPool,
   diagramElement,
   idCounter,
   svg
 } from './base';
 import { Connector } from './connector';
-import { MiddleConnector } from './middle-connector';
 
 export class NodePort {
   id: string;
@@ -18,13 +15,11 @@ export class NodePort {
   action: any;
   element: any;
   portElement: any;
-  connectors: any[];
   portScrim: any;
   global: any;
   center: SVGPoint;
-  lastConnector: any;
   inputNodeType: any;
-  middleConnector: any;
+  middleConnector: Connector[];
 
   constructor(parentNode, element, isInput) {
 
@@ -38,13 +33,13 @@ export class NodePort {
     this.inputNodeType = element.getAttribute('input-node-type');
     this.action = element.getAttribute('action');
 
+    this.middleConnector = [];
+
     this.element = element;
     this.portElement = element.querySelector('.port');
     this.portScrim = element.querySelector('.port-scrim');
 
     this.portScrim.setAttribute('data-drag', `${this.id}:port`);
-
-    this.connectors = [];
 
     const bbox = this.portElement.getBBox();
 
@@ -56,61 +51,21 @@ export class NodePort {
     this.update();
   }
 
-  createConnector() {
-    let connector: Connector;
-
-    if (connectorPool.length) {
-      connector = connectorPool.pop();
-    } else {
-      connector = new Connector();
-    }
-
-    connector.init(this);
-    this.lastConnector = connector;
-    this.connectors.push(connector);
-  }
-
-  removeConnector(connection) {
-    this.clear();
-    const index = this.connectors.indexOf(connection);
-
-    if (index > -1) {
-      this.connectors.splice(index, 1);
-    }
-
-  }
-
-  addConnector(connection) {
-    this.clear();
-
-    if (!this.connectors.some(c => c.inputPort.id === connection.inputPort.id && c.outputPort.id === connection.outputPort.id)) {
-      this.connectors.push(connection);
-      addConnectorToOutput(connection);
-    }
-  }
-
   update() {
     const transform = this.portElement.getTransformToElement(diagramElement);
     this.global = this.center.matrixTransform(transform);
 
-    for (const connector of this.connectors) {
-      connector.updateHandle(this);
-    }
-
     if (this.middleConnector) {
-      this.middleConnector.updateHandle(this);
+      this.middleConnector.forEach(mc => mc.updateHandle(this));
     }
   }
 
-  clear() {
-    this.connectors = this.connectors.filter(x => x.inputPort && x.outputPort);
+  public addMiddleConnector(connector) {
+    this.middleConnector.push(connector);
   }
 
-  public addMiddleConnector(middleConnector) {
-    this.middleConnector = middleConnector;
-  }
-
-  public removeMiddleConnector() {
-    this.middleConnector = undefined;
+  public removeMiddleConnector(connector) {
+    const idx = this.middleConnector.indexOf(connector);
+    this.middleConnector.splice(idx, 1);
   }
 }

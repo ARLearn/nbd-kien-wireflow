@@ -1,8 +1,7 @@
 import {
-  connectorsBaseState,
+  changeDependencies$,
   diagramElement,
   dragProxy,
-  getConnectorById,
   getInputPortByGeneralItemId,
   getMiddlePointById,
   getOutputPortByGeneralItemId,
@@ -10,12 +9,12 @@ import {
   getShapeById,
   init,
   initNodeMessage,
-  setConnectorsOutput,
   shapeElements,
   shapes,
   svg
 } from './base';
 import { NodeShape } from './node-shape';
+import { Connector } from './connector';
 
 export class Diagram {
   dragElement: any;
@@ -42,6 +41,7 @@ export class Diagram {
       onDrag: () => this.dragTarget(),
       onDragEnd: e => this.stopDragging(this.getDragArgs(e)),
       onPress: e => this.prepareTarget(this.getDragArgs(e)),
+      onClick: () => this.onDragClick()
     });
   }
 
@@ -82,11 +82,10 @@ export class Diagram {
         if (message.dependsOn && message.dependsOn.generalItemId && message.dependsOn.action) {
           this.drawConnector(message.dependsOn, message);
         }
-
       }
     });
 
-    setConnectorsOutput(connectorsBaseState);
+    changeDependencies$.next();
   }
 
   public drawConnector(dependency, message) {
@@ -94,15 +93,14 @@ export class Diagram {
     const outputPort = getOutputPortByGeneralItemId(dependency.generalItemId, dependency.action);
 
     if (inputPort != null && outputPort != null) {
-      inputPort.createConnector();
-      inputPort.lastConnector.outputPort = outputPort;
-      outputPort.connectors.push(inputPort.lastConnector);
-      inputPort.update();
-      outputPort.update();
-
-      connectorsBaseState.push(inputPort.lastConnector);
-
-      return inputPort.lastConnector;
+      const mc = new Connector();
+      mc.removeHandlers();
+      mc.init(inputPort);
+      mc.setOutputPort(outputPort);
+      inputPort.addMiddleConnector(mc);
+      outputPort.addMiddleConnector(mc);
+      mc.updateHandle(outputPort);
+      return mc;
     }
   }
 
@@ -118,14 +116,15 @@ export class Diagram {
 
       case 'port':
         const port = getPortById(id);
-        port.createConnector();
-        this.target = port.lastConnector;
-        this.openedConnector = port.lastConnector;
-        this.dragType = this.target.dragType;
-        break;
+        const mc = new Connector();
+        mc.removeHandlers();
+        mc.init(port);
+        port.addMiddleConnector(mc);
+        mc.updateHandle(port);
 
-      case 'connector':
-        this.target = getConnectorById(id);
+        this.target = mc;
+        this.openedConnector = mc;
+        this.dragType = this.target.dragType;
         break;
 
       case 'middle-point':
@@ -166,6 +165,13 @@ export class Diagram {
         }
         break;
       }
+    }
+  }
+
+  private onDragClick() {
+    if (this.openedConnector && !(this.openedConnector.inputPort && this.openedConnector.outputPort)) {
+      this.openedConnector.remove();
+      this.openedConnector = undefined;
     }
   }
 }

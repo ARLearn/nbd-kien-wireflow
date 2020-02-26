@@ -1,7 +1,6 @@
-import { ConnectorMiddleCoordinates } from './interfaces/connector-middle-coordinates';
 import { getNumberFromPixels } from './base';
 
-export class BaseConnector implements ConnectorMiddleCoordinates {
+export class BaseConnector {
   public inputHandle: any;
   public outputHandle: any;
   // tslint:disable-next-line:variable-name

@@ -1,7 +1,6 @@
 import { BaseToolbar } from '../base-toolbar';
 import { ConnectorMiddlePoint } from '../connector-middle-point';
 import { connectorLayer, singleDependenciesOutput$ } from '../base';
-import { Connector } from '../connector';
 
 export class ConnectorToolbar extends BaseToolbar {
   middlePoint: ConnectorMiddlePoint;
@@ -10,11 +9,7 @@ export class ConnectorToolbar extends BaseToolbar {
   btnOr: any;
 
   constructor(connector: any) {
-    if (connector instanceof Connector) {
-      super(connector.middlePoint);
-    } else {
-      super(connector.baseMiddlePoint);
-    }
+    super(connector.baseMiddlePoint);
 
     this.connector = connector;
 

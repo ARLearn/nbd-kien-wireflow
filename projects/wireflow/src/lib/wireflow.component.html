@@ -45,6 +45,8 @@
                    [attr.general-item-id]="output.generalItemId"
                    [attr.action]="output.action"
                    [attr.node-type]="output.type"
+                   (mouseenter)="onPortMouseEnter($event, output)"
+                   (mouseleave)="onPortMouseLeave($event, output)"
                 >
                   <g class="port" data-clickable="false">
                     <circle class="port-outer" cx="189" cy="10" r="7.5" />

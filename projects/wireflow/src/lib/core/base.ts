@@ -2,7 +2,6 @@ import { Subject } from 'rxjs';
 import { NodeShape } from './node-shape';
 import { NodePort } from './node-port';
 import { Connector } from './connector';
-import { MiddleConnector } from './middle-connector';
 import { MiddlePoint } from './middle-point';
 
 // @ts-ignore
@@ -14,7 +13,6 @@ export const bezierWeight = 0.675;
 
 export const ports: NodePort[] = [];
 export const shapes: NodeShape[] = [];
-export const connectorPool: Connector[] = [];
 
 export let svg;
 export let diagramElement;
@@ -25,11 +23,9 @@ export let frag;
 export let connectorElement;
 export let connectorLayer;
 
-export let connectorsBaseState: Connector[] = [];
-export let connectorsOutput: Connector[] = [];
-export let middleConnectorsOutput: MiddleConnector[] = [];
+export let middleConnectorsOutput: Connector[] = [];
 export let middlePointsOutput: MiddlePoint[] = [];
-export const connectorsOutput$ = new Subject();
+export const changeDependencies$ = new Subject();
 export const coordinatesOutput$ = new Subject();
 export const singleDependenciesOutput$ = new Subject();
 export const newNodeOutput$ = new Subject();
@@ -59,21 +55,6 @@ export function init(_diagramElement, _shapeElements, _svg, _dragProxy, _frag, _
 
 export const idCounter = counter();
 
-export function setConnectorsOutput(connectors) {
-  connectorsOutput = [ ...connectors ];
-  connectorsOutput$.next(connectorsOutput);
-}
-
-export function addConnectorToOutput(connector) {
-  connectorsOutput = [ ...connectorsOutput, connector ];
-  connectorsOutput$.next(connectorsOutput);
-}
-
-export function removeConnectorFromOutput(connector) {
-  connectorsOutput = connectorsOutput
-    .filter(c => c.id !== connector.id);
-}
-
 export function addMiddleConnectorToOutput(mc) {
   middleConnectorsOutput = [ ...middleConnectorsOutput, mc ];
 }
@@ -82,8 +63,8 @@ export function removeMiddleConnectorFromOutput(mc) {
   middleConnectorsOutput = middleConnectorsOutput.filter(m => m.id !== mc.id);
 }
 
-export function createInputMiddleConnector(message: any, coords: { x: number; y: number }, inputMiddlePoint: MiddlePoint): MiddleConnector {
-  const connector = new MiddleConnector(coords.x, coords.y, null);
+export function createInputMiddleConnector(message: any, coords: { x: number; y: number }, inputMiddlePoint: MiddlePoint): Connector {
+  const connector = new Connector(coords.x, coords.y, null);
   connector.setMiddlePoint(inputMiddlePoint);
   connector.setIsInput(true);
 
@@ -149,7 +130,7 @@ export function getDiagramCoords() {
   return { x, y };
 }
 
-export function drawMiddlePointGroup(message: any, input: NodePort | MiddlePoint, outputs: any) {
+export function drawMiddlePointGroup(message: any, input: MiddlePoint, outputs: any) {
   const dependency = outputs[0];
   const shape = getShapeByGeneralItemId(message.id);
 
@@ -169,7 +150,7 @@ export function drawMiddlePointGroup(message: any, input: NodePort | MiddlePoint
 
     return createMiddleConnector(
       message,
-      new MiddleConnector(
+      new Connector(
         undefined,
         undefined,
         input,
@@ -180,33 +161,31 @@ export function drawMiddlePointGroup(message: any, input: NodePort | MiddlePoint
     );
   }).filter(x => !!x);
 
-  if (input instanceof MiddlePoint) {
-    const inputPort = getInputPortByGeneralItemId(message.id);
-    const outputPort = getOutputPortByGeneralItemId(dependency.generalItemId || '', dependency.action || '');
+  const inputPort = getInputPortByGeneralItemId(message.id);
+  const outputPort = getOutputPortByGeneralItemId(dependency.generalItemId || '', dependency.action || '');
 
-    let coords = { x: 0, y: 0 };
+  let coords = { x: 0, y: 0 };
 
-    if (inputPort && outputPort) {
-      const inputX = inputPort.global.x;
-      const inputY = inputPort.global.y;
-      const outputX = outputPort.global.x;
-      const outputY = outputPort.global.y;
+  if (inputPort && outputPort) {
+    const inputX = inputPort.global.x;
+    const inputY = inputPort.global.y;
+    const outputX = outputPort.global.x;
+    const outputY = outputPort.global.y;
 
-      coords = {x: (inputX + outputX) / 2, y: (inputY + outputY) / 2};
-    } else {
-      if (input.inputPort) {
-        coords = { x: input.inputPort.global.x - 75, y: input.inputPort.global.y };
-      }
-    }
-    const inpConn = createInputMiddleConnector(message, coords, input);
-    input.setCoordinates(coords);
-    input.setInputConnector(inpConn);
-    input.move();
-
-    input.setOutputConnectors(outConns);
-
-    middlePointsOutput.push(input);
+    coords = {x: (inputX + outputX) / 2, y: (inputY + outputY) / 2};
+  } else if (input.inputPort) {
+    coords = { x: input.inputPort.global.x - 75, y: input.inputPort.global.y };
   }
+
+  const inpConn = createInputMiddleConnector(message, coords, input);
+  input.setCoordinates(coords);
+  input.setInputConnector(inpConn);
+  input.move();
+
+  input.setOutputConnectors(outConns);
+
+  middlePointsOutput.push(input);
+
   return input;
 }
 
@@ -241,10 +220,6 @@ export function getInputPortByGeneralItemId(generalItemId) {
 
 export function getOutputPortByGeneralItemId(generalItemId, action) {
   return ports.find(p => !p.isInput && p.generalItemId === generalItemId.toString() && p.action === action);
-}
-
-export function getConnectorById(id): Connector {
-  return connectorsOutput.find(c => c.id === id);
 }
 
 export function getMiddlePointById(id): MiddlePoint {

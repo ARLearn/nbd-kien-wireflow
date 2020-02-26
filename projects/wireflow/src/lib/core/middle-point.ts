@@ -1,5 +1,5 @@
 import { connectorLayer, getNumberFromPixels, idCounter, middlePointsOutput } from './base';
-import { MiddleConnector } from './middle-connector';
+import { Connector } from './connector';
 import { NodePort } from './node-port';
 import { ActionToolbar } from './toolbars/ActionToolbar';
 import { BaseMiddlePoint } from './base-middle-point';
@@ -13,8 +13,8 @@ export class MiddlePoint extends BaseMiddlePoint {
   inputPort: NodePort;
   actionToolbar: ActionToolbar;
 
-  inputConnector: MiddleConnector;
-  outputConnectors: MiddleConnector[];
+  inputConnector: Connector;
+  outputConnectors: Connector[];
   parentMiddlePoint: MiddlePoint;
   childrenMiddlePoints: MiddlePoint[] = [];
   dependency: any;
@@ -27,9 +27,9 @@ export class MiddlePoint extends BaseMiddlePoint {
     // tslint:disable-next-line:no-unnecessary-initializer
     baseCoords: { x: number; y: number } = undefined,
     // tslint:disable-next-line:no-unnecessary-initializer
-    inputConnector: MiddleConnector = undefined,
+    inputConnector: Connector = undefined,
     // tslint:disable-next-line:no-unnecessary-initializer
-    outputConnectors: MiddleConnector[] = undefined
+    outputConnectors: Connector[] = undefined
   ) {
     super();
 
@@ -43,13 +43,8 @@ export class MiddlePoint extends BaseMiddlePoint {
     this.inputConnector = inputConnector;
     this.outputConnectors = outputConnectors;
 
-    // this.inputPort = this.inputConnector.outputPort;
     this.actionToolbar = new ActionToolbar(this);
 
-    // this.inputConnector.setMiddlePoint(this);
-    // this.outputConnectors.forEach(oc => oc.setMiddlePoint(this));
-
-    // this.move();
     this.show();
 
     this.element.setAttribute('data-drag', `${this.id}:middle-point`);
@@ -102,11 +97,11 @@ export class MiddlePoint extends BaseMiddlePoint {
     this.element.style.display = 'none';
   }
 
-  setInputConnector(inputConnector: MiddleConnector) {
+  setInputConnector(inputConnector: Connector) {
     this.inputConnector = inputConnector;
   }
 
-  setOutputConnectors(outputConnectors: MiddleConnector[]) {
+  setOutputConnectors(outputConnectors: Connector[]) {
     this.outputConnectors = outputConnectors;
   }
 
@@ -127,7 +122,10 @@ export class MiddlePoint extends BaseMiddlePoint {
     }
 
     if (this.childrenMiddlePoints) {
-      this.childrenMiddlePoints.forEach(cmp => cmp.inputConnector.updateHandleMiddlePoint(this));
+      this.childrenMiddlePoints.forEach(cmp => {
+        cmp.inputConnector.updateHandleMiddlePoint(this);
+        cmp.move();
+      });
     }
   }
 
@@ -138,11 +136,11 @@ export class MiddlePoint extends BaseMiddlePoint {
     this.move();
   }
 
-  addOutputConnector(connector: MiddleConnector) {
+  addOutputConnector(connector: Connector) {
     this.outputConnectors.push(connector);
   }
 
-  removeOutputConnector(connector: MiddleConnector) {
+  removeOutputConnector(connector: Connector) {
     this.outputConnectors.splice(this.outputConnectors.indexOf(connector), 1);
   }
 
