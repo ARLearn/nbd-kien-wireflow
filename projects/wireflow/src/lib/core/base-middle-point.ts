@@ -1,3 +1,3 @@
 export class BaseMiddlePoint {
-  coordinates: { x: number, y: number };
+  public coordinates: { x: number, y: number };
 }

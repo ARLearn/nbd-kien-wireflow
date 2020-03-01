@@ -1,21 +1,21 @@
 import { BezierCoordinates } from './interfaces/bezier-interfaces';
 
 export class BezierPath implements BezierCoordinates {
-  p1x: number;
-  p1y: number;
+  public p1x: number;
+  public p1y: number;
 
-  p2x: number;
-  p2y: number;
+  public p2x: number;
+  public p2y: number;
 
-  p3x: number;
-  p3y: number;
+  public p3x: number;
+  public p3y: number;
 
-  p4x: number;
-  p4y: number;
+  public p4x: number;
+  public p4y: number;
 
   constructor() {}
 
-  setCoords(p1x, p1y, p2x, p2y, p3x, p3y, p4x, p4y) {
+  public setCoords(p1x, p1y, p2x, p2y, p3x, p3y, p4x, p4y) {
     this.p1x = p1x;
     this.p1y = p1y;
 
@@ -29,18 +29,18 @@ export class BezierPath implements BezierCoordinates {
     this.p4y = p4y;
   }
 
-  getPoint(t: number): { x: number, y: number } {
+  public getPoint(t: number): { x: number, y: number } {
     const x = this.__calculate(this.p1x, this.p2x, this.p3x, this.p4x, t);
     const y = this.__calculate(this.p1y, this.p2y, this.p3y, this.p4y, t);
 
     return { x, y };
   }
 
-  getMiddlePoint(): { x: number, y: number } {
+  public getMiddlePoint(): { x: number, y: number } {
     return this.getPoint(0.5);
   }
 
-  toString() {
+  public toString() {
     return `M${this.p1x} ${this.p1y} C ${this.p2x} ${this.p2y} ${this.p3x} ${this.p3y} ${this.p4x} ${this.p4y}`;
   }
 

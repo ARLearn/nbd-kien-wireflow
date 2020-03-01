@@ -13,9 +13,9 @@ import { BsModalRef, BsModalService } from 'ngx-bootstrap';
 import { Diagram } from './core/diagram';
 import { WireflowService } from './wireflow.service';
 import {
-  changeDependencies$,
-  createMiddleConnector, drawMiddlePointGroup, getInputPortByGeneralItemId, getShapeByGeneralItemId, initNodeMessage,
-  middleConnectorsOutput, middlePointsOutput, ports,
+  changeDependencies$, createInputConnector,
+  createConnector, drawMiddlePointGroup, getInputPortByGeneralItemId, getShapeByGeneralItemId, initNodeMessage,
+  connectorsOutput, middlePointsOutput, ports,
 } from './core/base';
 import {
   ActionDependency,
@@ -46,7 +46,6 @@ export class WireflowComponent implements OnInit, AfterViewInit {
 
   public populatedNodes: any;
   public connectors: any;
-  public dependenciesOutput: any;
 
   private diagram: Diagram;
   private svg: HTMLElement;
@@ -93,7 +92,6 @@ export class WireflowComponent implements OnInit, AfterViewInit {
     });
 
     this.wireflowService.newNodeOutput.subscribe((x: any) => {
-
       if (x.dependency.subtype === 'scantag') {
         this.openModal(ActionModalComponent, { data: x, onSubmit: this.onQrTagSubmit.bind(this) });
       } else {
@@ -130,13 +128,13 @@ export class WireflowComponent implements OnInit, AfterViewInit {
     switch (event.code) {
       case 'Backspace':
       case 'Delete': {
-        middleConnectorsOutput.filter(mc => mc.isSelected).forEach(x => x.remove());
+        connectorsOutput.filter(mc => mc.isSelected).forEach(x => x.remove());
         middlePointsOutput.filter(mp => mp.inputConnector.isSelected).forEach(x => x.inputConnector.remove());
         changeDependencies$.next();
       }
       // tslint:disable-next-line:no-switch-case-fall-through
       case 'Escape':
-        middleConnectorsOutput.forEach(x => x.deselect());
+        connectorsOutput.forEach(x => x.deselect());
         middlePointsOutput
           .filter(mp => mp.inputConnector.isSelected)
           .forEach(x => x.inputConnector.deselect());
@@ -165,7 +163,7 @@ export class WireflowComponent implements OnInit, AfterViewInit {
       if (currentMiddlePoint) {
         message.dependsOn = currentMiddlePoint.dependency;
       } else {
-        const singleConnector = middleConnectorsOutput.find(c => !c.middlePoint && c.inputPort.generalItemId === x.id.toString());
+        const singleConnector = connectorsOutput.find(c => !c.middlePoint && c.inputPort.generalItemId === x.id.toString());
 
         if (singleConnector) {
           message.dependsOn = {
@@ -384,10 +382,14 @@ export class WireflowComponent implements OnInit, AfterViewInit {
           });
         } else {
           depend.generalItemId = __output.generalItemId;
-          createMiddleConnector(message, this.currentMiddleConnector, this.currentMiddleConnector.shape, depend);
+          createConnector(message, this.currentMiddleConnector, this.currentMiddleConnector.shape, depend);
           this.currentMiddleConnector = null;
           this.lastGeneralItemId = null;
+
+          this.wireflowService.initMessages(this.populate());
+
           this.processing = false;
+          return;
         }
 
         oldNodes = [ ...this.populatedNodes ];
@@ -407,14 +409,54 @@ export class WireflowComponent implements OnInit, AfterViewInit {
     const parentMP = connector.middlePoint as MiddlePoint;
 
     if (parentMP) {
-      const message = this.populatedNodes.find(r => r.id == connector.outputPort.generalItemId);
+      const message = this.populatedNodes.find(r => r.id === parentMP.generalItemId);
+      const coords = connector.getMiddlePointCoordinates();
+
+      if (connector.isInput && parentMP.parentMiddlePoint) {
+        const parentMiddlePoint = parentMP.parentMiddlePoint;
+
+        const dep = { type, dependencies: [ parentMP.dependency ] };
+
+        const idx = parentMiddlePoint.dependency.dependencies.indexOf(parentMP.dependency);
+
+        if (idx > -1) {
+          parentMiddlePoint.dependency.dependencies[idx] = dep;
+        }
+
+        const midPoint = new MiddlePoint();
+        midPoint.setGeneralItemId(message.id);
+        midPoint.setDependency(dep);
+        midPoint.setCoordinates(coords);
+        midPoint.setParentMiddlePoint(parentMiddlePoint);
+
+        parentMiddlePoint.removeChildMiddlePoint(parentMP);
+        parentMiddlePoint.addChildMiddlePoint(midPoint);
+
+        parentMP.setParentMiddlePoint(midPoint);
+        midPoint.addChildMiddlePoint(parentMP);
+
+        parentMP.inputConnector.updateHandleMiddlePoint(midPoint);
+
+        const inpConn = createInputConnector(message, coords, midPoint);
+
+        midPoint.setInputConnector(inpConn);
+        midPoint.move();
+        midPoint.show();
+
+        connector.baseMiddlePoint.hide();
+        connector.connectorToolbar.hide();
+
+        middlePointsOutput.push(midPoint);
+
+        return this.wireflowService.initMessages(this.populate());
+      }
 
       const dependency = parentMP
         .dependency
         .dependencies
         .find(x =>
           x.action === connector.outputPort.action &&
-          x.generalItemId === connector.outputPort.generalItemId
+          x.generalItemId.toString() === connector.outputPort.generalItemId
         );
 
       dependency.type = type;
@@ -431,7 +473,6 @@ export class WireflowComponent implements OnInit, AfterViewInit {
       mp.setParentMiddlePoint(parentMP);
       parentMP.addChildMiddlePoint(mp);
 
-      const coords = connector.getMiddlePointCoordinates();
 
       connector.remove();
       drawMiddlePointGroup(message, mp, dependency.dependencies);
@@ -454,6 +495,7 @@ export class WireflowComponent implements OnInit, AfterViewInit {
         type,
         dependencies: [ dependencySingle ]
       };
+      connector.outputPort.removeConnector(connector);
       connector.remove();
 
       initNodeMessage(message);
@@ -483,7 +525,7 @@ export class WireflowComponent implements OnInit, AfterViewInit {
 
         if (shapeOutputPort) {
           port = shapeOutputPort;
-          port.addMiddleConnector(this.currentMiddleConnector);
+          port.addConnector(this.currentMiddleConnector);
         } else {
           port = new NodePort(this.currentMiddleConnector.shape, outputEl, false);
           ports.push(port);
@@ -495,7 +537,7 @@ export class WireflowComponent implements OnInit, AfterViewInit {
         dep.generalItemId = port.generalItemId;
       }
 
-      createMiddleConnector(this.lastAddedNode, this.currentMiddleConnector, this.currentMiddleConnector.shape, dep);
+      createConnector(this.lastAddedNode, this.currentMiddleConnector, this.currentMiddleConnector.shape, dep);
       this.lastAddedNode = null;
       this.lastDependency = null;
       this.lastGeneralItemId = null;

@@ -1,17 +1,8 @@
 import {
-  changeDependencies$,
-  diagramElement,
-  dragProxy,
-  getInputPortByGeneralItemId,
-  getMiddlePointById,
-  getOutputPortByGeneralItemId,
-  getPortById,
-  getShapeById,
-  init,
-  initNodeMessage,
-  shapeElements,
-  shapes,
-  svg
+  addConnectorToOutput, changeDependencies$, diagramElement,
+  dragProxy, getInputPortByGeneralItemId, getMiddlePointById,
+  getOutputPortByGeneralItemId, getPortById, getShapeById,
+  init, initNodeMessage, shapeElements, shapes, svg
 } from './base';
 import { NodeShape } from './node-shape';
 import { Connector } from './connector';
@@ -22,7 +13,8 @@ export class Diagram {
   target: any;
   dragType: any;
   draggable: any;
-  private openedConnector: any;
+
+  private openedConnector: Connector;
   // tslint:disable-next-line:variable-name
   constructor(_diagramElement, _shapeElements, _svg, _dragProxy, _frag, _connectorEl, _connectorLayer, messages) {
     init(_diagramElement, _shapeElements, _svg, _dragProxy, _frag, _connectorEl, _connectorLayer);
@@ -97,9 +89,11 @@ export class Diagram {
       mc.removeHandlers();
       mc.init(inputPort);
       mc.setOutputPort(outputPort);
-      inputPort.addMiddleConnector(mc);
-      outputPort.addMiddleConnector(mc);
+      inputPort.addConnector(mc);
+      outputPort.addConnector(mc);
       mc.updateHandle(outputPort);
+
+      addConnectorToOutput(mc);
       return mc;
     }
   }
@@ -116,14 +110,14 @@ export class Diagram {
 
       case 'port':
         const port = getPortById(id);
-        const mc = new Connector();
-        mc.removeHandlers();
-        mc.init(port);
-        port.addMiddleConnector(mc);
-        mc.updateHandle(port);
+        const con = new Connector();
+        con.removeHandlers();
+        con.init(port);
+        port.addConnector(con);
+        con.updateHandle(port);
 
-        this.target = mc;
-        this.openedConnector = mc;
+        this.target = con;
+        this.openedConnector = con;
         this.dragType = this.target.dragType;
         break;
 

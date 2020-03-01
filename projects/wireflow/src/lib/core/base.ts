@@ -1,4 +1,5 @@
 import { Subject } from 'rxjs';
+
 import { NodeShape } from './node-shape';
 import { NodePort } from './node-port';
 import { Connector } from './connector';
@@ -23,7 +24,7 @@ export let frag;
 export let connectorElement;
 export let connectorLayer;
 
-export let middleConnectorsOutput: Connector[] = [];
+export let connectorsOutput: Connector[] = [];
 export let middlePointsOutput: MiddlePoint[] = [];
 export const changeDependencies$ = new Subject();
 export const coordinatesOutput$ = new Subject();
@@ -55,22 +56,22 @@ export function init(_diagramElement, _shapeElements, _svg, _dragProxy, _frag, _
 
 export const idCounter = counter();
 
-export function addMiddleConnectorToOutput(mc) {
-  middleConnectorsOutput = [ ...middleConnectorsOutput, mc ];
+export function addConnectorToOutput(mc) {
+  connectorsOutput = [ ...connectorsOutput, mc ];
 }
 
-export function removeMiddleConnectorFromOutput(mc) {
-  middleConnectorsOutput = middleConnectorsOutput.filter(m => m.id !== mc.id);
+export function removeConnectorFromOutput(mc) {
+  connectorsOutput = connectorsOutput.filter(m => m.id !== mc.id);
 }
 
-export function createInputMiddleConnector(message: any, coords: { x: number; y: number }, inputMiddlePoint: MiddlePoint): Connector {
+export function createInputConnector(message: any, coords: { x: number; y: number }, inputMiddlePoint: MiddlePoint): Connector {
   const connector = new Connector(coords.x, coords.y, null);
   connector.setMiddlePoint(inputMiddlePoint);
   connector.setIsInput(true);
 
   if (!inputMiddlePoint.parentMiddlePoint) {
     const input = getInputPortByGeneralItemId(message.id);
-    input.addMiddleConnector(connector);
+    input.addConnector(connector);
     connector.setOutputPort(input);
     connector.updateHandle(input);
   } else {
@@ -82,7 +83,7 @@ export function createInputMiddleConnector(message: any, coords: { x: number; y:
   return connector;
 }
 
-export function createMiddleConnector(node: any, currentMiddleConnector = null, nodeShape = null, dependency = null) {
+export function createConnector(node: any, currentMiddleConnector = null, nodeShape = null, dependency = null) {
   // tslint:disable-next-line:variable-name
   const __node = document.querySelector(`.node-container[general-item-id="${ node.id }"]`);
 
@@ -107,13 +108,13 @@ export function createMiddleConnector(node: any, currentMiddleConnector = null, 
   }
 
   if (currentMiddleConnector) {
-    output.addMiddleConnector(currentMiddleConnector);
+    output.addConnector(currentMiddleConnector);
     currentMiddleConnector.setOutputPort(output);
     currentMiddleConnector.updateHandle(output);
     currentMiddleConnector.removeHandlers();
   }
 
-  addMiddleConnectorToOutput(currentMiddleConnector);
+  addConnectorToOutput(currentMiddleConnector);
 
   return currentMiddleConnector;
 }
@@ -140,7 +141,7 @@ export function drawMiddlePointGroup(message: any, input: MiddlePoint, outputs: 
       newMp.setDependency(dep);
       newMp.setParentMiddlePoint(input as MiddlePoint);
       newMp.setGeneralItemId(message.id);
-      (input as MiddlePoint).addChildMiddlePoint(newMp);
+      input.addChildMiddlePoint(newMp);
       // newMp.setInputPort()
 
       drawMiddlePointGroup(message, newMp, dep.dependencies);
@@ -148,7 +149,7 @@ export function drawMiddlePointGroup(message: any, input: MiddlePoint, outputs: 
 
     if (!dep.generalItemId) { return; }
 
-    return createMiddleConnector(
+    return createConnector(
       message,
       new Connector(
         undefined,
@@ -177,7 +178,7 @@ export function drawMiddlePointGroup(message: any, input: MiddlePoint, outputs: 
     coords = { x: input.inputPort.global.x - 75, y: input.inputPort.global.y };
   }
 
-  const inpConn = createInputMiddleConnector(message, coords, input);
+  const inpConn = createInputConnector(message, coords, input);
   input.setCoordinates(coords);
   input.setInputConnector(inpConn);
   input.move();

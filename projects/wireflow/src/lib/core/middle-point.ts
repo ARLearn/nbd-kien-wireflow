@@ -29,7 +29,7 @@ export class MiddlePoint extends BaseMiddlePoint {
     // tslint:disable-next-line:no-unnecessary-initializer
     inputConnector: Connector = undefined,
     // tslint:disable-next-line:no-unnecessary-initializer
-    outputConnectors: Connector[] = undefined
+    outputConnectors: Connector[] = []
   ) {
     super();
 
@@ -113,7 +113,7 @@ export class MiddlePoint extends BaseMiddlePoint {
       this.inputConnector.updateMiddlePoint(this.coordinates.x, this.coordinates.y);
     }
 
-    if (this.outputConnectors) {
+    if (this.outputConnectors && this.outputConnectors.length > 0) {
       this.outputConnectors.forEach(oc => oc.updateMiddlePoint(this.coordinates.x, this.coordinates.y));
     }
 
@@ -157,21 +157,19 @@ export class MiddlePoint extends BaseMiddlePoint {
     }
 
     if (this.parentMiddlePoint) {
+      this.parentMiddlePoint.removeChildMiddlePoint(this);
+
       const idx = this.parentMiddlePoint.dependency.dependencies.indexOf(this.dependency);
       this.parentMiddlePoint.dependency.dependencies.splice(idx, 1);
     }
 
     if (this.childrenMiddlePoints.length > 0) {
-      this.childrenMiddlePoints.forEach(cmp => {
-        cmp.inputConnector.remove(true);
-        cmp.remove();
-      });
+      this.childrenMiddlePoints.forEach(cmp => cmp.inputConnector.remove(false));
     }
 
     if (connectorLayer.contains(this.element)) {
       connectorLayer.removeChild(this.element);
     }
-
     middlePointsOutput.splice(middlePointsOutput.indexOf(this), 1);
   }
 

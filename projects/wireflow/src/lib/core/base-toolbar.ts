@@ -3,22 +3,22 @@ import { BaseMiddlePoint } from './base-middle-point';
 import { connectorLayer } from './base';
 
 export class BaseToolbar implements Toolbar {
-  element: any;
-  middlePoint: BaseMiddlePoint;
+  public element: any;
+  public middlePoint: BaseMiddlePoint;
 
   constructor(middlePoint: BaseMiddlePoint) {
     this.middlePoint = middlePoint;
   }
 
-  hide(): void {
+  public hide(): void {
     this.element.style.display = 'none';
   }
 
-  show(): void {
+  public show(): void {
     this.element.style.display = 'block';
   }
 
-  toggle(): void {
+  public toggle(): void {
     if (this.isHidden()) {
       return this.show();
     }
@@ -26,11 +26,11 @@ export class BaseToolbar implements Toolbar {
     return this.hide();
   }
 
-  isHidden(): boolean {
+  public isHidden(): boolean {
     return this.element.style.display === 'none';
   }
 
-  move(): void {
+  public move(): void {
     const coords = this.middlePoint.coordinates;
 
     // @ts-ignore
@@ -45,7 +45,7 @@ export class BaseToolbar implements Toolbar {
     });
   }
 
-  remove() {
+  public remove() {
     if (connectorLayer.contains(this.element)) {
       connectorLayer.removeChild(this.element);
     }

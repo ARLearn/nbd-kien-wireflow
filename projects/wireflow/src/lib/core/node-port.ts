@@ -19,7 +19,7 @@ export class NodePort {
   global: any;
   center: SVGPoint;
   inputNodeType: any;
-  middleConnector: Connector[];
+  connectors: Connector[];
 
   constructor(parentNode, element, isInput) {
 
@@ -33,7 +33,7 @@ export class NodePort {
     this.inputNodeType = element.getAttribute('input-node-type');
     this.action = element.getAttribute('action');
 
-    this.middleConnector = [];
+    this.connectors = [];
 
     this.element = element;
     this.portElement = element.querySelector('.port');
@@ -55,17 +55,22 @@ export class NodePort {
     const transform = this.portElement.getTransformToElement(diagramElement);
     this.global = this.center.matrixTransform(transform);
 
-    if (this.middleConnector) {
-      this.middleConnector.forEach(mc => mc.updateHandle(this));
+    if (this.connectors) {
+      this.connectors.forEach(mc => {
+        mc.updateHandle(this);
+        if (mc.isInput && mc.middlePoint) {
+          mc.middlePoint.move();
+        }
+      });
     }
   }
 
-  public addMiddleConnector(connector) {
-    this.middleConnector.push(connector);
+  public addConnector(connector) {
+    this.connectors.push(connector);
   }
 
-  public removeMiddleConnector(connector) {
-    const idx = this.middleConnector.indexOf(connector);
-    this.middleConnector.splice(idx, 1);
+  public removeConnector(connector) {
+    const idx = this.connectors.indexOf(connector);
+    this.connectors.splice(idx, 1);
   }
 }

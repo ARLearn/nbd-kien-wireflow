@@ -3,10 +3,10 @@ import { BaseMiddlePoint } from './base-middle-point';
 import { Connector } from './connector';
 
 export class ConnectorMiddlePoint extends BaseMiddlePoint {
-  id: string;
+  public id: string;
 
-  element: any;
-  connector: any;
+  public element: any;
+  public connector: Connector;
 
   constructor(connector: Connector) {
     super();
@@ -19,15 +19,15 @@ export class ConnectorMiddlePoint extends BaseMiddlePoint {
     this.element.onclick = (e) => this.__onClick(e);
   }
 
-  show() {
+  public show() {
     this.element.style.display = 'block';
   }
 
-  hide() {
+  public hide() {
     this.element.style.display = 'none';
   }
 
-  move() {
+  public move() {
     this.coordinates = this.connector.getMiddlePointCoordinates();
 
     // @ts-ignore

@@ -1,51 +1,47 @@
 import {
-  bezierWeight,
-  connectorLayer,
-  getDiagramCoords,
-  getNumberFromPixels,
-  idCounter,
-  ports,
-  removeMiddleConnectorFromOutput,
-  svg,
-  middlePointsOutput, shapes, addMiddleConnectorToOutput, changeDependencies$
+  bezierWeight, connectorLayer, getDiagramCoords,
+  getNumberFromPixels, idCounter, ports,
+  removeConnectorFromOutput, svg, shapes,
+  addConnectorToOutput, changeDependencies$
 } from './base';
 import { NodeShape } from './node-shape';
-import { BaseConnector } from './base-connector';
 import { MiddlePoint } from './middle-point';
 import { NodePort } from './node-port';
 import { ConnectorToolbar } from './toolbars/ConnectorToolbar';
 import { ConnectorMiddlePoint } from './connector-middle-point';
 import { BezierPath } from './bezier-path';
 
-export class Connector extends BaseConnector {
-  id: string;
-  onClick: any;
-  isInput = false;
+export class Connector {
+  public id: string;
+  public baseX: number;
+  public baseY: number;
+  public isInput = false;
+  public isSelected: boolean;
+  public dependencyType: any;
+  public subType: any;
 
-  connectorElement: any;
+  public bezierPath: BezierPath;
+  public inputPort: NodePort;
+  public outputPort: NodePort;
+  public baseMiddlePoint: ConnectorMiddlePoint;
+  public middlePoint: MiddlePoint;
+  public shape: NodeShape;
+  public connectorToolbar: ConnectorToolbar;
+
+  public connectorElement: any;
+  public staticElement: any;
+  public staticPort: any;
+  public dragType: string;
+  public dragElement: any;
+  public inputHandle: any;
+  public outputHandle: any;
+
+  public onClick: any;
 
   private path: any;
   private pathOutline: any;
-  outputPort: NodePort;
-
-  baseX: number;
-  baseY: number;
-  middlePoint: MiddlePoint;
-  isSelected: boolean;
-  dependencyType: any;
-  subType: any;
-  shape: NodeShape;
-  connectorToolbar: ConnectorToolbar;
-  baseMiddlePoint: ConnectorMiddlePoint;
-  bezierPath: BezierPath;
-  inputPort: any;
-  dragElement: any;
-  staticElement: any;
-  staticPort: any;
-  dragType: string;
 
   constructor(x = -1, y = -1, middlePoint = null, dependencyType = null, subtype = null) {
-    super();
     this.id = `connector_${idCounter()}`;
     this.dragType = 'connector';
 
@@ -99,11 +95,11 @@ export class Connector extends BaseConnector {
     connectorLayer.prepend(this.connectorElement);
   }
 
-  setIsInput(isInput: boolean) {
+  public setIsInput(isInput: boolean) {
     this.isInput = isInput;
   }
 
-  init(port) {
+  public init(port) {
     this.isInput = port.isInput;
 
     if (port.isInput) {
@@ -130,15 +126,15 @@ export class Connector extends BaseConnector {
     });
   }
 
-  onDrag() {
+  public onDrag() {
     this.updatePath();
   }
 
-  onDragEnd() {
+  public onDragEnd() {
     this.placeHandle();
   }
 
-  placeHandle() {
+  public placeHandle() {
     const skipShape = this.staticPort.parentNode.element;
 
     let hitPort;
@@ -180,31 +176,21 @@ export class Connector extends BaseConnector {
 
       this.dragElement = null;
 
-      if (hitPort.middleConnector.length > 0) {
-        hitPort.middleConnector.forEach(mc => mc.remove());
+      if (hitPort.connectors.length > 0) {
+        hitPort.connectors.forEach(mc => mc.remove());
       }
 
-      hitPort.addMiddleConnector(this);
+      hitPort.addConnector(this);
       this.updateHandle(hitPort);
 
-      addMiddleConnectorToOutput(this);
+      addConnectorToOutput(this);
       changeDependencies$.next();
     } else {
       this.remove();
     }
   }
 
-  private __onClick(e) {
-    if (this.outputPort || this.isInput) {
-      this.isSelected = !this.isSelected;
-      this.initViewState();
-    }
-
-    // tslint:disable-next-line:no-unused-expression
-    this.onClick && this.onClick(e);
-  }
-
-  move(e: MouseEvent) {
+  public move(e: MouseEvent) {
     const coords = getDiagramCoords();
     const dx = coords.x;
     const dy = coords.y;
@@ -218,16 +204,16 @@ export class Connector extends BaseConnector {
     this.updatePath(e.x - dx, e.y - dy);
   }
 
-  remove(onlyMiddleConnector = true) {
+  public remove(onlyMiddleConnector = true) {
     this.inputHandle = null;
     this.outputHandle = null;
     this.path = null;
     this.pathOutline = null;
 
-    const port = ports.find(x => x.middleConnector.includes(this));
+    const port = ports.find(x => x.connectors.includes(this));
 
     if (port) {
-      port.removeMiddleConnector(this);
+      port.removeConnector(this);
     }
 
     if ((this.outputPort && this.outputPort.isInput) || this.isInput) {
@@ -245,10 +231,10 @@ export class Connector extends BaseConnector {
     if (connectorLayer.contains(this.connectorElement)) {
       connectorLayer.removeChild(this.connectorElement);
     }
-    removeMiddleConnectorFromOutput(this);
+    removeConnectorFromOutput(this);
   }
 
-  initViewState() {
+  public initViewState() {
     if (this.isSelected) {
       this.pathOutline.classList.add('connector-path-outline--selected');
     } else {
@@ -256,12 +242,12 @@ export class Connector extends BaseConnector {
     }
   }
 
-  deselect() {
+  public deselect() {
     this.isSelected = false;
     this.initViewState();
   }
 
-  getCoords() {
+  public getCoords() {
     let x1;
     let y1;
 
@@ -279,7 +265,7 @@ export class Connector extends BaseConnector {
     return { x1, y1, x4, y4 };
   }
 
-  getLength() {
+  public getLength() {
     const coords = this.getCoords();
     const dx = coords.x4 - coords.x1;
     const dy = coords.y4 - coords.y1;
@@ -292,14 +278,14 @@ export class Connector extends BaseConnector {
     return { x: coords.x, y: coords.y - 2 };
   }
 
-  updatePath(x = null, y = null) {
+  public updatePath(x = null, y = null) {
     let p1x; let p1y;
     let p2x; let p2y;
     let p3x; let p3y;
     let p4x; let p4y;
 
-    const fixedEnd = !this.isInput;
-    const fixedStart = this.isInput && !!this.outputPort && !this.inputPort;
+    const fixedEnd = !this.isInput || !this.middlePoint;
+    const fixedStart = !!(this.outputPort || this.inputPort);
     const swapCoords = ((this.outputPort && this.outputPort.isInput) || this.isInput) && !this.inputPort;
 
     let {x1, y1, x4, y4} = this.getCoords();
@@ -421,7 +407,7 @@ export class Connector extends BaseConnector {
     this.updatePath();
   }
 
-  updateHandleMiddlePoint(parentMiddlePoint: MiddlePoint) {
+  public updateHandleMiddlePoint(parentMiddlePoint: MiddlePoint) {
     // @ts-ignore
     TweenLite.set(this.outputHandle, {
       x: parentMiddlePoint.coordinates.x,
@@ -432,17 +418,27 @@ export class Connector extends BaseConnector {
   }
 
   private onHover(e: MouseEvent) {
-    if (!this.isInput || !this.middlePoint) {
+    if (!this.middlePoint || !this.isInput || (this.middlePoint && this.middlePoint.parentMiddlePoint)) {
       this.baseMiddlePoint.show();
       this.baseMiddlePoint.move();
     }
   }
 
   private onHoverLeave(e: MouseEvent) {
-    if (!this.isInput || !this.middlePoint) {
+    if (!this.middlePoint || !this.isInput || (this.middlePoint && this.middlePoint.parentMiddlePoint)) {
       if (this.connectorToolbar.isHidden()) {
         this.baseMiddlePoint.hide();
       }
     }
+  }
+
+  private __onClick(e) {
+    if (this.outputPort || this.isInput) {
+      this.isSelected = !this.isSelected;
+      this.initViewState();
+    }
+
+    // tslint:disable-next-line:no-unused-expression
+    this.onClick && this.onClick(e);
   }
 }
