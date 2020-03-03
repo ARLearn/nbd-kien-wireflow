@@ -6,11 +6,16 @@ import { FormsModule } from '@angular/forms';
 import { WireflowComponent } from './wireflow.component';
 import { WireflowService } from './wireflow.service';
 import { ActionModalComponent } from './shared/action-modal/action-modal.component';
+import { TimeDependencyModalComponent } from './shared/time-dependency-modal/time-dependency-modal.component';
 
 
 
 @NgModule({
-  declarations: [WireflowComponent, ActionModalComponent],
+  declarations: [
+    WireflowComponent,
+    ActionModalComponent,
+    TimeDependencyModalComponent,
+  ],
   imports: [
     CommonModule,
     ModalModule.forRoot(),
@@ -18,6 +23,9 @@ import { ActionModalComponent } from './shared/action-modal/action-modal.compone
   ],
   exports: [WireflowComponent],
   providers: [WireflowService],
-  entryComponents: [ActionModalComponent]
+  entryComponents: [
+    ActionModalComponent,
+    TimeDependencyModalComponent,
+  ]
 })
 export class WireflowModule { }

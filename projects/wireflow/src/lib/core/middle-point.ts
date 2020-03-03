@@ -1,8 +1,10 @@
 import { connectorLayer, getNumberFromPixels, idCounter, middlePointsOutput } from './base';
 import { Connector } from './connector';
 import { NodePort } from './node-port';
-import { ActionToolbar } from './toolbars/ActionToolbar';
+import { ActionToolbar } from './toolbars/action-toolbar';
 import { BaseMiddlePoint } from './base-middle-point';
+
+declare const TweenLite;
 
 export class MiddlePoint extends BaseMiddlePoint {
   id: string;
@@ -22,13 +24,9 @@ export class MiddlePoint extends BaseMiddlePoint {
   dragElement: any;
   typeIcon: any;
 
-  // tslint:disable-next-line:no-unnecessary-initializer
   constructor(
-    // tslint:disable-next-line:no-unnecessary-initializer
-    baseCoords: { x: number; y: number } = undefined,
-    // tslint:disable-next-line:no-unnecessary-initializer
-    inputConnector: Connector = undefined,
-    // tslint:disable-next-line:no-unnecessary-initializer
+    baseCoords: { x: number; y: number } = null,
+    inputConnector: Connector = null,
     outputConnectors: Connector[] = []
   ) {
     super();
@@ -48,9 +46,7 @@ export class MiddlePoint extends BaseMiddlePoint {
     this.show();
 
     this.element.setAttribute('data-drag', `${this.id}:middle-point`);
-    this.element.onclick = () => this.__onClick();
-
-    // this.refreshTypeIcon();
+    this.element.onclick = () => this._onClick();
 
     connectorLayer.append(this.element);
   }
@@ -106,7 +102,6 @@ export class MiddlePoint extends BaseMiddlePoint {
   }
 
   move() {
-    // @ts-ignore
     TweenLite.set(this.element, this.coordinates);
 
     if (this.inputConnector) {
@@ -145,8 +140,8 @@ export class MiddlePoint extends BaseMiddlePoint {
   }
 
   refreshTypeIcon() {
-    this.__removeTypeIcon();
-    this.__showTypeIcon();
+    this._removeTypeIcon();
+    this._showTypeIcon();
   }
 
   remove() {
@@ -173,9 +168,23 @@ export class MiddlePoint extends BaseMiddlePoint {
     middlePointsOutput.splice(middlePointsOutput.indexOf(this), 1);
   }
 
-  private __showTypeIcon() {
-    const isAndDependency = this.dependency.type.includes('AndDependency');
-    const type: 'and' | 'or' = isAndDependency ? 'and' : 'or';
+  private _showTypeIcon() {
+    let type: 'and' | 'or' | 'time';
+
+    switch (this.dependency.type) {
+      case 'org.celstec.arlearn2.beans.dependencies.AndDependency': {
+        type = 'and';
+        break;
+      }
+      case 'org.celstec.arlearn2.beans.dependencies.OrDependency': {
+        type = 'or';
+        break;
+      }
+      case 'org.celstec.arlearn2.beans.dependencies.TimeDependency': {
+        type = 'time';
+        break;
+      }
+    }
 
     this.typeIcon = document.querySelector('.connector-middle-point-' + type).cloneNode(true);
 
@@ -183,20 +192,22 @@ export class MiddlePoint extends BaseMiddlePoint {
     this.element.appendChild(this.typeIcon);
   }
 
-  private __removeTypeIcon() {
-    if (this.typeIcon) {
+  private _removeTypeIcon() {
+    if (this.typeIcon && this.element.contains(this.typeIcon)) {
       this.element.removeChild(this.typeIcon);
     }
   }
 
-  private __onClick() {
-    this.actionToolbar.move();
-    this.__updateToolbars();
+  private _onClick() {
+    if (!this.dependency.type.includes('TimeDependency')) {
+      this.actionToolbar.move();
+      this._updateToolbars();
 
-    this.actionToolbar.toggle();
+      this.actionToolbar.toggle();
+    }
   }
 
-  private __updateToolbars(): void {
+  private _updateToolbars(): void {
     const toolbars: any = document.querySelectorAll(`.${this.actionToolbar.element.classList.value.split(' ').join('.')}`);
 
     Array.from(toolbars).forEach((t: any) => {

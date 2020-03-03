@@ -1,6 +1,8 @@
 import { NodePort } from './node-port';
 import { coordinatesOutput$, idCounter, ports } from './base';
 
+declare const TweenLite;
+
 export class NodeShape {
   id: string;
   generalItemId: string;
@@ -24,7 +26,6 @@ export class NodeShape {
     this.element = element;
     this.dragElement = element;
 
-    // @ts-ignore
     TweenLite.set(element, { x, y });
 
     const inputElements = Array.from(element.querySelectorAll('.input-field'));

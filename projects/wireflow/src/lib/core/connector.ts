@@ -2,14 +2,18 @@ import {
   bezierWeight, connectorLayer, getDiagramCoords,
   getNumberFromPixels, idCounter, ports,
   removeConnectorFromOutput, svg, shapes,
-  addConnectorToOutput, changeDependencies$
+  addConnectorToOutput, changeDependencies$,
+  unSelectAllConnectors
 } from './base';
 import { NodeShape } from './node-shape';
 import { MiddlePoint } from './middle-point';
 import { NodePort } from './node-port';
-import { ConnectorToolbar } from './toolbars/ConnectorToolbar';
+import { ConnectorToolbar } from './toolbars/connector-toolbar';
 import { ConnectorMiddlePoint } from './connector-middle-point';
 import { BezierPath } from './bezier-path';
+
+declare const TweenLite;
+declare const Draggable;
 
 export class Connector {
   public id: string;
@@ -74,16 +78,15 @@ export class Connector {
     this.initViewState();
 
     if (x > -1 && y > -1) {
-      // @ts-ignore
-      TweenLite.set([this.inputHandle, this.outputHandle], {
+      TweenLite.set(this.inputHandle, {
         x, y
       });
     }
 
     svg.onmousemove = (e) => this.move(e);
-    svg.onclick = (e) => this.__onClick(e);
+    svg.onclick = (e) => this._onClick(e);
 
-    this.connectorElement.onclick = (e) => this.__onClick(e);
+    this.connectorElement.onclick = (e) => this._onClick(e);
 
     this.baseMiddlePoint = new ConnectorMiddlePoint(this);
     this.baseMiddlePoint.hide();
@@ -119,7 +122,6 @@ export class Connector {
     this.baseX = port.global.x;
     this.baseY = port.global.y;
 
-    // @ts-ignore
     TweenLite.set([this.inputHandle, this.outputHandle], {
       x: port.global.x,
       y: port.global.y
@@ -145,13 +147,11 @@ export class Connector {
         continue;
       }
 
-      // @ts-ignore
       if (Draggable.hitTest(this.dragElement, shape.element)) {
 
-        // tslint:disable-next-line:no-shadowed-variable
-        const ports = this.isInput ? shape.outputs : shape.inputs;
+        const shapePorts = this.isInput ? shape.outputs : shape.inputs;
 
-        for (const port of ports) {
+        for (const port of shapePorts) {
 
           // @ts-ignore
           if (Draggable.hitTest(this.dragElement, port.portElement)) {
@@ -195,7 +195,6 @@ export class Connector {
     const dx = coords.x;
     const dy = coords.y;
 
-    // @ts-ignore
     TweenLite.set(this.outputHandle, {
       x: e.x - dx,
       y: e.y - dy,
@@ -210,10 +209,10 @@ export class Connector {
     this.path = null;
     this.pathOutline = null;
 
-    const port = ports.find(x => x.connectors.includes(this));
+    const usedPorts = ports.filter(x => x.connectors.includes(this));
 
-    if (port) {
-      port.removeConnector(this);
+    if (usedPorts.length > 0) {
+      usedPorts.forEach(x => x.removeConnector(this));
     }
 
     if ((this.outputPort && this.outputPort.isInput) || this.isInput) {
@@ -376,7 +375,6 @@ export class Connector {
     this.baseX = x;
     this.baseY = y;
 
-    // @ts-ignore
     TweenLite.set(this.inputHandle, {
       x, y
     });
@@ -386,13 +384,11 @@ export class Connector {
 
   public updateHandle(port) {
     if (port === this.inputPort) {
-      // @ts-ignore
       TweenLite.set(this.inputHandle, {
         x: port.global.x,
         y: port.global.y
       });
     } else if (port === this.outputPort) {
-      // @ts-ignore
       TweenLite.set(this.outputHandle, {
         x: port.global.x,
         y: port.global.y
@@ -408,7 +404,6 @@ export class Connector {
   }
 
   public updateHandleMiddlePoint(parentMiddlePoint: MiddlePoint) {
-    // @ts-ignore
     TweenLite.set(this.outputHandle, {
       x: parentMiddlePoint.coordinates.x,
       y: parentMiddlePoint.coordinates.y
@@ -432,13 +427,14 @@ export class Connector {
     }
   }
 
-  private __onClick(e) {
-    if (this.outputPort || this.isInput) {
-      this.isSelected = !this.isSelected;
-      this.initViewState();
+  private _onClick(e) {
+    if (!this.isSelected) {
+      unSelectAllConnectors();
     }
 
-    // tslint:disable-next-line:no-unused-expression
+    this.isSelected = !this.isSelected;
+    this.initViewState();
+
     this.onClick && this.onClick(e);
   }
 }

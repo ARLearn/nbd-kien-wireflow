@@ -7,6 +7,9 @@ import {
 import { NodeShape } from './node-shape';
 import { Connector } from './connector';
 
+declare const TweenLite;
+declare const Draggable;
+
 export class Diagram {
   dragElement: any;
   element: any;
@@ -15,9 +18,9 @@ export class Diagram {
   draggable: any;
 
   private openedConnector: Connector;
-  // tslint:disable-next-line:variable-name
-  constructor(_diagramElement, _shapeElements, _svg, _dragProxy, _frag, _connectorEl, _connectorLayer, messages) {
-    init(_diagramElement, _shapeElements, _svg, _dragProxy, _frag, _connectorEl, _connectorLayer);
+
+  constructor(diagramEl, shapeEls, svgEl, dragProxyEl, fragEl, connectorEl, connectorLayerEl, messages) {
+    init(diagramEl, shapeEls, svgEl, dragProxyEl, fragEl, connectorEl, connectorLayerEl);
 
     this.dragElement = this.element = diagramElement;
 
@@ -26,7 +29,6 @@ export class Diagram {
     this.target = null;
     this.dragType = null;
 
-    // @ts-ignore
     this.draggable = new Draggable(dragProxy, {
       allowContextMenu: true,
       trigger: svg,
@@ -46,11 +48,11 @@ export class Diagram {
   }
 
   private getDragArgs({target}: any) {
-    let drag;
+    let drag = target.getAttribute('data-drag');
 
-    // tslint:disable-next-line:no-conditional-assignment
-    while (!(drag = target.getAttribute('data-drag')) && target !== svg) {
+    while (!drag && target !== svg) {
       target = target.parentNode;
+      drag = target.getAttribute('data-drag');
     }
 
     drag = drag || 'diagram:diagram';
@@ -62,7 +64,6 @@ export class Diagram {
 
   initState(baseState: any[]) {
     baseState.forEach(message => {
-
       if (message.dependsOn && message.dependsOn.type && (
            message.dependsOn.type === 'org.celstec.arlearn2.beans.dependencies.AndDependency' ||
            message.dependsOn.type === 'org.celstec.arlearn2.beans.dependencies.OrDependency')) {
@@ -129,8 +130,6 @@ export class Diagram {
 
   dragTarget() {
     if (this.target) {
-      // @ts-ignore
-
       TweenLite.set(this.target.dragElement, {
         x: `+=${this.draggable.deltaX}`,
         y: `+=${this.draggable.deltaY}`,

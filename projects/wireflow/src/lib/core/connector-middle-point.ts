@@ -2,6 +2,8 @@ import { idCounter } from './base';
 import { BaseMiddlePoint } from './base-middle-point';
 import { Connector } from './connector';
 
+declare const TweenLite;
+
 export class ConnectorMiddlePoint extends BaseMiddlePoint {
   public id: string;
 
@@ -16,7 +18,7 @@ export class ConnectorMiddlePoint extends BaseMiddlePoint {
 
     this.element = this.connector.connectorElement.querySelector('.base-middle-point');
 
-    this.element.onclick = (e) => this.__onClick(e);
+    this.element.onclick = (e) => this._onClick(e);
   }
 
   public show() {
@@ -30,21 +32,20 @@ export class ConnectorMiddlePoint extends BaseMiddlePoint {
   public move() {
     this.coordinates = this.connector.getMiddlePointCoordinates();
 
-    // @ts-ignore
     TweenLite.set(this.element, this.coordinates);
   }
 
-  private __onClick(event) {
+  private _onClick(event) {
     event.stopPropagation();
 
-    this.__updateToolbars();
+    this._updateToolbars();
 
     this.connector.connectorToolbar.move();
 
     this.connector.connectorToolbar.toggle();
   }
 
-  private __updateToolbars(): void {
+  private _updateToolbars(): void {
     const toolbars: any = document.querySelectorAll(`.${this.connector.connectorToolbar.element.classList.value.split(' ').join('.')}`);
 
     Array.from(toolbars).forEach((t: any) => {

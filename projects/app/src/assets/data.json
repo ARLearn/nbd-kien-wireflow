@@ -136,6 +136,13 @@
         "feedback": "Nope, try again.",
         "answer": "vegetable",
         "id": "J7CyL"
+      },
+      {
+        "type": "org.celstec.arlearn2.beans.generalItem.MultipleChoiceAnswerItem",
+        "isCorrect": false,
+        "feedback": "Nope, try again.",
+        "answer": "www",
+        "id": "given"
       }
     ],
     "showFeedback": true,

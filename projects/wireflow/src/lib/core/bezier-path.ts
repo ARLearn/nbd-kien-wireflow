@@ -30,8 +30,8 @@ export class BezierPath implements BezierCoordinates {
   }
 
   public getPoint(t: number): { x: number, y: number } {
-    const x = this.__calculate(this.p1x, this.p2x, this.p3x, this.p4x, t);
-    const y = this.__calculate(this.p1y, this.p2y, this.p3y, this.p4y, t);
+    const x = this._calculate(this.p1x, this.p2x, this.p3x, this.p4x, t);
+    const y = this._calculate(this.p1y, this.p2y, this.p3y, this.p4y, t);
 
     return { x, y };
   }
@@ -45,7 +45,7 @@ export class BezierPath implements BezierCoordinates {
   }
 
   // P = (1−t)^3*P1 + 3(1−t)^2*t*P2 +3*(1−t)*t^2*P3 + t^3*P4
-  private __calculate(p1, p2, p3, p4, t): number {
+  private _calculate(p1, p2, p3, p4, t): number {
     return Math.pow((1 - t), 3) * p1 + 3 * Math.pow((1 - t), 2) * t * p2 + 3 * (1 - t) * Math.pow(t, 2) * p3 + Math.pow(t, 3) * p4;
   }
 }

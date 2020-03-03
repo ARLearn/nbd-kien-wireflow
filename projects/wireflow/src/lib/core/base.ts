@@ -5,8 +5,7 @@ import { NodePort } from './node-port';
 import { Connector } from './connector';
 import { MiddlePoint } from './middle-point';
 
-// @ts-ignore
-SVGElement.prototype.getTransformToElement = SVGElement.prototype.getTransformToElement || function(toElement) {
+(SVGElement.prototype as any).getTransformToElement = (SVGElement.prototype as any).getTransformToElement || function(toElement) {
   return toElement.getScreenCTM().inverse().multiply(this.getScreenCTM());
 };
 
@@ -37,21 +36,20 @@ export function getNumberFromPixels(str) {
 
 function counter(startFrom = 0) {
   let c = startFrom;
-  // tslint:disable-next-line:only-arrow-functions
-  return function() {
+  return () => {
     return c++;
   };
 }
 
-// tslint:disable-next-line:variable-name
-export function init(_diagramElement, _shapeElements, _svg, _dragProxy, _frag, _connectorEl, _connectorLayer) {
-  diagramElement = _diagramElement;
-  shapeElements = _shapeElements;
-  svg = _svg;
-  dragProxy = _dragProxy;
-  frag = _frag;
-  connectorElement = _connectorEl;
-  connectorLayer = _connectorLayer;
+
+export function init(diagramEl, shapeEls, svgEl, dragProxyEl, fragEl, connectorEl, connectorLayerEl) {
+  diagramElement = diagramEl;
+  shapeElements = shapeEls;
+  svg = svgEl;
+  dragProxy = dragProxyEl;
+  frag = fragEl;
+  connectorElement = connectorEl;
+  connectorLayer = connectorLayerEl;
 }
 
 export const idCounter = counter();
@@ -84,8 +82,7 @@ export function createInputConnector(message: any, coords: { x: number; y: numbe
 }
 
 export function createConnector(node: any, currentMiddleConnector = null, nodeShape = null, dependency = null) {
-  // tslint:disable-next-line:variable-name
-  const __node = document.querySelector(`.node-container[general-item-id="${ node.id }"]`);
+  const nodeEl = document.querySelector(`.node-container[general-item-id="${ node.id }"]`);
 
   let shape = nodeShape;
 
@@ -94,10 +91,9 @@ export function createConnector(node: any, currentMiddleConnector = null, nodeSh
   const dy = coords.y;
 
   if (nodeShape === null) {
-    shape = new NodeShape(__node, node.authoringX - dx, node.authoringY - dy);
+    shape = new NodeShape(nodeEl, node.authoringX - dx, node.authoringY - dy);
     shapes.push(shape);
   }
-
 
   let output;
 
@@ -136,15 +132,20 @@ export function drawMiddlePointGroup(message: any, input: MiddlePoint, outputs: 
   const shape = getShapeByGeneralItemId(message.id);
 
   const outConns = outputs.map(dep => {
-    if (dep.dependencies && dep.dependencies.length > 0) {
+    if (dep.dependencies || dep.offset) {
       const newMp = new MiddlePoint();
       newMp.setDependency(dep);
-      newMp.setParentMiddlePoint(input as MiddlePoint);
+      newMp.setParentMiddlePoint(input);
       newMp.setGeneralItemId(message.id);
       input.addChildMiddlePoint(newMp);
-      // newMp.setInputPort()
 
-      drawMiddlePointGroup(message, newMp, dep.dependencies);
+      if (dep.dependencies && dep.dependencies.length > 0) {
+        drawMiddlePointGroup(message, newMp, dep.dependencies);
+      }
+
+      if (dep.offset) {
+        drawMiddlePointGroup(message, newMp, [ dep.offset ]);
+      }
     }
 
     if (!dep.generalItemId) { return; }
@@ -181,7 +182,7 @@ export function drawMiddlePointGroup(message: any, input: MiddlePoint, outputs: 
   const inpConn = createInputConnector(message, coords, input);
   input.setCoordinates(coords);
   input.setInputConnector(inpConn);
-  input.move();
+  input.init();
 
   input.setOutputConnectors(outConns);
 
@@ -197,10 +198,9 @@ export function initNodeMessage(message) {
   mp.setInputPort(getInputPortByGeneralItemId(message.id));
   mp.setCoordinates({ x: 0, y: 0 });
 
-  drawMiddlePointGroup(message, mp, message.dependsOn.dependencies);
+  drawMiddlePointGroup(message, mp, message.dependsOn.dependencies || [ message.dependsOn.offset ]);
 
-  // tslint:disable-next-line:variable-name
-  middlePointsOutput.forEach(__mp => __mp.init());
+  middlePointsOutput.forEach(mpo => mpo.init());
 }
 
 export function getShapeById(id): NodeShape {
@@ -225,4 +225,9 @@ export function getOutputPortByGeneralItemId(generalItemId, action) {
 
 export function getMiddlePointById(id): MiddlePoint {
   return middlePointsOutput.find(mp => mp.id === id);
+}
+
+export function unSelectAllConnectors() {
+  connectorsOutput.forEach(x => x.deselect());
+  middlePointsOutput.forEach(m => m.inputConnector.deselect());
 }

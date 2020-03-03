@@ -2,6 +2,9 @@ import { Toolbar } from './interfaces/toolbar';
 import { BaseMiddlePoint } from './base-middle-point';
 import { connectorLayer } from './base';
 
+declare const TweenLite;
+declare const Draggable;
+
 export class BaseToolbar implements Toolbar {
   public element: any;
   public middlePoint: BaseMiddlePoint;
@@ -33,15 +36,9 @@ export class BaseToolbar implements Toolbar {
   public move(): void {
     const coords = this.middlePoint.coordinates;
 
-    // @ts-ignore
     TweenLite.set(this.element, {
       x: coords.x - 48,
-      y: coords.y + 16,
-      onStart: () => {
-        // const toolbars: any = document.querySelectorAll(`.${this.element.classList.value.split(' ').join('.')}`);
-
-        // Array.from(toolbars).forEach((t: any) => t.style.display = 'none');
-      }
+      y: coords.y + 16
     });
   }
 
