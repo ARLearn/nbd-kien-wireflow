@@ -203,7 +203,10 @@ export class Connector {
     this.updatePath(e.x - dx, e.y - dy);
   }
 
-  public remove(onlyMiddleConnector = true) {
+  public remove({ onlyMiddleConnector, removeDependency }: { onlyMiddleConnector?: boolean, removeDependency?: boolean } = {}) {
+    if (onlyMiddleConnector === undefined) { onlyMiddleConnector = true; }
+    if (removeDependency === undefined) { removeDependency = true; }
+
     this.inputHandle = null;
     this.outputHandle = null;
     this.path = null;
@@ -221,7 +224,7 @@ export class Connector {
       this.middlePoint && this.middlePoint.remove();
     } else {
       if (this.middlePoint && onlyMiddleConnector) {
-        this.middlePoint.removeOutputConnector(this);
+        this.middlePoint.removeOutputConnector(this, removeDependency);
       }
     }
 
@@ -430,13 +433,15 @@ export class Connector {
   }
 
   private _onClick(e) {
+    if (this.onClick) {
+      return this.onClick(e);
+    }
+
     if (!this.isSelected) {
       unSelectAllConnectors();
     }
 
     this.isSelected = !this.isSelected;
     this.initViewState();
-
-    this.onClick && this.onClick(e);
   }
 }

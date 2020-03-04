@@ -3,7 +3,13 @@ import { BehaviorSubject, Subject } from 'rxjs';
 import { distinct, map, pairwise } from 'rxjs/operators';
 import * as hash from 'object-hash';
 
-import { changeDependencies$, coordinatesOutput$, newNodeOutput$, singleDependenciesOutput$ } from './core/base';
+import {
+  changeDependencies$,
+  coordinatesOutput$,
+  middlePointClick$,
+  newNodeOutput$,
+  singleDependenciesOutput$
+} from './core/base';
 import { GameMessageCommon } from './models/core';
 
 interface MessageEditorStateModel {
@@ -27,13 +33,13 @@ export class WireflowService {
   get coordinatesOutputSubject() { return coordinatesOutput$.pipe(distinct()); }
   get singleDependenciesOutput() { return singleDependenciesOutput$.pipe(distinct()); }
   get newNodeOutput() { return newNodeOutput$.pipe(distinct()); }
+  get middlePointClick() { return middlePointClick$; }
 
   get messagesChange() {
     return this.stateSubject
       .pipe(
         map(x => x.messages),
-        pairwise(),
-        map(([, b]: any) => {
+        map((b: any) => {
           const a = JSON.parse(this.state.lastMessagesJSON);
           const minL = a.length <  b.length ? a : b;
           const maxL = a.length >= b.length ? a : b;

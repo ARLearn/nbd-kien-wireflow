@@ -7,7 +7,14 @@
   </div>
   <div class="modal-body">
     <div>
-      <input class="form-control" type="number" name="seconds" placeholder="Please enter number of seconds" ngModel required autocomplete="off" />
+      <input
+        class="form-control"
+        type="number" name="seconds"
+        placeholder="Please enter number of seconds"
+        [ngModel]="seconds"
+        required
+        autocomplete="off"
+      />
     </div>
   </div>
   <div class="modal-footer">

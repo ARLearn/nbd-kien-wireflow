@@ -1,4 +1,4 @@
-import { connectorLayer, getNumberFromPixels, idCounter, middlePointsOutput } from './base';
+import {connectorLayer, getNumberFromPixels, idCounter, middlePointClick$, middlePointsOutput} from './base';
 import { Connector } from './connector';
 import { NodePort } from './node-port';
 import { ActionToolbar } from './toolbars/action-toolbar';
@@ -24,6 +24,9 @@ export class MiddlePoint extends BaseMiddlePoint {
   dragElement: any;
   typeIcon: any;
 
+  private mainIcon: any;
+  private pencilIcon: any;
+
   constructor(
     baseCoords: { x: number; y: number } = null,
     inputConnector: Connector = null,
@@ -35,6 +38,9 @@ export class MiddlePoint extends BaseMiddlePoint {
 
     this.coordinates = baseCoords;
     this.element = document.querySelector('svg .middle-point').cloneNode(true);
+
+    this.mainIcon = this.element.querySelector('.middle-point-font');
+    this.pencilIcon = this.element.querySelector('.middle-point-pencil');
 
     this.dragElement = this.element;
 
@@ -135,20 +141,37 @@ export class MiddlePoint extends BaseMiddlePoint {
     this.outputConnectors.push(connector);
   }
 
-  removeOutputConnector(connector: Connector) {
+  removeOutputConnector(connector: Connector, removeDependency = true) {
     this.outputConnectors.splice(this.outputConnectors.indexOf(connector), 1);
 
-    if (this.dependency.dependencies && connector.outputPort) {
-      const idx = this.dependency
+    if (removeDependency && this.dependency.dependencies && connector.outputPort) {
+      const depToFind = {
+        type: connector.dependencyType,
+        generalItemId: connector.outputPort.generalItemId,
+        action: connector.outputPort.action,
+        subtype: connector.subType,
+      };
+
+      this.dependency.dependencies.splice(this.getDependencyIdx(depToFind), 1);
+
+    } else if (removeDependency && this.dependency.offset) {
+      this.dependency.offset = {};
+    }
+  }
+  // returns index of dependency.dependencies array
+  getDependencyIdx(dependency: any): number {
+    if (this.dependency.dependencies) {
+      return this.dependency
         .dependencies
         .findIndex(x =>
-          x.generalItemId === connector.outputPort.generalItemId &&
-          x.action === connector.outputPort.action &&
-          x.type === connector.dependencyType
+          x.generalItemId === dependency.generalItemId &&
+          x.action === dependency.action &&
+          x.type === dependency.type &&
+          x.subtype === dependency.subtype
         );
-
-      this.dependency.dependencies.splice(idx, 1);
     }
+
+    return -1;
   }
 
   refreshTypeIcon() {
@@ -157,7 +180,7 @@ export class MiddlePoint extends BaseMiddlePoint {
   }
 
   remove(fromParent = false) {
-    this.outputConnectors.forEach(oc => oc.remove(false));
+    this.outputConnectors.forEach(oc => oc.remove({ onlyMiddleConnector: false }));
 
     if (this.actionToolbar) {
       this.actionToolbar.remove();
@@ -172,12 +195,16 @@ export class MiddlePoint extends BaseMiddlePoint {
     if (this.parentMiddlePoint && !fromParent) {
       this.parentMiddlePoint.removeChildMiddlePoint(this);
 
-      const idx = this.parentMiddlePoint.dependency.dependencies.indexOf(this.dependency);
-      this.parentMiddlePoint.dependency.dependencies.splice(idx, 1);
+      if (this.parentMiddlePoint.dependency.offset) {
+        this.parentMiddlePoint.dependency.offset = {};
+      } else if (this.parentMiddlePoint.dependency.dependencies) {
+        const idx = this.parentMiddlePoint.dependency.dependencies.indexOf(this.dependency);
+        this.parentMiddlePoint.dependency.dependencies.splice(idx, 1);
+      }
     }
 
     if (this.inputConnector) {
-      this.inputConnector.remove(true);
+      this.inputConnector.remove();
       this.inputConnector = null;
     }
 
@@ -193,14 +220,17 @@ export class MiddlePoint extends BaseMiddlePoint {
     switch (this.dependency.type) {
       case 'org.celstec.arlearn2.beans.dependencies.AndDependency': {
         type = 'and';
+        this._showMainIcon();
         break;
       }
       case 'org.celstec.arlearn2.beans.dependencies.OrDependency': {
         type = 'or';
+        this._showMainIcon();
         break;
       }
       case 'org.celstec.arlearn2.beans.dependencies.TimeDependency': {
         type = 'time';
+        this._hideMainIcon();
         break;
       }
     }
@@ -209,6 +239,16 @@ export class MiddlePoint extends BaseMiddlePoint {
 
     this.typeIcon.style.display = 'block';
     this.element.appendChild(this.typeIcon);
+  }
+
+  private _showMainIcon() {
+    this.mainIcon.style.display = 'block';
+    this.pencilIcon.style.display = 'none';
+  }
+
+  private _hideMainIcon() {
+    this.mainIcon.style.display = 'none';
+    this.pencilIcon.style.display = 'block';
   }
 
   private _removeTypeIcon() {
@@ -224,6 +264,8 @@ export class MiddlePoint extends BaseMiddlePoint {
 
       this.actionToolbar.toggle();
     }
+
+    middlePointClick$.next(this);
   }
 
   private _updateToolbars(): void {

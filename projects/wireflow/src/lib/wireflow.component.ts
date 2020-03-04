@@ -102,6 +102,15 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
       }
     });
 
+    const middlePointClickSub = this.wireflowService.middlePointClick.subscribe((x: MiddlePoint) => {
+      if (x.dependency.type.includes('TimeDependency')) {
+        this.openModal(TimeDependencyModalComponent, {
+          data: { initialData: x.dependency.timeDelta, middlePoint: x },
+          onSubmit: this.onChangeTimeDependency.bind(this)
+        });
+      }
+    });
+
     const messagesChangeSub = this.wireflowService.messagesChange.subscribe(x => {
       this.messagesChange.emit(x);
     });
@@ -109,6 +118,7 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
     this.subscription.add(coordinatesSub);
     this.subscription.add(singleDependencySub);
     this.subscription.add(newNodeSub);
+    this.subscription.add(middlePointClickSub);
     this.subscription.add(messagesChangeSub);
   }
 
@@ -129,6 +139,12 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
     };
     this.modalRef.hide();
     this.changeSingleDependency(data.type, data.connector, options);
+  }
+
+  onChangeTimeDependency(formValue: any, data: any) {
+    data.middlePoint.dependency.timeDelta = formValue.seconds * 1000;
+    this.modalRef.hide();
+    changeDependencies$.next();
   }
 
   openModal(template: any, initialState = {}) {
@@ -157,7 +173,7 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
 
         if (this.currentMiddleConnector) {
           this.currentMiddleConnector.removeHandlers();
-          this.currentMiddleConnector.remove(true);
+          this.currentMiddleConnector.remove();
           this.currentMiddleConnector = null;
         }
 
@@ -402,7 +418,7 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
           this.currentMiddleConnector = null;
           this.lastGeneralItemId = null;
 
-          this.wireflowService.initMessages(this.populate());
+          changeDependencies$.next();
 
           this.processing = false;
           return;
@@ -514,7 +530,7 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
       mp.setParentMiddlePoint(parentMP);
       parentMP.addChildMiddlePoint(mp);
 
-      connector.remove();
+      connector.remove({ removeDependency: false });
       drawMiddlePointGroup(message, mp, dependency.dependencies || [ dependency.offset ]);
 
       mp.setCoordinates(coords);
@@ -546,7 +562,7 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
       initNodeMessage(message);
     }
 
-    this.wireflowService.initMessages(this.messages);
+    changeDependencies$.next();
   }
 
   private handleNodesRender() {
@@ -588,7 +604,7 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
       this.lastGeneralItemId = null;
       this.currentMiddleConnector = null;
       this.processing = false;
-      this.wireflowService.initMessages(this.populate());
+      changeDependencies$.next();
     }
   }
 
