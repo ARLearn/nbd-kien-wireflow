@@ -215,7 +215,9 @@ export class Connector {
       usedPorts.forEach(x => x.removeConnector(this));
     }
 
-    if ((this.outputPort && this.outputPort.isInput) || this.isInput) {
+    const isInput = (this.outputPort && this.outputPort.isInput) || this.isInput;
+
+    if (isInput && !onlyMiddleConnector) {
       this.middlePoint && this.middlePoint.remove();
     } else {
       if (this.middlePoint && onlyMiddleConnector) {

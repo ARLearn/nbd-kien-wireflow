@@ -137,6 +137,18 @@ export class MiddlePoint extends BaseMiddlePoint {
 
   removeOutputConnector(connector: Connector) {
     this.outputConnectors.splice(this.outputConnectors.indexOf(connector), 1);
+
+    if (this.dependency.dependencies && connector.outputPort) {
+      const idx = this.dependency
+        .dependencies
+        .findIndex(x =>
+          x.generalItemId === connector.outputPort.generalItemId &&
+          x.action === connector.outputPort.action &&
+          x.type === connector.dependencyType
+        );
+
+      this.dependency.dependencies.splice(idx, 1);
+    }
   }
 
   refreshTypeIcon() {
@@ -144,22 +156,29 @@ export class MiddlePoint extends BaseMiddlePoint {
     this._showTypeIcon();
   }
 
-  remove() {
+  remove(fromParent = false) {
     this.outputConnectors.forEach(oc => oc.remove(false));
 
     if (this.actionToolbar) {
       this.actionToolbar.remove();
     }
 
-    if (this.parentMiddlePoint) {
+    if (this.childrenMiddlePoints.length > 0) {
+      this.childrenMiddlePoints.forEach(cmp => {
+        cmp.remove(true);
+      });
+    }
+
+    if (this.parentMiddlePoint && !fromParent) {
       this.parentMiddlePoint.removeChildMiddlePoint(this);
 
       const idx = this.parentMiddlePoint.dependency.dependencies.indexOf(this.dependency);
       this.parentMiddlePoint.dependency.dependencies.splice(idx, 1);
     }
 
-    if (this.childrenMiddlePoints.length > 0) {
-      this.childrenMiddlePoints.forEach(cmp => cmp.inputConnector.remove(false));
+    if (this.inputConnector) {
+      this.inputConnector.remove(true);
+      this.inputConnector = null;
     }
 
     if (connectorLayer.contains(this.element)) {

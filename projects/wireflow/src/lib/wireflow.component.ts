@@ -145,7 +145,7 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
       case 'Backspace':
       case 'Delete': {
         connectorsOutput.filter(mc => mc.isSelected).forEach(x => x.remove());
-        middlePointsOutput.filter(mp => mp.inputConnector.isSelected).forEach(x => x.inputConnector.remove());
+        middlePointsOutput.filter(mp => mp.inputConnector.isSelected).forEach(x => x.remove());
         changeDependencies$.next();
       }
       // tslint:disable-next-line:no-switch-case-fall-through
