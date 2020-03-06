@@ -6,6 +6,7 @@ import {
 } from './base';
 import { NodeShape } from './node-shape';
 import { Connector } from './connector';
+import { clone } from '../utils';
 
 declare const TweenLite;
 declare const Draggable;
@@ -69,7 +70,7 @@ export class Diagram {
            message.dependsOn.type === 'org.celstec.arlearn2.beans.dependencies.OrDependency')) {
 
         if (message.dependsOn && message.dependsOn.dependencies && message.dependsOn.dependencies.length > 0) {
-          initNodeMessage(JSON.parse(JSON.stringify(message)));
+          initNodeMessage(clone(message));
         }
       } else {
         if (message.dependsOn && ((message.dependsOn.generalItemId && message.dependsOn.action) ||
@@ -96,16 +97,21 @@ export class Diagram {
     }
 
     if (inputPort != null && outputPort != null) {
-      const mc = new Connector();
-      mc.removeHandlers();
-      mc.init(inputPort);
-      mc.setOutputPort(outputPort);
-      inputPort.addConnector(mc);
-      outputPort.addConnector(mc);
-      mc.updateHandle(outputPort);
+      const con = new Connector();
+      con.removeHandlers();
+      con.init(inputPort);
+      con.setOutputPort(outputPort);
 
-      addConnectorToOutput(mc);
-      return mc;
+      if (dependency.type.includes('ProximityDependency')) {
+        con.setProximity(dependency.lat, dependency.lng, dependency.radius);
+      }
+
+      inputPort.addConnector(con);
+      outputPort.addConnector(con);
+      con.updateHandle(outputPort);
+
+      addConnectorToOutput(con);
+      return con;
     }
   }
 

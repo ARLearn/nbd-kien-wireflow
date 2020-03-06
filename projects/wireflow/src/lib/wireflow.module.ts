@@ -2,6 +2,7 @@ import { NgModule } from '@angular/core';
 import { ModalModule } from 'ngx-bootstrap';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { AgmCoreModule } from '@agm/core';
 
 import { WireflowComponent } from './wireflow.component';
 import { WireflowService } from './wireflow.service';
@@ -21,7 +22,11 @@ import { ProximityDependencyModalComponent } from './shared/proximity-dependency
   imports: [
     CommonModule,
     ModalModule.forRoot(),
-    FormsModule
+    FormsModule,
+    AgmCoreModule.forRoot({
+      apiKey: '<API_KEY>',
+      libraries: ['places']
+    })
   ],
   exports: [WireflowComponent],
   providers: [WireflowService],

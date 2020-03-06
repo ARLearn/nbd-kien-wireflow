@@ -17,7 +17,7 @@ import { WireflowService } from './wireflow.service';
 import {
   changeDependencies$, createInputConnector, createConnector,
   drawMiddlePointGroup, getInputPortByGeneralItemId, getShapeByGeneralItemId,
-  initNodeMessage, connectorsOutput, middlePointsOutput, ports,
+  initNodeMessage, connectorsOutput, middlePointsOutput, ports, getAllDependenciesByCondition,
 } from './core/base';
 import {
   GameMessageCommon,
@@ -29,6 +29,7 @@ import { TimeDependencyModalComponent } from './shared/time-dependency-modal/tim
 import { NodePort } from './core/node-port';
 import { MiddlePoint } from './core/middle-point';
 import { ProximityDependencyModalComponent } from './shared/proximity-dependency-modal/proximity-dependency-modal.component';
+import { clone } from './utils';
 
 @Component({
   selector: 'lib-wireflow',
@@ -115,6 +116,11 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
       }
     });
 
+    const removeNode = this.wireflowService.removeNode.subscribe(id => {
+      this.messages.splice(this.messages.findIndex((m: any) => m.virtual && m.id.toString() === id.toString()), 1);
+      this.populatedNodes.splice(this.populatedNodes.findIndex((m: any) => m.virtual && m.id.toString() === id.toString()), 1);
+    });
+
     const middlePointClickSub = this.wireflowService.middlePointClick.subscribe((x: MiddlePoint) => {
       if (x.dependency.type.includes('TimeDependency')) {
         this.openModal(TimeDependencyModalComponent, {
@@ -131,6 +137,7 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
     this.subscription.add(coordinatesSub);
     this.subscription.add(singleDependencySub);
     this.subscription.add(newNodeSub);
+    this.subscription.add(removeNode);
     this.subscription.add(middlePointClickSub);
     this.subscription.add(messagesChangeSub);
   }
@@ -175,7 +182,7 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   openModal(template: any, initialState = {}) {
-    this.modalRef = this.modalService.show(template, {initialState});
+    this.modalRef = this.modalService.show(template, {initialState, backdrop: 'static'});
   }
 
   getHeight(node) {
@@ -214,24 +221,20 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
     const mainMiddlePoints: MiddlePoint[] = middlePointsOutput.filter(mp => !mp.parentMiddlePoint);
 
 
-    return JSON.parse(JSON.stringify(this.messages)).map((x: any) => {
+    return clone(this.messages).map((x: any) => {
       const message = {...x};
 
       const currentMiddlePoint = mainMiddlePoints.find(mp => Number(mp.generalItemId) === x.id);
 
       if (currentMiddlePoint) {
         message.dependsOn = currentMiddlePoint.dependency;
-
-        const proxms = this.getAllDependenciesByCondition(message.dependsOn, d => d.type.includes('ProximityDependency'));
-        proxms.forEach(pr => delete pr.generalItemId);
-
       } else {
         const singleConnector = connectorsOutput.find(c => !c.middlePoint && c.inputPort.generalItemId === x.id.toString());
 
         if (singleConnector) {
-          if (x.dependsOn.type.includes('ProximityDependency')) {
+          if (singleConnector.outputPort && singleConnector.outputPort.nodeType &&
+              singleConnector.outputPort.nodeType.includes('ProximityDependency')) {
             message.dependsOn = { ...x.dependsOn };
-            delete message.dependsOn.generalItemId;
           } else {
             message.dependsOn = {
               type: singleConnector.outputPort.nodeType,
@@ -330,9 +333,9 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
     const msgs = this.messages.filter((m: any) => m.dependsOn);
 
     msgs.forEach(x => {
-      const depends = this.getAllDependenciesByCondition(x.dependsOn, (d: any) => d.subtype && d.subtype.length > 0);
+      const depends = getAllDependenciesByCondition(x.dependsOn, (d: any) => d.subtype && d.subtype.length > 0);
 
-      const proximities = this.getAllDependenciesByCondition(x.dependsOn, (d: any) => d.type && d.type.includes('ProximityDependency'));
+      const proximities = getAllDependenciesByCondition(x.dependsOn, (d: any) => d.type && d.type.includes('ProximityDependency'));
 
       if (proximities.length > 0) {
         proximities.forEach(p => {
@@ -365,20 +368,6 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
     });
 
 
-
-    return result;
-  }
-
-  private getAllDependenciesByCondition(dependency, cb, result = []) {
-    if (cb(dependency)) {
-      result.push(dependency);
-    }
-
-    if (Array.isArray(dependency.dependencies) && dependency.dependencies.length > 0) {
-      dependency.dependencies.forEach(x => {
-        this.getAllDependenciesByCondition(x, cb, result);
-      });
-    }
 
     return result;
   }
@@ -551,7 +540,7 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
       }
 
       let dependency;
-      console.log(parentMP.dependency);
+
       if (parentMP.dependency.type.includes('TimeDependency')) {
         dependency = parentMP.dependency.offset;
       } else {
@@ -560,8 +549,10 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
           .dependencies
           .find(x =>
             (x.action === connector.outputPort.action ||
-             x.type.includes('ProximityDependency')) &&
-            x.generalItemId.toString() === connector.outputPort.generalItemId
+              (connector.proximity &&
+               connector.proximity.lat === x.lat &&
+               connector.proximity.lng === x.lng &&
+               connector.proximity.radius === x.radius))
           );
       }
 
@@ -588,7 +579,7 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
       mp.setParentMiddlePoint(parentMP);
       parentMP.addChildMiddlePoint(mp);
 
-      connector.remove({ removeDependency: false });
+      connector.remove({ removeDependency: false, removeVirtualNode: false });
       drawMiddlePointGroup(message, mp, dependency.dependencies || [ dependency.offset ]);
 
       mp.setCoordinates(coords);

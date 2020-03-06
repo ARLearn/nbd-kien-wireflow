@@ -3,7 +3,7 @@ import {
   getNumberFromPixels, idCounter, ports,
   removeConnectorFromOutput, svg, shapes,
   addConnectorToOutput, changeDependencies$,
-  unSelectAllConnectors
+  unSelectAllConnectors, removeNode$
 } from './base';
 import { NodeShape } from './node-shape';
 import { MiddlePoint } from './middle-point';
@@ -15,6 +15,12 @@ import { BezierPath } from './bezier-path';
 declare const TweenLite;
 declare const Draggable;
 
+interface ConnectorRemoveOptions {
+  onlyConnector?: boolean;
+  removeDependency?: boolean;
+  removeVirtualNode?: boolean;
+}
+
 export class Connector {
   public id: string;
   public baseX: number;
@@ -23,6 +29,7 @@ export class Connector {
   public isSelected: boolean;
   public dependencyType: any;
   public subType: any;
+  public proximity?: { lat?: number, lng?: number; radius?: number };
 
   public bezierPath: BezierPath;
   public inputPort: NodePort;
@@ -201,9 +208,10 @@ export class Connector {
     this.updatePath(e.x - dx, e.y - dy);
   }
 
-  public remove({ onlyConnector, removeDependency }: { onlyConnector?: boolean, removeDependency?: boolean } = {}) {
-    if (onlyConnector === undefined) { onlyConnector = true; }
-    if (removeDependency === undefined) { removeDependency = true; }
+  public remove(opts: ConnectorRemoveOptions = {}) {
+    if (opts.onlyConnector === undefined) { opts.onlyConnector = true; }
+    if (opts.removeDependency === undefined) { opts.removeDependency = true; }
+    if (opts.removeVirtualNode === undefined) { opts.removeVirtualNode = true; }
 
     this.inputHandle = null;
     this.outputHandle = null;
@@ -211,6 +219,7 @@ export class Connector {
     this.pathOutline = null;
 
     const usedPorts = ports.filter(x => x.connectors.includes(this));
+    // this.outputPort.parentNode.remove();
 
     if (usedPorts.length > 0) {
       usedPorts.forEach(x => x.removeConnector(this));
@@ -218,11 +227,11 @@ export class Connector {
 
     const isInput = (this.outputPort && this.outputPort.isInput) || this.isInput;
 
-    if (isInput && !onlyConnector) {
+    if (isInput && !opts.onlyConnector) {
       this.middlePoint && this.middlePoint.remove();
     } else {
-      if (this.middlePoint && onlyConnector) {
-        this.middlePoint.removeOutputConnector(this, removeDependency);
+      if (this.middlePoint && opts.onlyConnector) {
+        this.middlePoint.removeOutputConnector(this, opts.removeDependency);
       }
     }
 
@@ -233,6 +242,16 @@ export class Connector {
     if (connectorLayer.contains(this.connectorElement)) {
       connectorLayer.removeChild(this.connectorElement);
     }
+
+    if (opts.removeVirtualNode && this.outputPort &&
+        this.outputPort.nodeType && this.outputPort.nodeType.includes('ProximityDependency')) {
+
+      const id = this.outputPort.generalItemId;
+
+      this.outputPort.parentNode.remove();
+      removeNode$.next(id);
+    }
+
     removeConnectorFromOutput(this);
   }
 
@@ -372,6 +391,10 @@ export class Connector {
 
   public setShape(shape: NodeShape) {
     this.shape = shape;
+  }
+
+  public setProximity(lat, lng, radius) {
+    this.proximity = { lat, lng, radius };
   }
 
   public updateMiddlePoint(x, y) {

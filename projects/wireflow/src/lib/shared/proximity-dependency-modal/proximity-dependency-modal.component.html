@@ -1,20 +1,66 @@
 <form (keydown)="$event.stopPropagation();" (ngSubmit)="f.valid && onSubmit(f.value, data)" #f="ngForm">
   <div class="modal-header">
-    <h5 class="modal-title pull-left">Timer</h5>
+    <h5 class="modal-title pull-left">Proximity</h5>
     <button type="button" class="close pull-right" aria-label="Close" (click)="modalRef.hide()">
       <span aria-hidden="true">&times;</span>
     </button>
   </div>
   <div class="modal-body">
+    <agm-map
+      [latitude]="defLat"
+      [longitude]="defLng"
+      [zoom]="zoom"
+      [disableDefaultUI]="false"
+      [zoomControl]="false"
+      (mapClick)="mapClicked($event)">
+
+      <agm-marker
+        *ngIf="marker"
+        (markerClick)="clickedMarker(marker.label)"
+        [latitude]="marker.lat"
+        [longitude]="marker.lng"
+        [label]="marker.label"
+        [markerDraggable]="marker.draggable"
+        (dragEnd)="markerDragEnd(marker, $event)">
+
+        <agm-info-window>
+          <strong>InfoWindow content</strong>
+        </agm-info-window>
+
+      </agm-marker>
+
+<!--      <agm-circle [latitude]="lat + 0.3" [longitude]="lng"-->
+<!--                  [radius]="5000"-->
+<!--                  [fillColor]="'red'"-->
+<!--                  [circleDraggable]="true"-->
+<!--                  [editable]="true">-->
+<!--      </agm-circle>-->
+
+    </agm-map>
+
+    <div class="form-group mt-2">
+      <label for="searchInput">Search for location</label>
+      <input
+        id="searchInput"
+        placeholder="City"
+        autocorrect="off"
+        autocapitalize="off"
+        spellcheck="off"
+        type="text"
+        class="form-control"
+        #search
+      />
+    </div>
+
     <div class="form-group">
       <label for="longitudeInput">Longitude</label>
       <input
+        id="longitudeInput"
+        placeholder="Enter longitude"
         type="number"
         class="form-control"
-        id="longitudeInput"
         name="lng"
-        ngModel
-        placeholder="Enter longitude"
+        [(ngModel)]="marker.lng"
         required
       />
     </div>
@@ -22,12 +68,12 @@
     <div class="form-group">
       <label for="latitudeInput">Latitude</label>
       <input
+        id="latitudeInput"
+        placeholder="Enter latitude"
         type="number"
         class="form-control"
-        id="latitudeInput"
         name="lat"
-        ngModel
-        placeholder="Enter latitude"
+        [(ngModel)]="marker.lat"
         required
       />
     </div>
@@ -35,25 +81,15 @@
     <div class="form-group">
       <label for="radiusInput">Radius</label>
       <input
+        id="radiusInput"
+        placeholder="Enter radius"
         type="number"
         class="form-control"
-        id="radiusInput"
         name="radius"
-        ngModel
-        placeholder="Enter radius"
+        [(ngModel)]="zoom"
         required
       />
     </div>
-<!--    <div>-->
-<!--      <input-->
-<!--        class="form-control"-->
-<!--        type="number" name="seconds"-->
-<!--        placeholder="Please enter number of seconds"-->
-<!--        ngModel-->
-<!--        required-->
-<!--        autocomplete="off"-->
-<!--      />-->
-<!--    </div>-->
   </div>
   <div class="modal-footer">
     <button type="submit" class="btn btn-success">Confirm</button>

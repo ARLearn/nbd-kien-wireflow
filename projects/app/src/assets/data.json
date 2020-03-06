@@ -33,8 +33,20 @@
               "type": "org.celstec.arlearn2.beans.dependencies.ActionDependency",
               "action": "read",
               "generalItemId": "5738284646924288"
+            },
+            {
+              "type": "org.celstec.arlearn2.beans.dependencies.ProximityDependency",
+              "lng": 5.465985,
+              "lat": 50.781279,
+              "radius": 30
             }
           ]
+        },
+        {
+          "type": "org.celstec.arlearn2.beans.dependencies.ProximityDependency",
+          "lng": 5.465985,
+          "lat": 50.781279,
+          "radius": 30
         }
       ]
     },

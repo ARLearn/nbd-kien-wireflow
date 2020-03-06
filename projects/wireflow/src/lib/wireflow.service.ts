@@ -1,20 +1,21 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Subject } from 'rxjs';
-import { distinct, map, pairwise } from 'rxjs/operators';
+import { distinct, map } from 'rxjs/operators';
 import * as hash from 'object-hash';
 
 import {
   changeDependencies$,
-  coordinatesOutput$,
+  coordinatesOutput$, getAllDependenciesByCondition,
   middlePointClick$,
-  newNodeOutput$,
+  newNodeOutput$, removeNode$,
   singleDependenciesOutput$
 } from './core/base';
 import { GameMessageCommon } from './models/core';
+import { clone, diff } from './utils';
 
 interface MessageEditorStateModel {
   messages: GameMessageCommon[];
-  lastMessagesJSON: string;
+  messagesOld: GameMessageCommon[];
   status: string;
 }
 
@@ -24,7 +25,7 @@ interface MessageEditorStateModel {
 export class WireflowService {
   state: MessageEditorStateModel = {
     messages: [],
-    lastMessagesJSON: '[]',
+    messagesOld: [],
     status: 'loading',
   };
   private stateSubject: Subject<MessageEditorStateModel> = new BehaviorSubject<MessageEditorStateModel>(this.state);
@@ -33,6 +34,7 @@ export class WireflowService {
   get coordinatesOutputSubject() { return coordinatesOutput$.pipe(distinct()); }
   get singleDependenciesOutput() { return singleDependenciesOutput$.pipe(distinct()); }
   get newNodeOutput() { return newNodeOutput$.pipe(distinct()); }
+  get removeNode() { return removeNode$.pipe(distinct()); }
   get middlePointClick() { return middlePointClick$; }
 
   get messagesChange() {
@@ -40,25 +42,26 @@ export class WireflowService {
       .pipe(
         map(x => x.messages),
         map((b: any) => {
-          const a = JSON.parse(this.state.lastMessagesJSON).filter(x => !x.virtual);
+          const a = this.state.messagesOld.filter((x: any) => !x.virtual);
           b = b.filter(x => !x.virtual);
-          const minL = a.length <  b.length ? a : b;
-          const maxL = a.length >= b.length ? a : b;
 
-          return [
-            ...minL
-              .map((el, i) => hash.MD5(a[i]) !== hash.MD5(b[i]) ? b[i] : undefined)
-              .filter(x => !!x),
-            ...maxL.slice(minL.length)
-          ];
+          return diff(b, a, item => hash.MD5(item));
+        }),
+        map(result => {
+          const messages = clone(result);
+          messages.forEach((message: any) => {
+            const deps = getAllDependenciesByCondition(message.dependsOn, (d: any) => d.type && d.type.includes('ProximityDependency'));
+            deps.forEach(dep => delete dep.generalItemId);
+          });
+
+          return messages;
         })
       );
   }
 
   constructor() {
     this.stateSubject.subscribe(x => {
-      const json = JSON.stringify(this.state.messages);
-      this.state = { ...x, messages: JSON.parse(JSON.stringify(x.messages)) , lastMessagesJSON: json };
+      this.state = { ...x, messages: clone(x.messages), messagesOld: this.state.messages };
     });
   }
 

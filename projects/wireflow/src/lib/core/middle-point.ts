@@ -3,6 +3,7 @@ import { Connector } from './connector';
 import { NodePort } from './node-port';
 import { ActionToolbar } from './toolbars/action-toolbar';
 import { BaseMiddlePoint } from './base-middle-point';
+import {NodeShape} from "./node-shape";
 
 declare const TweenLite;
 
@@ -60,7 +61,14 @@ export class MiddlePoint extends BaseMiddlePoint {
   init() {
     this.move();
     this.refreshTypeIcon();
-    this.outputConnectors.forEach(x => x.updateMiddlePoint(this.coordinates.x, this.coordinates.y));
+    this.outputConnectors.forEach(x => {
+      x.updateMiddlePoint(this.coordinates.x, this.coordinates.y);
+
+      if (x.dependencyType.includes('ProximityDependency')) {
+        const shape: NodeShape = x.outputPort.parentNode;
+        shape.move(this.coordinates.x - 250, this.coordinates.y);
+      }
+    });
   }
 
   setCoordinates(coords: { x: number, y: number }) {

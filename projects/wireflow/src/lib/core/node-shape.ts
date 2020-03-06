@@ -1,5 +1,5 @@
 import { NodePort } from './node-port';
-import { coordinatesOutput$, idCounter, ports } from './base';
+import {coordinatesOutput$, idCounter, ports, shapes} from './base';
 
 declare const TweenLite;
 
@@ -54,7 +54,20 @@ export class NodeShape {
     }
   }
 
+  move(x, y) {
+    TweenLite.set(this.element, { x, y });
+
+    this.inputs.forEach(p => p.update());
+    this.outputs.forEach(p => p.update());
+  }
+
   onDragEnd(x = null, y = null) {
     coordinatesOutput$.next({ x, y, messageId: this.generalItemId });
+  }
+
+  remove() {
+    this.inputs.forEach(p => ports.splice(ports.indexOf(p), 1));
+    this.outputs.forEach(p => ports.splice(ports.indexOf(p), 1));
+    shapes.splice(shapes.indexOf(this), 1);
   }
 }

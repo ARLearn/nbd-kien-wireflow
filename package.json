@@ -21,6 +21,7 @@
     "@angular/platform-browser-dynamic": "~8.2.14",
     "@angular/router": "~8.2.14",
     "@types/gsap": "^1.20.2",
+    "@agm/core": "^1.0.0-beta.5",
     "bootstrap": "4.1.1",
     "gsap": "^3.1.1",
     "ngx-bootstrap": "^5.3.2",

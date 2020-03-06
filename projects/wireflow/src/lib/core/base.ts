@@ -29,6 +29,7 @@ export const changeDependencies$ = new Subject();
 export const coordinatesOutput$ = new Subject();
 export const singleDependenciesOutput$ = new Subject();
 export const newNodeOutput$ = new Subject();
+export const removeNode$ = new Subject();
 export const middlePointClick$ = new Subject();
 
 export function getNumberFromPixels(str) {
@@ -82,39 +83,44 @@ export function createInputConnector(message: any, coords: { x: number; y: numbe
   return connector;
 }
 
-export function createConnector(node: any, currentMiddleConnector = null, nodeShape = null, dependency = null) {
+export function createConnector(node: any, currentConnector: Connector = null, nodeShape = null, dependency = null) {
   const nodeEl = document.querySelector(`.node-container[general-item-id="${ node.id }"]`);
 
-  let shape = nodeShape;
+  let shape: NodeShape = nodeShape;
 
   const coords = getDiagramCoords();
   const dx = coords.x;
   const dy = coords.y;
 
-  if (nodeShape === null) {
+  if (!nodeShape) {
     shape = new NodeShape(nodeEl, node.authoringX - dx, node.authoringY - dy);
     shapes.push(shape);
   }
 
   let output;
 
-  if (dependency !== null) {
+  if (dependency) {
     const action = dependency.type.includes('ProximityDependency') ? 'in range' : dependency.action;
     output = getOutputPortByGeneralItemId(dependency.generalItemId, action);
   } else {
     output = shape.outputs[0];
   }
 
-  if (currentMiddleConnector) {
-    output.addConnector(currentMiddleConnector);
-    currentMiddleConnector.setOutputPort(output);
-    currentMiddleConnector.updateHandle(output);
-    currentMiddleConnector.removeHandlers();
+  if (currentConnector) {
+    output.addConnector(currentConnector);
+    currentConnector.setOutputPort(output);
+    currentConnector.updateHandle(output);
+
+    if (dependency && dependency.type && dependency.type.includes('ProximityDependency')) {
+      currentConnector.setProximity(dependency.lat, dependency.lng, dependency.radius);
+    }
+
+    currentConnector.removeHandlers();
   }
 
-  addConnectorToOutput(currentMiddleConnector);
+  addConnectorToOutput(currentConnector);
 
-  return currentMiddleConnector;
+  return currentConnector;
 }
 
 export function getDiagramCoords() {
@@ -232,4 +238,18 @@ export function getMiddlePointById(id): MiddlePoint {
 export function unSelectAllConnectors() {
   connectorsOutput.forEach(x => x.deselect());
   middlePointsOutput.forEach(m => m.inputConnector.deselect());
+}
+
+export function getAllDependenciesByCondition(dependency, cb, result = []) {
+  if (cb(dependency)) {
+    result.push(dependency);
+  }
+
+  if (Array.isArray(dependency.dependencies) && dependency.dependencies.length > 0) {
+    dependency.dependencies.forEach(x => {
+      getAllDependenciesByCondition(x, cb, result);
+    });
+  }
+
+  return result;
 }
