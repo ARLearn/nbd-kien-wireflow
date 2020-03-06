@@ -180,7 +180,7 @@ export class MiddlePoint extends BaseMiddlePoint {
   }
 
   remove(fromParent = false) {
-    this.outputConnectors.forEach(oc => oc.remove({ onlyMiddleConnector: false }));
+    this.outputConnectors.forEach(oc => oc.remove({ onlyConnector: false }));
 
     if (this.actionToolbar) {
       this.actionToolbar.remove();

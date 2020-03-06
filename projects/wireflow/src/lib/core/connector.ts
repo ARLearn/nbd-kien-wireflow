@@ -167,7 +167,6 @@ export class Connector {
     }
 
     if (hitPort) {
-
       if (this.isInput) {
         this.outputPort = hitPort;
       } else {
@@ -176,9 +175,8 @@ export class Connector {
 
       this.dragElement = null;
 
-      if (hitPort.connectors.length > 0) {
-        hitPort.connectors.forEach(mc => mc.remove());
-      }
+      const inputPort = hitPort.isInput ? hitPort : this.inputPort;
+      inputPort.connectors.forEach(c => c !== this && c.remove({ onlyConnector: false }));
 
       hitPort.addConnector(this);
       this.updateHandle(hitPort);
@@ -203,8 +201,8 @@ export class Connector {
     this.updatePath(e.x - dx, e.y - dy);
   }
 
-  public remove({ onlyMiddleConnector, removeDependency }: { onlyMiddleConnector?: boolean, removeDependency?: boolean } = {}) {
-    if (onlyMiddleConnector === undefined) { onlyMiddleConnector = true; }
+  public remove({ onlyConnector, removeDependency }: { onlyConnector?: boolean, removeDependency?: boolean } = {}) {
+    if (onlyConnector === undefined) { onlyConnector = true; }
     if (removeDependency === undefined) { removeDependency = true; }
 
     this.inputHandle = null;
@@ -220,10 +218,10 @@ export class Connector {
 
     const isInput = (this.outputPort && this.outputPort.isInput) || this.isInput;
 
-    if (isInput && !onlyMiddleConnector) {
+    if (isInput && !onlyConnector) {
       this.middlePoint && this.middlePoint.remove();
     } else {
-      if (this.middlePoint && onlyMiddleConnector) {
+      if (this.middlePoint && onlyConnector) {
         this.middlePoint.removeOutputConnector(this, removeDependency);
       }
     }
