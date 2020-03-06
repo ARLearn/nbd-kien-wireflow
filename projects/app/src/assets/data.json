@@ -98,7 +98,12 @@
     "type": "org.celstec.arlearn2.beans.generalItem.NarratorItem",
     "authoringX": 1075.563996898054,
     "authoringY": 278.4150168423357,
-    "dependsOn": {},
+    "dependsOn": {
+      "type": "org.celstec.arlearn2.beans.dependencies.ProximityDependency",
+      "lng": 5.465985,
+      "lat": 50.781279,
+      "radius": 30
+    },
     "gameId": 5634472569470976,
     "deleted": false,
     "lastModificationDate": 1580734959038,

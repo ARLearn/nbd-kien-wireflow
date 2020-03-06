@@ -416,6 +416,8 @@ export class Connector {
   }
 
   private onHover(e: MouseEvent) {
+    if (this.inputPort && this.inputPort.inputNodeType.includes('ProximityDependency')) { return; }
+
     if (!this.middlePoint || !this.isInput || (this.middlePoint && this.middlePoint.parentMiddlePoint)) {
       this.baseMiddlePoint.show();
       this.baseMiddlePoint.move();

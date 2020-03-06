@@ -99,7 +99,8 @@ export function createConnector(node: any, currentMiddleConnector = null, nodeSh
   let output;
 
   if (dependency !== null) {
-    output = getOutputPortByGeneralItemId(dependency.generalItemId, dependency.action);
+    const action = dependency.type.includes('ProximityDependency') ? 'in range' : dependency.action;
+    output = getOutputPortByGeneralItemId(dependency.generalItemId, action);
   } else {
     output = shape.outputs[0];
   }

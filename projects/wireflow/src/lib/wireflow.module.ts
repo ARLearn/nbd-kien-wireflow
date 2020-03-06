@@ -7,6 +7,7 @@ import { WireflowComponent } from './wireflow.component';
 import { WireflowService } from './wireflow.service';
 import { ActionModalComponent } from './shared/action-modal/action-modal.component';
 import { TimeDependencyModalComponent } from './shared/time-dependency-modal/time-dependency-modal.component';
+import { ProximityDependencyModalComponent } from './shared/proximity-dependency-modal/proximity-dependency-modal.component';
 
 
 
@@ -15,6 +16,7 @@ import { TimeDependencyModalComponent } from './shared/time-dependency-modal/tim
     WireflowComponent,
     ActionModalComponent,
     TimeDependencyModalComponent,
+    ProximityDependencyModalComponent,
   ],
   imports: [
     CommonModule,
@@ -26,6 +28,7 @@ import { TimeDependencyModalComponent } from './shared/time-dependency-modal/tim
   entryComponents: [
     ActionModalComponent,
     TimeDependencyModalComponent,
+    ProximityDependencyModalComponent,
   ]
 })
 export class WireflowModule { }

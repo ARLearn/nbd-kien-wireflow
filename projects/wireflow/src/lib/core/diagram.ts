@@ -2,7 +2,7 @@ import {
   addConnectorToOutput, changeDependencies$, diagramElement,
   dragProxy, getInputPortByGeneralItemId, getMiddlePointById,
   getOutputPortByGeneralItemId, getPortById, getShapeById,
-  init, initNodeMessage, shapeElements, shapes, svg
+  init, initNodeMessage, ports, shapeElements, shapes, svg
 } from './base';
 import { NodeShape } from './node-shape';
 import { Connector } from './connector';
@@ -72,7 +72,9 @@ export class Diagram {
           initNodeMessage(JSON.parse(JSON.stringify(message)));
         }
       } else {
-        if (message.dependsOn && message.dependsOn.generalItemId && message.dependsOn.action) {
+        if (message.dependsOn && ((message.dependsOn.generalItemId && message.dependsOn.action) ||
+            message.dependsOn.type === 'org.celstec.arlearn2.beans.dependencies.ProximityDependency')
+        ) {
           this.drawConnector(message.dependsOn, message);
         }
       }
@@ -83,7 +85,15 @@ export class Diagram {
 
   public drawConnector(dependency, message) {
     const inputPort = getInputPortByGeneralItemId(message.id);
-    const outputPort = getOutputPortByGeneralItemId(dependency.generalItemId, dependency.action);
+    let outputPort;
+
+    if (dependency.type.includes('ProximityDependency')) {
+      outputPort = ports.find(p => !p.isInput &&
+        p.generalItemId.toString() === dependency.generalItemId.toString() &&
+        p.nodeType.includes('ProximityDependency'));
+    } else {
+      outputPort = getOutputPortByGeneralItemId(dependency.generalItemId, dependency.action);
+    }
 
     if (inputPort != null && outputPort != null) {
       const mc = new Connector();

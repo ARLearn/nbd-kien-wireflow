@@ -40,7 +40,8 @@ export class WireflowService {
       .pipe(
         map(x => x.messages),
         map((b: any) => {
-          const a = JSON.parse(this.state.lastMessagesJSON);
+          const a = JSON.parse(this.state.lastMessagesJSON).filter(x => !x.virtual);
+          b = b.filter(x => !x.virtual);
           const minL = a.length <  b.length ? a : b;
           const maxL = a.length >= b.length ? a : b;
 

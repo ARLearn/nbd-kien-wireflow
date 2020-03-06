@@ -28,6 +28,7 @@ import { ActionModalComponent } from './shared/action-modal/action-modal.compone
 import { TimeDependencyModalComponent } from './shared/time-dependency-modal/time-dependency-modal.component';
 import { NodePort } from './core/node-port';
 import { MiddlePoint } from './core/middle-point';
+import { ProximityDependencyModalComponent } from './shared/proximity-dependency-modal/proximity-dependency-modal.component';
 
 @Component({
   selector: 'lib-wireflow',
@@ -95,10 +96,22 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
     });
 
     const newNodeSub = this.wireflowService.newNodeOutput.subscribe((x: any) => {
-      if (x.dependency.subtype === 'scantag') {
-        this.openModal(ActionModalComponent, {data: x, onSubmit: this.onQrTagSubmit.bind(this)});
-      } else {
-        this.initializeMiddleConnector(x);
+      switch (x.dependency.type) {
+        case 'org.celstec.arlearn2.beans.dependencies.ActionDependency': {
+          if (x.dependency.subtype === 'scantag') {
+            return this.openModal(ActionModalComponent, {data: x, onSubmit: this.onQrTagSubmit.bind(this)});
+          }
+
+          this.initializeMiddleConnector(x);
+          break;
+        }
+        case 'org.celstec.arlearn2.beans.dependencies.ProximityDependency': {
+          this.openModal(ProximityDependencyModalComponent, {data: x, onSubmit: this.onProximityDependencySubmit.bind(this) });
+          break;
+        }
+        default: {
+          this.initializeMiddleConnector(x);
+        }
       }
     });
 
@@ -130,6 +143,20 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
   onQrTagSubmit(formValue: any, data: any) {
     data.dependency.action = formValue.action;
     this.modalRef.hide();
+    this.initializeMiddleConnector(data);
+  }
+
+  onProximityDependencySubmit({ lng, lat, radius }: any, data: any) {
+    delete data.dependency.action;
+    delete data.dependency.subtype;
+    // delete data.dependency.generalItemId;
+
+    data.dependency.lng = lng;
+    data.dependency.lat = lat;
+    data.dependency.radius = radius;
+
+    this.modalRef.hide();
+
     this.initializeMiddleConnector(data);
   }
 
@@ -194,20 +221,27 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
 
       if (currentMiddlePoint) {
         message.dependsOn = currentMiddlePoint.dependency;
+
+        const proxms = this.getAllDependenciesByCondition(message.dependsOn, d => d.type.includes('ProximityDependency'));
+        proxms.forEach(pr => delete pr.generalItemId);
+
       } else {
         const singleConnector = connectorsOutput.find(c => !c.middlePoint && c.inputPort.generalItemId === x.id.toString());
 
         if (singleConnector) {
-          message.dependsOn = {
-            type: singleConnector.outputPort.nodeType,
-            action: singleConnector.outputPort.action,
-            generalItemId: singleConnector.outputPort.generalItemId
-          };
+          if (x.dependsOn.type.includes('ProximityDependency')) {
+            message.dependsOn = { ...x.dependsOn };
+            delete message.dependsOn.generalItemId;
+          } else {
+            message.dependsOn = {
+              type: singleConnector.outputPort.nodeType,
+              action: singleConnector.outputPort.action,
+              generalItemId: singleConnector.outputPort.generalItemId
+            };
+          }
         } else {
           message.dependsOn = {};
         }
-
-
       }
       return message;
     });
@@ -293,13 +327,30 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
       return {...x, outputs, inputs};
     });
 
-    const msgs = this.messages.filter((m: any) =>
-      m.dependsOn &&
-      m.dependsOn.dependencies
-    );
+    const msgs = this.messages.filter((m: any) => m.dependsOn);
 
     msgs.forEach(x => {
       const depends = this.getAllDependenciesByCondition(x.dependsOn, (d: any) => d.subtype && d.subtype.length > 0);
+
+      const proximities = this.getAllDependenciesByCondition(x.dependsOn, (d: any) => d.type && d.type.includes('ProximityDependency'));
+
+      if (proximities.length > 0) {
+        proximities.forEach(p => {
+          const nId = Math.floor(Math.random() * 10000000);
+          p.generalItemId = nId;
+
+          result.push(this.populateNode({
+            name: 'proximity',
+            virtual: true,
+            id: nId,
+            type: p.type,
+            action: 'in range',
+            authoringX: x.authoringX - 250,
+            authoringY: x.authoringY
+          }));
+        });
+      }
+
       depends.forEach((d: any) => {
         const node = result.find(n => n.id.toString() === d.generalItemId.toString());
 
@@ -312,6 +363,8 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
         }
       });
     });
+
+
 
     return result;
   }
@@ -392,8 +445,9 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
           id: x.dependency.generalItemId,
           name: '23123',
           type: x.dependency.type,
-          action: x.dependency.action,
-          dependsOn: {}
+          action: x.dependency.type.includes('ProximityDependency') ? 'in range' : x.dependency.action,
+          dependsOn: {},
+          virtual: x.dependency.type.includes('ProximityDependency')
         });
 
         oldNodes = [...this.populatedNodes, message];
@@ -437,7 +491,7 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   private changeSingleDependency(type, connector, options = null) {
-    // Middle Connector
+    // Connector
     const parentMP = connector.middlePoint as MiddlePoint;
 
     if (parentMP) {
@@ -497,7 +551,7 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
       }
 
       let dependency;
-
+      console.log(parentMP.dependency);
       if (parentMP.dependency.type.includes('TimeDependency')) {
         dependency = parentMP.dependency.offset;
       } else {
@@ -505,16 +559,20 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
           .dependency
           .dependencies
           .find(x =>
-            x.action === connector.outputPort.action &&
+            (x.action === connector.outputPort.action ||
+             x.type.includes('ProximityDependency')) &&
             x.generalItemId.toString() === connector.outputPort.generalItemId
           );
       }
 
-      dependency.type = type;
       const newDep = {...dependency};
+      dependency.type = type;
       delete dependency.action;
       delete dependency.generalItemId;
       delete dependency.subtype;
+      delete dependency.lng;
+      delete dependency.lat;
+      delete dependency.radius;
 
       if (type.includes('TimeDependency') && options) {
         dependency.offset = newDep;
@@ -539,7 +597,6 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
       const message = this.populatedNodes.find(r => r.id.toString() === connector.inputPort.generalItemId.toString());
 
       const dependencySingle: any = {...message.dependsOn};
-
       if (!dependencySingle.action) {
         dependencySingle.type = 'org.celstec.arlearn2.beans.dependencies.ActionDependency';
         dependencySingle.action = connector.outputPort.action;
@@ -568,7 +625,6 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
   private handleNodesRender() {
     if (this.lastAddedNode) {
       let dep;
-
       if (this.currentMiddleConnector.shape) {
         const shape = this.currentMiddleConnector.shape;
         const lastOutput = this.lastAddedNode.outputs.find(
@@ -610,8 +666,11 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
 
   onNodeMouseEnter(event: any) {
     if (this.currentMiddleConnector) {
-      const generalItemId = event.target.getAttribute('general-item-id');
+      if (this.currentMiddleConnector.dependencyType.includes('ProximityDependency')) {
+        return;
+      }
 
+      const generalItemId = event.target.getAttribute('general-item-id');
       const shape = getShapeByGeneralItemId(generalItemId);
 
       if (this.currentMiddleConnector.subType === 'scantag') {
@@ -619,7 +678,6 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
           event.target.classList.add('border--success');
 
           this.currentMiddleConnector.setShape(shape);
-
         } else {
           event.target.classList.add('border--danger');
 
@@ -642,20 +700,23 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
 
   onPortMouseEnter(event: MouseEvent, output: any) {
     if (this.currentMiddleConnector && this.lastDependency) {
+      if (this.currentMiddleConnector.dependencyType.includes('ProximityDependency')) { return; }
+
       this.lastDependency.action = output.action;
 
       const draggableElement = this._getDraggableElement(event.target as HTMLElement);
-      draggableElement.classList.add('no-events');
+      draggableElement && draggableElement.classList.add('no-events');
     }
   }
 
   onPortMouseLeave(event: MouseEvent, output: any) {
     if (this.currentMiddleConnector && !this.processing) {
+      if (this.currentMiddleConnector.dependencyType.includes('ProximityDependency')) { return; }
       this.lastDependency.action = 'read';
       this.lastDependency.generalItemId = this.lastGeneralItemId;
     }
     const draggableElement = this._getDraggableElement(event.target as HTMLElement);
-    draggableElement.classList.remove('no-events');
+    draggableElement && draggableElement.classList.remove('no-events');
   }
 
   private _getDraggableElement(element: HTMLElement): HTMLElement {

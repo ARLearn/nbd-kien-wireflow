@@ -24,7 +24,7 @@
               <rect class="content-round-rect" width="200" [attr.height]="getHeight(node) + 5" x="2" y="44" rx="4" ry="4" />
               <rect class="content-rect" width="200" [attr.height]="getHeight(node)" x="2" y="44" />
 
-              <g class="inputs">
+              <g class="inputs" *ngIf="!node.virtual">
                 <g class="input-field" *ngFor="let input of node.inputs; let i = index;"
                    [attr.transform]="'translate(0, ' + 25 * (2 + i) + ')'"
                    [attr.general-item-id]="input.generalItemId"

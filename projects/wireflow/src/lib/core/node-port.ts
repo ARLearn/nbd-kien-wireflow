@@ -39,7 +39,9 @@ export class NodePort {
     this.portElement = element.querySelector('.port');
     this.portScrim = element.querySelector('.port-scrim');
 
-    this.portScrim.setAttribute('data-drag', `${this.id}:port`);
+    if (!this.parentNode.dependencyType.includes('ProximityDependency')) {
+      this.portScrim.setAttribute('data-drag', `${this.id}:port`);
+    }
 
     const bbox = this.portElement.getBBox();
 
