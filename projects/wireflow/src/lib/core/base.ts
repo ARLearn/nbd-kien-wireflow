@@ -31,6 +31,7 @@ export const singleDependenciesOutput$ = new Subject();
 export const newNodeOutput$ = new Subject();
 export const removeNode$ = new Subject();
 export const middlePointClick$ = new Subject();
+export const shapeClick$ = new Subject();
 
 export function getNumberFromPixels(str) {
   return Number(str.slice(0, -2));
