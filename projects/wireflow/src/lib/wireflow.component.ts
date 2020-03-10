@@ -15,22 +15,26 @@ import { BsModalRef, BsModalService } from 'ngx-bootstrap';
 import { Diagram } from './core/diagram';
 import { WireflowService } from './wireflow.service';
 import {
-  changeDependencies$, createInputConnector, createConnector,
-  drawMiddlePointGroup, getInputPortByGeneralItemId, getShapeByGeneralItemId,
-  initNodeMessage, connectorsOutput, middlePointsOutput, ports, getAllDependenciesByCondition,
+  changeDependencies$,
+  createConnector,
+  getShapeByGeneralItemId,
+  connectorsOutput,
+  middlePointsOutput,
+  populate,
+  populateNode,
+  getNodes,
+  renderLastAddedNode,
+  changeSingleDependency,
 } from './core/base';
 import {
-  GameMessageCommon,
-  MultipleChoiceScreen,
+  GameMessageCommon
 } from './models/core';
 import { Connector } from './core/connector';
 import { ActionModalComponent } from './shared/action-modal/action-modal.component';
 import { TimeDependencyModalComponent } from './shared/time-dependency-modal/time-dependency-modal.component';
-import { NodePort } from './core/node-port';
 import { MiddlePoint } from './core/middle-point';
 import { ProximityDependencyModalComponent } from './shared/proximity-dependency-modal/proximity-dependency-modal.component';
-import { clone } from './utils';
-import {NodeShape} from "./core/node-shape";
+import { NodeShape } from './core/node-shape';
 
 @Component({
   selector: 'lib-wireflow',
@@ -72,7 +76,7 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
     this.subscription = this.wireflowService
       .dependenciesOutput
       .subscribe(() => {
-        this.messages = this.populate();
+        this.messages = populate(this.messages);
 
         this.wireflowService.initMessages(this.messages);
       });
@@ -80,7 +84,7 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
     const coordinatesSub = this.wireflowService
       .coordinatesOutputSubject
       .subscribe((coordindates: any) => {
-        this.messages = this.populate();
+        this.messages = populate(this.messages);
         const mess = this.messages.find(r => r.id.toString() === coordindates.messageId.toString());
 
         mess.authoringX = coordindates.x || 0;
@@ -93,7 +97,7 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
       if (x.type.includes('TimeDependency')) {
         this.openModal(TimeDependencyModalComponent, {data: x, onSubmit: this.onTimeDependencySubmit.bind(this) });
       } else {
-        this.changeSingleDependency(x.type, x.connector);
+        changeSingleDependency(this.messages, x.type, x.connector);
       }
     });
 
@@ -136,18 +140,12 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
         const connector = x.outputs[0].connectors[0];
 
         if (connector) {
-
           this.openModal(ProximityDependencyModalComponent, {
             data: { initialData: connector.proximity, connector },
             onSubmit: this.onChangeProximityDependency.bind(this)
           });
-
         }
-
-
       }
-
-
     });
 
     const messagesChangeSub = this.wireflowService.messagesChange.subscribe(x => {
@@ -164,7 +162,7 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngOnInit() {
-    this.messages = this.getNodes();
+    this.messages = getNodes(this.messages);
     this.populatedNodes = this.messages.slice();
   }
 
@@ -192,7 +190,7 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
       timeDelta: formValue.seconds * 1000
     };
     this.modalRef.hide();
-    this.changeSingleDependency(data.type, data.connector, options);
+    changeSingleDependency(this.messages, data.type, data.connector, options);
   }
 
   onChangeTimeDependency(formValue: any, data: any) {
@@ -236,7 +234,15 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
     switch (event.code) {
       case 'Backspace':
       case 'Delete': {
-        connectorsOutput.filter(mc => mc.isSelected).forEach(x => x.remove());
+        connectorsOutput.filter(mc => mc.isSelected).forEach(x => {
+          if (x.middlePoint && x.middlePoint.dependency &&
+              x.middlePoint.dependency.type && x.middlePoint.dependency.type.includes('TimeDependency')
+             ) {
+            x.middlePoint.remove();
+          } else {
+            x.remove();
+          }
+        });
         middlePointsOutput.filter(mp => mp.inputConnector.isSelected).forEach(x => x.remove());
         changeDependencies$.next();
       }
@@ -257,163 +263,6 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
         event.stopPropagation();
         break;
     }
-  }
-
-  private populate() {
-    const mainMiddlePoints: MiddlePoint[] = middlePointsOutput.filter(mp => !mp.parentMiddlePoint);
-
-
-    return clone(this.messages).map((x: any) => {
-      const message = {...x};
-
-      const currentMiddlePoint = mainMiddlePoints.find(mp => Number(mp.generalItemId) === x.id);
-
-      if (currentMiddlePoint) {
-        message.dependsOn = currentMiddlePoint.dependency;
-      } else {
-        const singleConnector = connectorsOutput.find(c => !c.middlePoint && c.inputPort.generalItemId === x.id.toString());
-
-        if (singleConnector) {
-          if (singleConnector.outputPort && singleConnector.outputPort.nodeType &&
-              singleConnector.outputPort.nodeType.includes('ProximityDependency') && singleConnector.proximity) {
-            message.dependsOn = {
-              type: singleConnector.outputPort.nodeType,
-              ...singleConnector.proximity,
-              generalItemId: x.dependsOn.generalItemId
-            };
-          } else {
-            message.dependsOn = {
-              type: singleConnector.outputPort.nodeType,
-              action: singleConnector.outputPort.action,
-              generalItemId: singleConnector.outputPort.generalItemId
-            };
-          }
-        } else {
-          message.dependsOn = {};
-        }
-      }
-      return message;
-    });
-  }
-
-  private populateNode(message) {
-    return {
-      ...message,
-      inputs: [
-        {
-          generalItemId: message.id,
-          title: 'Input',
-          type: message.type || 'org.celstec.arlearn2.beans.dependencies.ActionDependency'
-        }
-      ],
-      outputs: [
-        {
-          type: message.type,
-          generalItemId: message.id,
-          action: message.action || 'read'
-        },
-      ]
-    };
-  }
-
-  public getNodes() {
-    const result = this.messages.map(x => {
-
-      const inputs = [
-        {
-          generalItemId: x.id,
-          title: 'Input',
-          type: x.dependsOn.type || 'org.celstec.arlearn2.beans.dependencies.ActionDependency'
-        }
-      ];
-      const outputs = [];
-
-      outputs.push(
-        {
-          type: 'org.celstec.arlearn2.beans.dependencies.ActionDependency',
-          generalItemId: x.id,
-          action: 'read'
-        },
-        {
-          type: 'org.celstec.arlearn2.beans.dependencies.ActionDependency',
-          generalItemId: x.id,
-          action: 'next'
-        }
-      );
-
-      if (x.type === 'org.celstec.arlearn2.beans.generalItem.VideoObject'
-        || x.type === 'org.celstec.arlearn2.beans.generalItem.AudioObject') {
-        outputs.push(
-          {
-            type: 'org.celstec.arlearn2.beans.dependencies.ActionDependency',
-            generalItemId: x.id,
-            action: 'complete'
-          }
-        );
-      }
-
-      if (x.type === 'org.celstec.arlearn2.beans.generalItem.SingleChoiceTest'
-        || x.type === 'org.celstec.arlearn2.beans.generalItem.MultipleChoiceTest') {
-        outputs.push(
-          {
-            type: 'org.celstec.arlearn2.beans.dependencies.ActionDependency',
-            generalItemId: x.id,
-            action: 'answer_correct'
-          },
-          {
-            type: 'org.celstec.arlearn2.beans.dependencies.ActionDependency',
-            generalItemId: x.id,
-            action: 'answer_incorrect'
-          },
-          ...(x as MultipleChoiceScreen).answers.map(a => ({
-            type: 'org.celstec.arlearn2.beans.dependencies.ActionDependency',
-            generalItemId: x.id,
-            action: `answer_${a.id}`
-          }))
-        );
-      }
-
-      return {...x, outputs, inputs};
-    });
-
-    const msgs = this.messages.filter((m: any) => m.dependsOn);
-
-    msgs.forEach(x => {
-      const depends = getAllDependenciesByCondition(x.dependsOn, (d: any) => d.subtype && d.subtype.length > 0);
-
-      const proximities = getAllDependenciesByCondition(x.dependsOn, (d: any) => d.type && d.type.includes('ProximityDependency'));
-
-      if (proximities.length > 0) {
-        proximities.forEach(p => {
-          const nId = Math.floor(Math.random() * 10000000);
-          p.generalItemId = nId;
-
-          result.push(this.populateNode({
-            name: 'proximity',
-            virtual: true,
-            id: nId,
-            type: p.type,
-            action: 'in range',
-            authoringX: x.authoringX - 250,
-            authoringY: x.authoringY
-          }));
-        });
-      }
-
-      depends.forEach((d: any) => {
-        const node = result.find(n => n.id.toString() === d.generalItemId.toString());
-
-        if (node.outputs.findIndex(output => output.action === d.action) === -1) {
-          node.outputs.push({
-            type: d.type,
-            generalItemId: d.generalItemId,
-            action: d.action
-          });
-        }
-      });
-    });
-
-    return result;
   }
 
   private init() {
@@ -473,7 +322,7 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
       this.currentMiddleConnector.middlePoint.dependency.dependencies.push(depend);
 
       if (!this.currentMiddleConnector.shape) {
-        message = this.populateNode({
+        message = populateNode({
           ...x.message,
           id: x.dependency.generalItemId,
           name: '23123',
@@ -523,173 +372,10 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
     };
   }
 
-  private changeSingleDependency(type, connector, options = null) {
-    // Connector
-    const parentMP = connector.middlePoint as MiddlePoint;
-
-    if (parentMP) {
-      const message = this.populatedNodes.find(r => r.id === parentMP.generalItemId);
-      const coords = connector.getMiddlePointCoordinates();
-
-      if (connector.isInput && parentMP.parentMiddlePoint) {
-        const parentMiddlePoint = parentMP.parentMiddlePoint;
-
-        const dep: any = { type };
-        if (type.includes('TimeDependency') && options) {
-          dep.offset = parentMP.dependency;
-          dep.timeDelta = options.timeDelta;
-        } else {
-          dep.dependencies = [ parentMP.dependency ];
-        }
-
-        if (parentMiddlePoint.dependency.type.includes('TimeDependency')) {
-          parentMiddlePoint.dependency.offset = dep;
-        } else {
-          const idx = parentMiddlePoint
-            .dependency
-            .dependencies
-            .indexOf(parentMP.dependency);
-
-          if (idx > -1) {
-            parentMiddlePoint.dependency.dependencies[idx] = dep;
-          }
-        }
-
-        const midPoint = new MiddlePoint();
-        midPoint.setGeneralItemId(message.id);
-        midPoint.setDependency(dep);
-        midPoint.setCoordinates(coords);
-        midPoint.setParentMiddlePoint(parentMiddlePoint);
-
-        parentMiddlePoint.removeChildMiddlePoint(parentMP);
-        parentMiddlePoint.addChildMiddlePoint(midPoint);
-
-        parentMP.setParentMiddlePoint(midPoint);
-        midPoint.addChildMiddlePoint(parentMP);
-
-        parentMP.inputConnector.updateHandleMiddlePoint(midPoint);
-
-        const inpConn = createInputConnector(message, coords, midPoint);
-
-        midPoint.setInputConnector(inpConn);
-        midPoint.init();
-        midPoint.show();
-
-        connector.baseMiddlePoint.hide();
-        connector.connectorToolbar.hide();
-
-        middlePointsOutput.push(midPoint);
-
-        return this.wireflowService.initMessages(this.populate());
-      }
-
-      let dependency;
-
-      if (parentMP.dependency.type.includes('TimeDependency')) {
-        dependency = parentMP.dependency.offset;
-      } else {
-        dependency = parentMP
-          .dependency
-          .dependencies
-          .find(x =>
-            (x.action === connector.outputPort.action ||
-              (connector.proximity &&
-               connector.proximity.lat === x.lat &&
-               connector.proximity.lng === x.lng &&
-               connector.proximity.radius === x.radius))
-          );
-      }
-
-      const newDep = {...dependency};
-      dependency.type = type;
-      delete dependency.action;
-      delete dependency.generalItemId;
-      delete dependency.subtype;
-      delete dependency.lng;
-      delete dependency.lat;
-      delete dependency.radius;
-
-      if (type.includes('TimeDependency') && options) {
-        dependency.offset = newDep;
-        dependency.timeDelta = options.timeDelta;
-      } else {
-        dependency.dependencies = [newDep];
-      }
-
-      const mp = new MiddlePoint();
-      mp.setGeneralItemId(message.id);
-      mp.setDependency(dependency);
-      mp.setInputPort(getInputPortByGeneralItemId(message.id));
-      mp.setParentMiddlePoint(parentMP);
-      parentMP.addChildMiddlePoint(mp);
-
-      connector.remove({ removeDependency: false, removeVirtualNode: false });
-      drawMiddlePointGroup(message, mp, dependency.dependencies || [ dependency.offset ]);
-
-      mp.setCoordinates(coords);
-      mp.init();
-    } else {
-      const message = this.populatedNodes.find(r => r.id.toString() === connector.inputPort.generalItemId.toString());
-
-      const dependencySingle: any = {...message.dependsOn};
-      if (!dependencySingle.action) {
-        dependencySingle.type = 'org.celstec.arlearn2.beans.dependencies.ActionDependency';
-        dependencySingle.action = connector.outputPort.action;
-        dependencySingle.generalItemId = connector.outputPort.generalItemId;
-        delete dependencySingle.dependencies;
-      }
-
-      message.dependsOn = { type };
-
-      if (type.includes('TimeDependency') && options) {
-        message.dependsOn.timeDelta = options.timeDelta;
-        message.dependsOn.offset = dependencySingle;
-      } else {
-        message.dependsOn.dependencies = [ dependencySingle ];
-      }
-
-      connector.outputPort.removeConnector(connector);
-      connector.remove();
-
-      initNodeMessage(message);
-    }
-
-    changeDependencies$.next();
-  }
-
   private handleNodesRender() {
     if (this.lastAddedNode) {
-      let dep;
-      if (this.currentMiddleConnector.shape) {
-        const shape = this.currentMiddleConnector.shape;
-        const lastOutput = this.lastAddedNode.outputs.find(
-          o => o.generalItemId.toString() === shape.generalItemId.toString() && o.action === this.lastDependency.action
-        );
-        const outputEl = document.querySelector(
-          `.output-field[general-item-id="${lastOutput.generalItemId}"][action="${lastOutput.action}"]`
-        );
+      renderLastAddedNode(this.lastAddedNode, this.currentMiddleConnector, this.lastDependency);
 
-        const shapeOutputPort = shape.outputs.find(
-          o => o.generalItemId.toString() === lastOutput.generalItemId.toString() && o.action === lastOutput.action
-        );
-
-        let port;
-
-        if (shapeOutputPort) {
-          port = shapeOutputPort;
-          port.addConnector(this.currentMiddleConnector);
-        } else {
-          port = new NodePort(this.currentMiddleConnector.shape, outputEl, false);
-          ports.push(port);
-          this.currentMiddleConnector.shape.outputs.push(port);
-        }
-
-        dep = this.lastDependency || {};
-
-        dep.generalItemId = port.generalItemId;
-      }
-
-      createConnector(this.lastAddedNode, this.currentMiddleConnector, this.currentMiddleConnector.shape, dep);
       this.lastAddedNode = null;
       this.lastDependency = null;
       this.lastGeneralItemId = null;

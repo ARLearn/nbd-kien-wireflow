@@ -11,6 +11,8 @@
   "fileReferences": {
     "video": "/game/5634472569470976//Video-3.mp4"
   },
+  "authoringX": 581.994,
+  "authoringY": 729.993,
   "message": true
 }, {
   "type": "org.celstec.arlearn2.beans.generalItem.VideoObject",
@@ -26,6 +28,8 @@
   "fileReferences": {
     "video": "/game/5634472569470976//Video-2.mp4"
   },
+  "authoringX": 251,
+  "authoringY": 295,
   "message": true
 }, {
   "type": "org.celstec.arlearn2.beans.generalItem.NarratorItem",
@@ -42,6 +46,8 @@
     "background": "/game/5634472569470976//background2.jpg"
   },
   "richText": "ga naar de ingang en....",
+  "authoringX": 880.996,
+  "authoringY": 615.994,
   "message": true
 }, {
   "type": "org.celstec.arlearn2.beans.generalItem.VideoObject",
@@ -56,6 +62,8 @@
   "fileReferences": {
     "video": "/game/5634472569470976//Video-2.mp4"
   },
+  "authoringX": 391,
+  "authoringY": 83,
   "message": true
 }, {
   "type": "org.celstec.arlearn2.beans.generalItem.NarratorItem",
@@ -75,6 +83,8 @@
   "fileReferences": {
     "background": "/game/5634472569470976//background.jpg"
   },
+  "authoringX": 873.994,
+  "authoringY": 459.999,
   "richText": "You found the QR code and scanned it, now this message is unlocked",
   "message": true
 }, {
@@ -90,6 +100,8 @@
   "fileReferences": {
     "background": "/game/5634472569470976//background.jpg"
   },
+  "authoringX": 284.995,
+  "authoringY": 586.995,
   "message": true
 }, {
   "type": "org.celstec.arlearn2.beans.generalItem.ScanTag",
@@ -103,6 +115,17 @@
   "autoLaunch": false,
   "lng": 4.60214213281256,
   "lat": 52.00731869088851,
+  "authoringX": 542,
+  "authoringY": 447,
+  "dependsOn": {
+    "type": "org.celstec.arlearn2.beans.dependencies.TimeDependency",
+    "timeDelta": 231000,
+    "offset": {
+      "type": "org.celstec.arlearn2.beans.dependencies.ActionDependency",
+      "action": "complete",
+      "generalItemId": "5651663746498560"
+    }
+  },
   "message": false
 }, {
   "type": "org.celstec.arlearn2.beans.generalItem.NarratorItem",
@@ -118,6 +141,8 @@
     "background": "/game/5634472569470976//background4.jpg"
   },
   "richText": "I will appear when you enter Amsterdam",
+  "authoringX": 732.988,
+  "authoringY": 305,
   "message": true
 }, {
   "type": "org.celstec.arlearn2.beans.generalItem.NarratorItem",
@@ -132,6 +157,8 @@
   "fileReferences": {
     "background": "/game/5634472569470976//Schermafbeelding 2020-03-02 om 11.27.10.png"
   },
+  "authoringX": 1011.991,
+  "authoringY": 314,
   "message": true
 }, {
   "type": "org.celstec.arlearn2.beans.generalItem.SingleChoiceTest",
@@ -146,6 +173,8 @@
   "fileReferences": {
     "background": "/game/5634472569470976//background2.jpg"
   },
+  "authoringX": 970.999,
+  "authoringY": 47,
   "answers": [{
     "type": "org.celstec.arlearn2.beans.generalItem.MultipleChoiceAnswerItem",
     "isCorrect": true,
@@ -175,6 +204,8 @@
   "fileReferences": {
     "background": "/game/5634472569470976//Schermafbeelding 2020-02-12 om 20.35.00.png"
   },
+  "authoringX": 633.992,
+  "authoringY": 20,
   "answers": [{
     "type": "org.celstec.arlearn2.beans.generalItem.MultipleChoiceAnswerItem",
     "isCorrect": true,

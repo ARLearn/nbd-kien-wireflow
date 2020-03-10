@@ -60,7 +60,6 @@ export class MiddlePoint extends BaseMiddlePoint {
 
   init() {
     this.move();
-    this.refreshTypeIcon();
     this.outputConnectors.forEach(x => {
       x.updateMiddlePoint(this.coordinates.x, this.coordinates.y);
 
@@ -69,6 +68,7 @@ export class MiddlePoint extends BaseMiddlePoint {
         shape.move(this.coordinates.x - 250, this.coordinates.y);
       }
     });
+    this.refreshTypeIcon();
   }
 
   setCoordinates(coords: { x: number, y: number }) {
@@ -187,7 +187,9 @@ export class MiddlePoint extends BaseMiddlePoint {
     this._showTypeIcon();
   }
 
-  remove(fromParent = false) {
+  remove({ fromParent }: { fromParent?: boolean } = {}) {
+    if (fromParent === undefined) { fromParent = false; }
+
     this.outputConnectors.forEach(oc => oc.remove({ onlyConnector: false }));
 
     if (this.actionToolbar) {
@@ -196,7 +198,7 @@ export class MiddlePoint extends BaseMiddlePoint {
 
     if (this.childrenMiddlePoints.length > 0) {
       this.childrenMiddlePoints.forEach(cmp => {
-        cmp.remove(true);
+        cmp.remove({ fromParent: true });
       });
     }
 
@@ -242,11 +244,12 @@ export class MiddlePoint extends BaseMiddlePoint {
         break;
       }
     }
-
     this.typeIcon = document.querySelector('.connector-middle-point-' + type).cloneNode(true);
 
     this.typeIcon.style.display = 'block';
-    this.element.appendChild(this.typeIcon);
+    if (!this.element.contains(this.typeIcon)) {
+      this.element.appendChild(this.typeIcon);
+    }
   }
 
   private _showMainIcon() {

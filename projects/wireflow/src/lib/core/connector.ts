@@ -219,7 +219,6 @@ export class Connector {
     this.pathOutline = null;
 
     const usedPorts = ports.filter(x => x.connectors.includes(this));
-    // this.outputPort.parentNode.remove();
 
     if (usedPorts.length > 0) {
       usedPorts.forEach(x => x.removeConnector(this));

@@ -18,6 +18,12 @@ export class Diagram {
   dragType: any;
   draggable: any;
 
+  private mpAllowedTypes: string[] = [
+    'org.celstec.arlearn2.beans.dependencies.AndDependency',
+    'org.celstec.arlearn2.beans.dependencies.OrDependency',
+    'org.celstec.arlearn2.beans.dependencies.TimeDependency',
+  ];
+
   private openedConnector: Connector;
 
   constructor(diagramEl, shapeEls, svgEl, dragProxyEl, fragEl, connectorEl, connectorLayerEl, messages) {
@@ -65,11 +71,9 @@ export class Diagram {
 
   initState(baseState: any[]) {
     baseState.forEach(message => {
-      if (message.dependsOn && message.dependsOn.type && (
-           message.dependsOn.type === 'org.celstec.arlearn2.beans.dependencies.AndDependency' ||
-           message.dependsOn.type === 'org.celstec.arlearn2.beans.dependencies.OrDependency')) {
+      if (message.dependsOn && message.dependsOn.type && this.mpAllowedTypes.includes(message.dependsOn.type)) {
 
-        if (message.dependsOn && message.dependsOn.dependencies && message.dependsOn.dependencies.length > 0) {
+        if ((message.dependsOn.dependencies && message.dependsOn.dependencies.length > 0) || message.dependsOn.offset) {
           initNodeMessage(clone(message));
         }
       } else {
