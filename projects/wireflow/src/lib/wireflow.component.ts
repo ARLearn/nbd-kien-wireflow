@@ -30,6 +30,7 @@ import { NodePort } from './core/node-port';
 import { MiddlePoint } from './core/middle-point';
 import { ProximityDependencyModalComponent } from './shared/proximity-dependency-modal/proximity-dependency-modal.component';
 import { clone } from './utils';
+import {NodeShape} from "./core/node-shape";
 
 @Component({
   selector: 'lib-wireflow',
@@ -130,6 +131,25 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
       }
     });
 
+    const shapeClick = this.wireflowService.shapeClick.subscribe((x: NodeShape) => {
+      if (x.dependencyType && x.dependencyType.includes('ProximityDependency')) {
+        const connector = x.outputs[0].connectors[0];
+
+        if (connector) {
+
+          this.openModal(ProximityDependencyModalComponent, {
+            data: { initialData: connector.proximity, connector },
+            onSubmit: this.onChangeProximityDependency.bind(this)
+          });
+
+        }
+
+
+      }
+
+
+    });
+
     const messagesChangeSub = this.wireflowService.messagesChange.subscribe(x => {
       this.messagesChange.emit(x);
     });
@@ -139,6 +159,7 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
     this.subscription.add(newNodeSub);
     this.subscription.add(removeNode);
     this.subscription.add(middlePointClickSub);
+    this.subscription.add(shapeClick);
     this.subscription.add(messagesChangeSub);
   }
 
@@ -156,7 +177,6 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
   onProximityDependencySubmit({ lng, lat, radius }: any, data: any) {
     delete data.dependency.action;
     delete data.dependency.subtype;
-    // delete data.dependency.generalItemId;
 
     data.dependency.lng = lng;
     data.dependency.lat = lat;
@@ -177,6 +197,28 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
 
   onChangeTimeDependency(formValue: any, data: any) {
     data.middlePoint.dependency.timeDelta = formValue.seconds * 1000;
+    this.modalRef.hide();
+    changeDependencies$.next();
+  }
+
+  onChangeProximityDependency({ lng, lat, radius }: any, { connector }: any) {
+    if (connector.middlePoint) {
+      const mp = connector.middlePoint;
+
+      const dependency = mp.dependency.dependencies.find(d =>
+        d.type === 'org.celstec.arlearn2.beans.dependencies.ProximityDependency' &&
+        d.generalItemId.toString() === connector.outputPort.generalItemId.toString()
+      );
+
+      if (dependency) {
+        dependency.lat = lat;
+        dependency.lng = lng;
+        dependency.radius = radius;
+      }
+    } else {
+      connector.setProximity(lat, lng, radius);
+    }
+
     this.modalRef.hide();
     changeDependencies$.next();
   }
@@ -233,8 +275,12 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
 
         if (singleConnector) {
           if (singleConnector.outputPort && singleConnector.outputPort.nodeType &&
-              singleConnector.outputPort.nodeType.includes('ProximityDependency')) {
-            message.dependsOn = { ...x.dependsOn };
+              singleConnector.outputPort.nodeType.includes('ProximityDependency') && singleConnector.proximity) {
+            message.dependsOn = {
+              type: singleConnector.outputPort.nodeType,
+              ...singleConnector.proximity,
+              generalItemId: x.dependsOn.generalItemId
+            };
           } else {
             message.dependsOn = {
               type: singleConnector.outputPort.nodeType,
@@ -366,8 +412,6 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
         }
       });
     });
-
-
 
     return result;
   }

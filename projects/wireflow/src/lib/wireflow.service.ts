@@ -7,7 +7,7 @@ import {
   changeDependencies$,
   coordinatesOutput$, getAllDependenciesByCondition,
   middlePointClick$,
-  newNodeOutput$, removeNode$,
+  newNodeOutput$, removeNode$, shapeClick$,
   singleDependenciesOutput$
 } from './core/base';
 import { GameMessageCommon } from './models/core';
@@ -36,6 +36,7 @@ export class WireflowService {
   get newNodeOutput() { return newNodeOutput$.pipe(distinct()); }
   get removeNode() { return removeNode$.pipe(distinct()); }
   get middlePointClick() { return middlePointClick$; }
+  get shapeClick() { return shapeClick$; }
 
   get messagesChange() {
     return this.stateSubject

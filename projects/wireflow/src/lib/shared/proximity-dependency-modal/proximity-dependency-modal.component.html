@@ -1,4 +1,4 @@
-<form (keydown)="$event.stopPropagation();" (ngSubmit)="f.valid && onSubmit(f.value, data)" #f="ngForm">
+<form (keydown)="onFormKeyDown($event)" (ngSubmit)="f.valid && onSubmit(f.value, data)" #f="ngForm">
   <div class="modal-header">
     <h5 class="modal-title pull-left">Proximity</h5>
     <button type="button" class="close pull-right" aria-label="Close" (click)="modalRef.hide()">
@@ -29,67 +29,79 @@
 
       </agm-marker>
 
-<!--      <agm-circle [latitude]="lat + 0.3" [longitude]="lng"-->
-<!--                  [radius]="5000"-->
-<!--                  [fillColor]="'red'"-->
-<!--                  [circleDraggable]="true"-->
-<!--                  [editable]="true">-->
-<!--      </agm-circle>-->
+      <agm-circle [latitude]="marker.lat || 0" [longitude]="marker.lng || 0"
+                  [radius]="marker.radius * 1000"
+                  [fillColor]="'red'"
+                  [circleDraggable]="true"
+                  (radiusChange)="radiusChange($event)"
+                  (dragEnd)="circleDragEnd($event)"
+                  [editable]="true">
+      </agm-circle>
 
     </agm-map>
 
-    <div class="form-group mt-2">
-      <label for="searchInput">Search for location</label>
-      <input
-        id="searchInput"
-        placeholder="City"
-        autocorrect="off"
-        autocapitalize="off"
-        spellcheck="off"
-        type="text"
-        class="form-control"
-        #search
-      />
+    <div class="mt-2">
+      <div class="form-group">
+        <label for="typeSelect">Select Type</label>
+        <select class="form-control" id="typeSelect" name="selectedType" [(ngModel)]="selectedType" (ngModelChange)="onTypeChanged()">
+          <option *ngFor="let item of types" [value]="item.value">{{ item.label }}</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="searchInput">Search for location</label>
+        <input
+          id="searchInput"
+          placeholder="City"
+          autocorrect="off"
+          autocapitalize="off"
+          spellcheck="off"
+          type="text"
+          class="form-control"
+          #search
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="longitudeInput">Longitude</label>
+        <input
+          id="longitudeInput"
+          placeholder="Enter longitude"
+          type="number"
+          class="form-control"
+          name="lng"
+          [(ngModel)]="marker.lng"
+          required
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="latitudeInput">Latitude</label>
+        <input
+          id="latitudeInput"
+          placeholder="Enter latitude"
+          type="number"
+          class="form-control"
+          name="lat"
+          [(ngModel)]="marker.lat"
+          required
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="radiusInput">Radius</label>
+        <input
+          id="radiusInput"
+          placeholder="Enter radius"
+          type="number"
+          class="form-control"
+          name="radius"
+          [(ngModel)]="marker.radius"
+          required
+        />
+      </div>
     </div>
 
-    <div class="form-group">
-      <label for="longitudeInput">Longitude</label>
-      <input
-        id="longitudeInput"
-        placeholder="Enter longitude"
-        type="number"
-        class="form-control"
-        name="lng"
-        [(ngModel)]="marker.lng"
-        required
-      />
-    </div>
-
-    <div class="form-group">
-      <label for="latitudeInput">Latitude</label>
-      <input
-        id="latitudeInput"
-        placeholder="Enter latitude"
-        type="number"
-        class="form-control"
-        name="lat"
-        [(ngModel)]="marker.lat"
-        required
-      />
-    </div>
-
-    <div class="form-group">
-      <label for="radiusInput">Radius</label>
-      <input
-        id="radiusInput"
-        placeholder="Enter radius"
-        type="number"
-        class="form-control"
-        name="radius"
-        [(ngModel)]="zoom"
-        required
-      />
-    </div>
   </div>
   <div class="modal-footer">
     <button type="submit" class="btn btn-success">Confirm</button>
