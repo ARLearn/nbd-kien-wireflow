@@ -162,7 +162,7 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngOnInit() {
-    this.messages = getNodes(this.messages);
+    this.messages = getNodes(this.messages || []);
     this.populatedNodes = this.messages.slice();
   }
 
@@ -265,6 +265,36 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
+  private generateCoordinates(messages: any[]) {
+    const screenWidth = window.innerWidth;
+    const spaceBetween = 16;
+    const baseShapeWidth = 204;
+    const fullHeight = 240;
+    const fullWidth = spaceBetween + baseShapeWidth;
+
+    const startX = spaceBetween;
+    const startY = spaceBetween;
+
+    const columns = Math.floor(screenWidth / fullWidth);
+    const rows = Math.ceil(messages.length / columns);
+
+    if (columns === 0) { return; }
+
+    for (let i = 0, index = 0; i < rows; i++) {
+      for (let j = 0; j < columns; j++, index++) {
+        if (index === messages.length) { break; }
+
+        if (!Number.isFinite(messages[index].authoringX)) {
+          messages[index].authoringX = startX + (j * fullWidth);
+        }
+
+        if (!Number.isFinite(messages[index].authoringY)) {
+          messages[index].authoringY = startY + (i * fullHeight);
+        }
+      }
+    }
+  }
+
   private init() {
     this.svg = document.querySelector('#svg');
     this.diagramElement = document.querySelector('#diagram');
@@ -276,6 +306,8 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
     this.frag.appendChild(document.querySelector('.connector'));
     this.connectorElement = this.frag.querySelector('.connector');
     this.connectorLayer = document.querySelector('#connections-layer');
+
+    this.generateCoordinates(this.messages);
 
     this.diagram = new Diagram(
       this.diagramElement,

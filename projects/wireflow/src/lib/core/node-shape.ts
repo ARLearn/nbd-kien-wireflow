@@ -1,5 +1,5 @@
 import { NodePort } from './node-port';
-import { coordinatesOutput$, idCounter, ports, shapeClick$, shapes } from './base';
+import {coordinatesOutput$, getNumberFromPixels, idCounter, ports, shapeClick$, shapes} from './base';
 
 declare const TweenLite;
 
@@ -66,7 +66,10 @@ export class NodeShape {
   }
 
   onDragEnd(x = null, y = null) {
-    coordinatesOutput$.next({ x, y, messageId: this.generalItemId });
+    const shapeX = getNumberFromPixels(this.element._gsap.x);
+    const shapeY = getNumberFromPixels(this.element._gsap.y);
+    //
+    coordinatesOutput$.next({ x: shapeX, y: shapeY, messageId: this.generalItemId });
     this.element.classList.remove('no-events');
   }
 
