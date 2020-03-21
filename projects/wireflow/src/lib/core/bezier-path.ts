@@ -1,7 +1,7 @@
 import { BezierCoordinates } from './interfaces/bezier-interfaces';
 
-export class BezierPath implements BezierCoordinates {
-  public p1x: number;
+export class BezierPath implements BezierCoordinates { // TODO: Replace inheritance with composition
+  public p1x: number; // TODO: Use "point" {x,y} object
   public p1y: number;
 
   public p2x: number;
@@ -15,8 +15,8 @@ export class BezierPath implements BezierCoordinates {
 
   constructor() {}
 
-  public setCoords(p1x, p1y, p2x, p2y, p3x, p3y, p4x, p4y) {
-    this.p1x = p1x;
+  public setCoords(p1x, p1y, p2x, p2y, p3x, p3y, p4x, p4y) { // TODO: accept coordinates as single object
+    this.p1x = p1x; // TODO: Use "point" {x,y} object
     this.p1y = p1y;
 
     this.p2x = p2x;

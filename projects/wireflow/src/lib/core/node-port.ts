@@ -1,13 +1,9 @@
-import {
-  diagramElement,
-  idCounter,
-  svg
-} from './base';
 import { Connector } from './connector';
+import { State } from './state';
+import { DraggableUiElement } from './draggable-ui-element';
 
-export class NodePort {
+export class NodePort implements DraggableUiElement {
   id: string;
-  dragType: string;
   parentNode: any;
   isInput: any;
   generalItemId: any;
@@ -19,12 +15,11 @@ export class NodePort {
   global: any;
   center: SVGPoint;
   inputNodeType: any;
-  connectors: Connector[];
+  connectors: Connector[]; // TODO: Remove
 
-  constructor(parentNode, element, isInput) {
+  constructor(private state: State, parentNode, element, isInput) {
 
-    this.id = `port_${idCounter()}`;
-    this.dragType = 'port';
+    this.id = `port_${this.state.idCounter()}`;
 
     this.parentNode = parentNode;
     this.isInput = isInput;
@@ -45,33 +40,36 @@ export class NodePort {
 
     const bbox = this.portElement.getBBox();
 
-    this.global = svg.createSVGPoint();
-    this.center = svg.createSVGPoint();
+    this.global = this.state.svg.createSVGPoint();
+    this.center = this.state.svg.createSVGPoint();
     this.center.x = bbox.x + bbox.width / 2;
     this.center.y = bbox.y + bbox.height / 2;
 
     this.update();
   }
 
+  get dragElement() { return null; }
+  get dragType() { return 'port'; }
+
   update() {
-    const transform = this.portElement.getTransformToElement(diagramElement);
+    const transform = this.portElement.getTransformToElement(this.state.diagramElement);
     this.global = this.center.matrixTransform(transform);
 
-    if (this.connectors) {
+    if (this.connectors) { // TODO: Move to client code (or to state)
       this.connectors.forEach(mc => {
         mc.updateHandle(this);
         if (mc.isInput && mc.middlePoint) {
-          mc.middlePoint.move();
+          mc.middlePoint.move(mc.middlePoint.coordinates);
         }
       });
     }
   }
 
-  public addConnector(connector) {
+  public addConnector(connector) { // TODO: Move to client code (or to state)
     this.connectors.push(connector);
   }
 
-  public removeConnector(connector) {
+  public removeConnector(connector) { // TODO: Move to client code (or to state)
     const idx = this.connectors.indexOf(connector);
     this.connectors.splice(idx, 1);
   }

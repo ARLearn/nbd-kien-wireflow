@@ -1,68 +1,78 @@
-import { MiddlePoint } from '../middle-point';
-import {connectorLayer, newNodeOutput$} from '../base';
-import { BaseToolbar } from '../base-toolbar';
+import { Subject } from 'rxjs';
+import { BaseUiElement } from '../base-ui-element';
+import { ObjectMap } from '../../utils';
+import { State } from '../state'; // TODO: Remove dependency
+import { Point } from '../interfaces/point';
 
-export class ActionToolbar extends BaseToolbar {
-  middlePoint: MiddlePoint;
+export interface ActionToolbarAction extends ObjectMap<any> {
+  action: 'createNode';
+}
 
-  btnActionDependency: any;
-  btnLocation: any;
-  btnQrScan: any;
+export class ActionToolbar extends BaseUiElement {
+  private _btnActionDependency: HTMLElement;
+  private _btnLocation: HTMLElement;
+  private _btnQrScan: HTMLElement;
 
-  constructor(middlePoint: MiddlePoint) {
-    super(middlePoint);
+  private _action = new Subject<ActionToolbarAction>();
 
-    this.element = document.querySelector('#diagram > .action-toolbar').cloneNode(true);
+  constructor(
+    private state: State,
+  ) {
+    super(document.querySelector('#diagram > .action-toolbar').cloneNode(true) as HTMLElement);
 
-    this.middlePoint = middlePoint;
+    this._btnActionDependency = this.nativeElement.querySelector('.connector-toolbar__btn--action-dependency');
+    this._btnLocation = this.nativeElement.querySelector('.connector-toolbar__btn--location');
+    this._btnQrScan = this.nativeElement.querySelector('.connector-toolbar__btn--qr-scan');
 
-    this.btnActionDependency = this.element.querySelector('.connector-toolbar__btn--action-dependency');
-    this.btnLocation = this.element.querySelector('.connector-toolbar__btn--location');
-    this.btnQrScan = this.element.querySelector('.connector-toolbar__btn--qr-scan');
+    this._btnActionDependency.onclick = (e) => this._onClickActionDependency(e);
+    this._btnLocation.onclick = (e) => this._onClickLocation(e);
+    this._btnQrScan.onclick = (e) => this._onClickQrScan(e);
 
-    this.btnActionDependency.onclick = (e) => this._onClickActionDependency(e);
-    this.btnLocation.onclick = (e) => this._onClickLocation(e);
-    this.btnQrScan.onclick = (e) => this._onClickQrScan(e);
-
-    // this.move();
-
-    connectorLayer.appendChild(this.element);
+    // TODO: Move to client code
+    this.state.connectorLayer.appendChild(this.nativeElement);
   }
 
-  private _createNode(type, subtype = null) {
-    const coords = this.middlePoint.coordinates;
+  get action() { return this._action.asObservable(); }
 
-    newNodeOutput$.next({
-      id: this.middlePoint.generalItemId,
-      message: {
-        authoringX: coords.x,
-        authoringY: coords.y
-      },
-      middlePoint: this.middlePoint,
-      dependency: {
-        type,
-        subtype,
-        action: 'read',
-        generalItemId: Math.floor(Math.random() * 1000000000).toString()
-      }
+  move({x, y}: Point) {
+    super.move({
+      x: x - 48,
+      y: y + 16
     });
+    return this;
   }
 
-  private _onClickActionDependency(event: any) {
+  private _onClickActionDependency(event: MouseEvent) {
     event.stopPropagation();
 
-    this._createNode('org.celstec.arlearn2.beans.dependencies.ActionDependency');
+    this._action.next({
+      action: 'createNode',
+      type: 'org.celstec.arlearn2.beans.dependencies.ActionDependency',
+    });
+
+    this.hide();
   }
 
-  private _onClickLocation(event: any) {
+  private _onClickLocation(event: MouseEvent) {
     event.stopPropagation();
 
-    this._createNode('org.celstec.arlearn2.beans.dependencies.ProximityDependency');
+    this._action.next({
+      action: 'createNode',
+      type: 'org.celstec.arlearn2.beans.dependencies.ProximityDependency',
+    });
+
+    this.hide();
   }
 
-  private _onClickQrScan(event: any) {
+  private _onClickQrScan(event: MouseEvent) {
     event.stopPropagation();
 
-    this._createNode('org.celstec.arlearn2.beans.dependencies.ActionDependency', 'scantag');
+    this._action.next({
+      action: 'createNode',
+      type: 'org.celstec.arlearn2.beans.dependencies.ActionDependency',
+      subtype: 'scantag',
+    });
+
+    this.hide();
   }
 }

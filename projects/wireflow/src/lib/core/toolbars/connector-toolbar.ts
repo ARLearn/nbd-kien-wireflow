@@ -1,52 +1,80 @@
-import { BaseToolbar } from '../base-toolbar';
-import { ConnectorMiddlePoint } from '../connector-middle-point';
-import { connectorLayer, singleDependenciesOutput$ } from '../base';
+import { Subject } from 'rxjs';
+import { BaseUiElement } from '../base-ui-element';
+import { ObjectMap } from '../../utils';
+import { State } from '../state'; // TODO: Remove dependency
+import { Point } from '../interfaces/point';
 
-export class ConnectorToolbar extends BaseToolbar {
-  middlePoint: ConnectorMiddlePoint;
-  connector: any;
-  btnAnd: any;
-  btnOr: any;
-  btnTime: any;
+export interface ConnectorToolbarAction extends ObjectMap<any> {
+  action: 'changeSingleDependencyType';
+}
 
-  constructor(connector: any) {
-    super(connector.baseMiddlePoint);
+export class ConnectorToolbar extends BaseUiElement {
 
-    this.connector = connector;
+  private _btnAnd: HTMLElement;
+  private _btnOr: HTMLElement;
+  private _btnTime: HTMLElement;
 
-    this.element = document.querySelector('#diagram > .dependency-type-toolbar').cloneNode(true);
+  private _action = new Subject<ConnectorToolbarAction>();
 
-    this.btnAnd = this.element.querySelector('.connector-toolbar__btn--and');
-    this.btnOr = this.element.querySelector('.connector-toolbar__btn--or');
-    this.btnTime = this.element.querySelector('.connector-toolbar__btn--time');
+  constructor(
+    private state: State,
+  ) {
+    super(document.querySelector('#diagram > .dependency-type-toolbar').cloneNode(true) as HTMLElement);
 
-    this.btnAnd.onclick = (e) => this._onClickBtnAnd(e);
-    this.btnOr.onclick  = (e) => this._onClickBtnOr(e);
-    this.btnTime.onclick  = (e) => this._onClickBtnTime(e);
+    this._btnAnd = this.nativeElement.querySelector('.connector-toolbar__btn--and');
+    this._btnOr = this.nativeElement.querySelector('.connector-toolbar__btn--or');
+    this._btnTime = this.nativeElement.querySelector('.connector-toolbar__btn--time');
+
+    this._btnAnd.onclick = (e) => this._onClickBtnAnd(e);
+    this._btnOr.onclick = (e) => this._onClickBtnOr(e);
+    this._btnTime.onclick  = (e) => this._onClickBtnTime(e);
 
     this.hide();
-    connectorLayer.appendChild(this.element);
+
+    // TODO: Move to client code
+    this.state.connectorLayer.appendChild(this.nativeElement);
   }
 
-  private changeSingleDependencyType(type) {
-    singleDependenciesOutput$.next({
-      connector: this.connector,
-      type
+  get action() { return this._action.asObservable(); }
+
+  move({x, y}: Point) {
+    super.move({
+      x: x - 48,
+      y: y + 16
     });
+    return this;
   }
 
-  private _onClickBtnAnd(event: any) {
+  private _onClickBtnAnd(event: MouseEvent) {
     event.stopPropagation();
-    this.changeSingleDependencyType('org.celstec.arlearn2.beans.dependencies.AndDependency');
+
+    this._action.next({
+      action: 'changeSingleDependencyType',
+      type: 'org.celstec.arlearn2.beans.dependencies.AndDependency',
+    });
+
+    this.hide();
   }
 
-  private _onClickBtnOr(event: any) {
+  private _onClickBtnOr(event: MouseEvent) {
     event.stopPropagation();
-    this.changeSingleDependencyType('org.celstec.arlearn2.beans.dependencies.OrDependency');
+
+    this._action.next({
+      action: 'changeSingleDependencyType',
+      type: 'org.celstec.arlearn2.beans.dependencies.OrDependency',
+    });
+
+    this.hide();
   }
 
-  private _onClickBtnTime(event: any) {
+  private _onClickBtnTime(event: MouseEvent) {
     event.stopPropagation();
-    this.changeSingleDependencyType('org.celstec.arlearn2.beans.dependencies.TimeDependency');
+    
+    this._action.next({
+      action: 'changeSingleDependencyType',
+      type: 'org.celstec.arlearn2.beans.dependencies.TimeDependency',
+    });
+
+    this.hide();
   }
 }

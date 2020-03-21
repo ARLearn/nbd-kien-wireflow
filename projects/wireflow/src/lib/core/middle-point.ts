@@ -1,122 +1,103 @@
-import {connectorLayer, getNumberFromPixels, idCounter, middlePointClick$, middlePointsOutput} from './base';
+import { Subscription } from 'rxjs';
 import { Connector } from './connector';
 import { NodePort } from './node-port';
-import { ActionToolbar } from './toolbars/action-toolbar';
-import { BaseMiddlePoint } from './base-middle-point';
-import {NodeShape} from "./node-shape";
+import { ActionToolbar, ActionToolbarAction } from './toolbars/action-toolbar';
+import { NodeShape } from './node-shape'; // TODO: remove dependency
+import { State } from './state'; // TODO: remove dependency
+import { getNumberFromPixels } from '../utils';
+import { BaseUiElement } from './base-ui-element';
+import { Point } from './interfaces/point';
+import { DraggableUiElement } from './draggable-ui-element';
+import { Dependency } from '../models/core';
 
-declare const TweenLite;
-
-export class MiddlePoint extends BaseMiddlePoint {
+export class MiddlePoint extends BaseUiElement implements DraggableUiElement {
   id: string;
-  generalItemId: string;
-
-  element: any;
-
   inputPort: NodePort;
   actionToolbar: ActionToolbar;
 
   inputConnector: Connector;
-  outputConnectors: Connector[];
+  outputConnectors = [] as Connector[];
   parentMiddlePoint: MiddlePoint;
-  childrenMiddlePoints: MiddlePoint[] = [];
-  dependency: any;
+  childrenMiddlePoints = [] as MiddlePoint[];
 
-  dragElement: any;
   typeIcon: any;
 
   private mainIcon: any;
   private pencilIcon: any;
+  private _subscription = new Subscription();
 
   constructor(
-    baseCoords: { x: number; y: number } = null,
-    inputConnector: Connector = null,
-    outputConnectors: Connector[] = []
+    private state: State,
+    public generalItemId: number,
+    public dependency: Dependency,
   ) {
-    super();
+    super(document.querySelector('svg .middle-point').cloneNode(true) as HTMLElement);
 
-    this.id = `middle-point_${idCounter()}`;
+    this.id = `middle-point_${this.state.idCounter()}`;
 
-    this.coordinates = baseCoords;
-    this.element = document.querySelector('svg .middle-point').cloneNode(true);
+    this.mainIcon = this.nativeElement.querySelector('.middle-point-font');
+    this.pencilIcon = this.nativeElement.querySelector('.middle-point-pencil');
 
-    this.mainIcon = this.element.querySelector('.middle-point-font');
-    this.pencilIcon = this.element.querySelector('.middle-point-pencil');
-
-    this.dragElement = this.element;
-
-    this.inputConnector = inputConnector;
-    this.outputConnectors = outputConnectors;
-
-    this.actionToolbar = new ActionToolbar(this);
+    this.actionToolbar = new ActionToolbar(this.state);
+    this._subscription.add(this.actionToolbar.action.subscribe(action => this._onToolbarAction(action)));
 
     this.show();
 
-    this.element.setAttribute('data-drag', `${this.id}:middle-point`);
-    this.element.onclick = () => this._onClick();
+    this.nativeElement.setAttribute('data-drag', `${this.id}:middle-point`);
+    this.nativeElement.onclick = () => this._onClick();
 
-    connectorLayer.append(this.element);
+    this.state.connectorLayer.append(this.nativeElement);
   }
 
+  get dragElement() { return this.nativeElement; }
+
   init() {
-    this.move();
+    this.move(this.coordinates);
+    
     this.outputConnectors.forEach(x => {
       x.updateMiddlePoint(this.coordinates.x, this.coordinates.y);
 
       if (x.dependencyType.includes('ProximityDependency')) {
-        const shape: NodeShape = x.outputPort.parentNode;
-        shape.move(this.coordinates.x - 250, this.coordinates.y);
+        const shape = x.outputPort.parentNode as NodeShape;
+        shape.move({ x: this.coordinates.x - 250, y: this.coordinates.y });
       }
     });
-    this.refreshTypeIcon();
+    this._refreshTypeIcon();
+    return this;
   }
 
-  setCoordinates(coords: { x: number, y: number }) {
-    this.coordinates = coords;
-  }
-
-  setDependency(dependency) {
-    this.dependency = dependency;
+  setParentMiddlePoint(input: MiddlePoint) {
+    this.parentMiddlePoint = input;
+    return this;
   }
 
   setInputPort(inputPort: NodePort) {
     this.inputPort = inputPort;
-  }
-
-  setChildrenMiddlePoints(children: MiddlePoint[]) {
-    this.childrenMiddlePoints = children;
+    return this;
   }
 
   addChildMiddlePoint(child: MiddlePoint) {
     this.childrenMiddlePoints.push(child);
+    return this;
   }
 
   removeChildMiddlePoint(child: MiddlePoint) {
     this.childrenMiddlePoints.splice(this.childrenMiddlePoints.indexOf(child), 1);
-  }
-
-  setGeneralItemId(id: string) {
-    this.generalItemId = id;
-  }
-
-  show() {
-    this.element.style.display = 'block';
-  }
-
-  hide() {
-    this.element.style.display = 'none';
+    return this;
   }
 
   setInputConnector(inputConnector: Connector) {
     this.inputConnector = inputConnector;
+    return this;
   }
 
   setOutputConnectors(outputConnectors: Connector[]) {
     this.outputConnectors = outputConnectors;
+    return this;
   }
 
-  move() {
-    TweenLite.set(this.element, this.coordinates);
+  move(point: Point) {
+    super.move(point);
 
     if (this.inputConnector) {
       this.inputConnector.updateMiddlePoint(this.coordinates.x, this.coordinates.y);
@@ -127,22 +108,23 @@ export class MiddlePoint extends BaseMiddlePoint {
     }
 
     if (this.actionToolbar) {
-      this.actionToolbar.move();
+      this.actionToolbar.move(this.coordinates);
     }
 
     if (this.childrenMiddlePoints) {
       this.childrenMiddlePoints.forEach(cmp => {
-        cmp.inputConnector.updateHandleMiddlePoint(this);
-        cmp.move();
+        cmp.inputConnector.moveOutputHandle(this.coordinates);
+        cmp.move(cmp.coordinates);
       });
     }
+    return this;
   }
 
   onDrag() {
-    this.coordinates.x = getNumberFromPixels(this.element._gsap.x);
-    this.coordinates.y = getNumberFromPixels(this.element._gsap.y);
-
-    this.move();
+    this.move({
+      x: getNumberFromPixels(this.nativeElement['_gsap'].x),
+      y: getNumberFromPixels(this.nativeElement['_gsap'].y),
+    });
   }
 
   addOutputConnector(connector: Connector) {
@@ -163,7 +145,7 @@ export class MiddlePoint extends BaseMiddlePoint {
       this.dependency.dependencies.splice(this.getDependencyIdx(depToFind), 1);
 
     } else if (removeDependency && this.dependency.offset) {
-      this.dependency.offset = {};
+      this.dependency.offset = {} as any;
     }
   }
   // returns index of dependency.dependencies array
@@ -182,19 +164,14 @@ export class MiddlePoint extends BaseMiddlePoint {
     return -1;
   }
 
-  refreshTypeIcon() {
-    this._removeTypeIcon();
-    this._showTypeIcon();
-  }
-
   remove({ fromParent }: { fromParent?: boolean } = {}) {
+    this._subscription && this._subscription.unsubscribe();
+    
     if (fromParent === undefined) { fromParent = false; }
 
     this.outputConnectors.forEach(oc => oc.remove({ onlyConnector: false }));
 
-    if (this.actionToolbar) {
-      this.actionToolbar.remove();
-    }
+    this.actionToolbar && this.actionToolbar.remove();
 
     if (this.childrenMiddlePoints.length > 0) {
       this.childrenMiddlePoints.forEach(cmp => {
@@ -206,7 +183,7 @@ export class MiddlePoint extends BaseMiddlePoint {
       this.parentMiddlePoint.removeChildMiddlePoint(this);
 
       if (this.parentMiddlePoint.dependency.offset) {
-        this.parentMiddlePoint.dependency.offset = {};
+        this.parentMiddlePoint.dependency.offset = {} as any;
       } else if (this.parentMiddlePoint.dependency.dependencies) {
         const idx = this.parentMiddlePoint.dependency.dependencies.indexOf(this.dependency);
         this.parentMiddlePoint.dependency.dependencies.splice(idx, 1);
@@ -218,10 +195,10 @@ export class MiddlePoint extends BaseMiddlePoint {
       this.inputConnector = null;
     }
 
-    if (connectorLayer.contains(this.element)) {
-      connectorLayer.removeChild(this.element);
+    if (this.state.connectorLayer.contains(this.nativeElement)) {
+      this.state.connectorLayer.removeChild(this.nativeElement);
     }
-    middlePointsOutput.splice(middlePointsOutput.indexOf(this), 1);
+    this.state.middlePointsOutput.splice(this.state.middlePointsOutput.indexOf(this), 1);
   }
 
   private _showTypeIcon() {
@@ -247,8 +224,8 @@ export class MiddlePoint extends BaseMiddlePoint {
     this.typeIcon = document.querySelector('.connector-middle-point-' + type).cloneNode(true);
 
     this.typeIcon.style.display = 'block';
-    if (!this.element.contains(this.typeIcon)) {
-      this.element.appendChild(this.typeIcon);
+    if (!this.nativeElement.contains(this.typeIcon)) {
+      this.nativeElement.appendChild(this.typeIcon);
     }
   }
 
@@ -263,33 +240,59 @@ export class MiddlePoint extends BaseMiddlePoint {
   }
 
   private _removeTypeIcon() {
-    if (this.typeIcon && this.element.contains(this.typeIcon)) {
-      this.element.removeChild(this.typeIcon);
+    if (this.typeIcon && this.nativeElement.contains(this.typeIcon)) {
+      this.nativeElement.removeChild(this.typeIcon);
     }
   }
 
   private _onClick() {
     if (!this.dependency.type.includes('TimeDependency')) {
-      this.actionToolbar.move();
+      this.actionToolbar.move(this.coordinates);
       this._updateToolbars();
 
       this.actionToolbar.toggle();
     }
 
-    middlePointClick$.next(this);
+    this.state.middlePointClick$.next(this);
   }
 
-  private _updateToolbars(): void {
-    const toolbars: any = document.querySelectorAll(`.${this.actionToolbar.element.classList.value.split(' ').join('.')}`);
+  private _onToolbarAction(action: ActionToolbarAction) {
+    switch (action.action) {
+      case 'createNode': return this._createNode(action.type, action.subtype);
+    }
+  }
 
-    Array.from(toolbars).forEach((t: any) => {
-      if (t !== this.actionToolbar.element) {
-        t.style.display = 'none';
+  private _createNode(type: string, subtype: string) {
+    const coords = this.coordinates;
+
+    this.state.newNodeOutput$.next({
+      id: this.generalItemId,
+      message: {
+        authoringX: coords.x,
+        authoringY: coords.y
+      },
+      middlePoint: this,
+      dependency: {
+        type,
+        subtype,
+        action: 'read',
+        generalItemId: Math.floor(Math.random() * 1000000000).toString()
       }
     });
   }
 
-  setParentMiddlePoint(input: MiddlePoint) {
-    this.parentMiddlePoint = input;
+  private _refreshTypeIcon() {
+    this._removeTypeIcon();
+    this._showTypeIcon();
+  }
+
+  private _updateToolbars(): void {
+    const toolbars: any = document.querySelectorAll(`.${this.actionToolbar.nativeElement.classList.value.split(' ').join('.')}`);
+
+    Array.from(toolbars).forEach((t: any) => {
+      if (t !== this.actionToolbar.nativeElement) {
+        t.style.display = 'none';
+      }
+    });
   }
 }

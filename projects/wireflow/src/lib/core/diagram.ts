@@ -1,20 +1,17 @@
-import {
-  addConnectorToOutput, changeDependencies$, diagramElement,
-  dragProxy, getInputPortByGeneralItemId, getMiddlePointById,
-  getOutputPortByGeneralItemId, getPortById, getShapeById,
-  init, initNodeMessage, ports, shapeElements, shapes, svg
-} from './base';
 import { NodeShape } from './node-shape';
 import { Connector } from './connector';
 import { clone } from '../utils';
+import { State } from './state';
+import { DraggableUiElement } from './draggable-ui-element';
+import { GameMessageCommon } from '../models/core';
 
 declare const TweenLite;
 declare const Draggable;
 
-export class Diagram {
-  dragElement: any;
+// TODO: Merge with state, or wrap state inside, or make wrapped by state
+export class Diagram implements DraggableUiElement {
   element: any;
-  target: any;
+  target: DraggableUiElement;
   dragType: any;
   draggable: any;
 
@@ -26,38 +23,47 @@ export class Diagram {
 
   private openedConnector: Connector;
 
-  constructor(diagramEl, shapeEls, svgEl, dragProxyEl, fragEl, connectorEl, connectorLayerEl, messages) {
-    init(diagramEl, shapeEls, svgEl, dragProxyEl, fragEl, connectorEl, connectorLayerEl);
+  state = new State();
 
-    this.dragElement = this.element = diagramElement;
+  constructor(diagramEl, shapeEls, svgEl, dragProxyEl, fragEl, connectorEl, connectorLayerEl, messages) {
+    this.state.init(diagramEl, shapeEls, svgEl, dragProxyEl, fragEl, connectorEl, connectorLayerEl);
+
+    this.element = this.state.diagramElement;
 
     this.initShapes(messages);
 
     this.target = null;
     this.dragType = null;
 
-    this.draggable = new Draggable(dragProxy, {
+    this.draggable = new Draggable(this.state.dragProxy, {
       allowContextMenu: true,
-      trigger: svg,
+      trigger: this.state.svg,
       onDrag: () => this.dragTarget(),
       onDragEnd: e => this.stopDragging(this.getDragArgs(e)),
-      onPress: e => this.prepareTarget(this.getDragArgs(e)),
+      onPress: e => this.onDragStart(this.getDragArgs(e)),
       onClick: () => this.onDragClick()
     });
   }
 
+  get dragElement() { return this.element; }
+
   initShapes(messages) {
-    shapeElements.forEach((element) => {
+    this.state.shapeElements.forEach(element => {
       const message = messages.find(x => element.getAttribute('general-item-id') == x.id);
-      const shape = new NodeShape(element, Number(message.authoringX), Number(message.authoringY));
-      shapes.push(shape);
+      
+      this.state.shapes.push(
+        new NodeShape(
+          this.state, 
+          element, 
+          { x: Number(message.authoringX), y: Number(message.authoringY) }
+        ));
     });
   }
 
   private getDragArgs({target}: any) {
     let drag = target.getAttribute('data-drag');
 
-    while (!drag && target !== svg) {
+    while (!drag && target !== this.state.svg) {
       target = target.parentNode;
       drag = target.getAttribute('data-drag');
     }
@@ -69,39 +75,40 @@ export class Diagram {
     return {target, id, dragType};
   }
 
-  initState(baseState: any[]) {
+  initState(baseState: GameMessageCommon[]) {
     baseState.forEach(message => {
       if (message.dependsOn && message.dependsOn.type && this.mpAllowedTypes.includes(message.dependsOn.type)) {
 
         if ((message.dependsOn.dependencies && message.dependsOn.dependencies.length > 0) || message.dependsOn.offset) {
-          initNodeMessage(clone(message));
+          this.state.initNodeMessage(clone(message));
         }
       } else {
         if (message.dependsOn && ((message.dependsOn.generalItemId && message.dependsOn.action) ||
-            message.dependsOn.type === 'org.celstec.arlearn2.beans.dependencies.ProximityDependency')
+            message.dependsOn.type && message.dependsOn.type.includes('ProximityDependency'))
         ) {
-          this.drawConnector(message.dependsOn, message);
+          this.initConnector(message.dependsOn, message);
         }
       }
     });
 
-    changeDependencies$.next();
+    this.state.changeDependencies$.next();
   }
 
-  public drawConnector(dependency, message) {
-    const inputPort = getInputPortByGeneralItemId(message.id);
+  public initConnector(dependency, message) {
+    const inputPort = this.state.getInputPortByGeneralItemId(message.id);
     let outputPort;
 
     if (dependency.type.includes('ProximityDependency')) {
-      outputPort = ports.find(p => !p.isInput &&
+      // TODO: Get output port from node shape (or from state)
+      outputPort = this.state.ports.find(p => !p.isInput &&
         p.generalItemId.toString() === dependency.generalItemId.toString() &&
         p.nodeType.includes('ProximityDependency'));
     } else {
-      outputPort = getOutputPortByGeneralItemId(dependency.generalItemId, dependency.action);
+      outputPort = this.state.getOutputPortByGeneralItemId(dependency.generalItemId, dependency.action);
     }
 
     if (inputPort != null && outputPort != null) {
-      const con = new Connector();
+      const con = new Connector(this.state);
       con.removeHandlers();
       con.init(inputPort);
       con.setOutputPort(outputPort);
@@ -110,31 +117,31 @@ export class Diagram {
         con.setProximity(dependency.lat, dependency.lng, dependency.radius);
       }
 
-      inputPort.addConnector(con);
-      outputPort.addConnector(con);
+      inputPort.addConnector(con); // TODO: Move to state
+      outputPort.addConnector(con); // TODO: Move to state
       con.updateHandle(outputPort);
 
-      addConnectorToOutput(con);
+      this.state.addConnectorToOutput(con);
       return con;
     }
   }
 
-  prepareTarget({id, dragType}) {
+  onDragStart({id, dragType}) {
     switch (dragType) {
       case 'diagram':
         this.target = this;
         break;
 
       case 'shape':
-        this.target = getShapeById(id);
+        this.target = this.state.getShapeById(id);
         break;
 
       case 'port':
-        const port = getPortById(id);
-        const con = new Connector();
+        const port = this.state.getPortById(id);
+        const con = new Connector(this.state);
         con.removeHandlers();
         con.init(port);
-        port.addConnector(con);
+        port.addConnector(con); // TODO: Move to state
         con.updateHandle(port);
 
         this.target = con;
@@ -143,7 +150,7 @@ export class Diagram {
         break;
 
       case 'middle-point':
-        this.target = getMiddlePointById(id);
+        this.target = this.state.getMiddlePointById(id); // TODO: Change to "getDraggableById"
         break;
     }
   }
@@ -162,8 +169,9 @@ export class Diagram {
   stopDragging({id, dragType}) {
     switch (dragType) {
       case 'shape':
-        this.target = getShapeById(id);
+        this.target = this.state.getShapeById(id);
         const {e, f} = this.target.dragElement.getCTM();
+        // TODO: Extract as cleanupOpenedConnector()
         if (this.openedConnector && !(this.openedConnector.inputPort && this.openedConnector.outputPort)) {
           this.openedConnector.remove();
           this.openedConnector = undefined;
@@ -182,6 +190,7 @@ export class Diagram {
   }
 
   private onDragClick() {
+    // TODO: Extract as cleanupOpenedConnector()
     if (this.openedConnector && !(this.openedConnector.inputPort && this.openedConnector.outputPort)) {
       this.openedConnector.remove();
       this.openedConnector = undefined;

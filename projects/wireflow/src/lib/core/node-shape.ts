@@ -1,54 +1,59 @@
 import { NodePort } from './node-port';
-import {coordinatesOutput$, getNumberFromPixels, idCounter, ports, shapeClick$, shapes} from './base';
+import { State } from './state'; // TODO: Remove dependency
+import { getNumberFromPixels } from '../utils';
+import { DraggableUiElement } from './draggable-ui-element';
+import { BaseUiElement } from './base-ui-element';
+import { Point } from './interfaces/point';
 
-declare const TweenLite;
-
-export class NodeShape {
+export class NodeShape extends BaseUiElement implements DraggableUiElement {
   id: string;
   generalItemId: string;
-  dragType: string;
-  element: any;
-  dragElement: any;
   inputs: NodePort[];
   outputs: NodePort[];
   dependencyType: string;
 
-  constructor(element, x, y) {
+  constructor(
+    private state: State,
+    element: HTMLElement, 
+    point: Point,
+  ) {
+    super(element);
 
-    this.id = `shape_${idCounter()}`;
-    this.dragType = 'shape';
+    this.id = `shape_${this.state.idCounter()}`;
 
     element.setAttribute('data-drag', `${this.id}:shape`);
 
     this.generalItemId = element.getAttribute('general-item-id');
     this.dependencyType = element.getAttribute('dependency-type');
 
-    this.element = element;
-    this.dragElement = element;
-
-    TweenLite.set(element, { x, y });
 
     const inputElements = Array.from(element.querySelectorAll('.input-field'));
     const outputElements = Array.from(element.querySelectorAll('.output-field'));
 
     this.inputs = inputElements.map(el => {
-      const port = new NodePort(this, el, true);
-      ports.push(port);
+      const port = new NodePort(this.state, this, el, true);
+      this.state.ports.push(port);
       return port;
     });
 
     this.outputs = outputElements.map(el => {
-      const port = new NodePort(this, el, false);
-      ports.push(port);
+      const port = new NodePort(this.state, this, el, false);
+      this.state.ports.push(port);
       return port;
     });
 
-    this.element.onclick = this._onClick.bind(this);
+    this.move(point);
+
+    this.nativeElement.onclick = this._onClick.bind(this);
   }
 
-  onDrag() {
-    this.element.classList.add('no-events');
+  get dragElement() { return this.nativeElement; }
+  get dragType() { return 'shape'; }
 
+  onDrag() {
+    this.nativeElement.classList.add('no-events');
+
+    // TODO: Extract into update()
     for (const input of this.inputs) {
       input.update();
     }
@@ -56,30 +61,36 @@ export class NodeShape {
     for (const output of this.outputs) {
       output.update();
     }
+
+    // TODO: Emit "drag", in handler lookup connectors and call updateHandle(), lookup midpoint, and call move()
   }
 
-  move(x, y) {
-    TweenLite.set(this.element, { x, y });
+  move(point: Point) {
+    super.move(point);
 
     this.inputs.forEach(p => p.update());
     this.outputs.forEach(p => p.update());
+
+    // TODO: Emit "move", in handler lookup connectors and call updateHandle(), lookup midpoint, and call move()
+
+    return this;
   }
 
-  onDragEnd(x = null, y = null) {
-    const shapeX = getNumberFromPixels(this.element._gsap.x);
-    const shapeY = getNumberFromPixels(this.element._gsap.y);
-    //
-    coordinatesOutput$.next({ x: shapeX, y: shapeY, messageId: this.generalItemId });
-    this.element.classList.remove('no-events');
+  onDragEnd() {
+    const x = getNumberFromPixels(this.nativeElement['_gsap'].x);
+    const y = getNumberFromPixels(this.nativeElement['_gsap'].y);
+
+    this.state.coordinatesOutput$.next({ x, y, messageId: this.generalItemId });
+    this.nativeElement.classList.remove('no-events');
   }
 
   remove() {
-    this.inputs.forEach(p => ports.splice(ports.indexOf(p), 1));
-    this.outputs.forEach(p => ports.splice(ports.indexOf(p), 1));
-    shapes.splice(shapes.indexOf(this), 1);
+    this.inputs.forEach(p => this.state.ports.splice(this.state.ports.indexOf(p), 1));
+    this.outputs.forEach(p => this.state.ports.splice(this.state.ports.indexOf(p), 1));
+    this.state.shapes.splice(this.state.shapes.indexOf(this), 1);
   }
 
   private _onClick() {
-    shapeClick$.next(this);
+    this.state.shapeClick$.next(this);
   }
 }
