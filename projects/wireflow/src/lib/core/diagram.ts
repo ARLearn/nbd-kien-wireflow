@@ -75,8 +75,8 @@ export class Diagram implements DraggableUiElement {
     return {target, id, dragType};
   }
 
-  initState(baseState: GameMessageCommon[]) {
-    baseState.forEach(message => {
+  initState(messages: GameMessageCommon[]) {
+    messages.forEach(message => {
       if (message.dependsOn && message.dependsOn.type && this.mpAllowedTypes.includes(message.dependsOn.type)) {
 
         if ((message.dependsOn.dependencies && message.dependsOn.dependencies.length > 0) || message.dependsOn.offset) {

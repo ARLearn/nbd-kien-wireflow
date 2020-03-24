@@ -9,8 +9,8 @@ import {
   ViewChildren,
   OnDestroy,
 } from '@angular/core';
-import { Subscription, Subject, BehaviorSubject } from 'rxjs';
-import { distinct, map } from 'rxjs/operators';
+import { Subscription, Subject, Observable } from 'rxjs';
+import { distinct, map, skip } from 'rxjs/operators';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap';
 
 import { Diagram } from './core/diagram';
@@ -37,27 +37,7 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChildren('nodes') nodesFor: any;
 
   @Input() messages: GameMessageCommon[];
-  @Output() get messagesChange() {
-    return this.stateSubject
-      .pipe(
-        map(x => x.messages),
-        map((b: any) => {
-          const a = this.state.messagesOld.filter((x: any) => !x.virtual);
-          b = b.filter(x => !x.virtual);
-
-          return diff(b, a, item => hash.MD5(item));
-        }),
-        map(result => {
-          const messages = clone(result);
-          messages.forEach((message: any) => {
-            const deps = this._getAllDependenciesByCondition(message.dependsOn, (d: any) => d.type && d.type.includes('ProximityDependency'));
-            deps.forEach(dep => delete dep.generalItemId);
-          });
-
-          return messages;
-        })
-      );
-  }
+  @Output() messagesChange: Observable<GameMessageCommon[]>;
 
   populatedNodes: GameMessageCommon[];
   state = {
@@ -65,7 +45,7 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
     messagesOld: [],
   } as MessageEditorStateModel;
 
-  private stateSubject: Subject<MessageEditorStateModel> = new BehaviorSubject<MessageEditorStateModel>(this.state);
+  private stateSubject = new Subject<MessageEditorStateModel>();
 
   private diagram: Diagram;
   private svg: HTMLElement;
@@ -97,7 +77,32 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
 
   constructor(
     private modalService: BsModalService,
-  ) {}
+  ) {
+    this.messagesChange = this.stateSubject
+      .pipe(
+        map(x => x.messages),
+        map((b: any) => {
+          const a = this.state.messagesOld.filter((x: any) => !x.virtual);
+          b = b.filter(x => !x.virtual);
+
+          return diff(b, a, item => hash.MD5(item));
+        }),
+        map(result => {
+          const messages = clone(result);
+          messages.forEach((message: any) => {
+            const deps = this._getAllDependenciesByCondition(message.dependsOn, (d: any) => d.type && d.type.includes('ProximityDependency'));
+            deps.forEach(dep => delete dep.generalItemId);
+          });
+
+          return messages;
+        })
+      )
+      .pipe(skip(1));
+
+    this.subscription.add(this.stateSubject.subscribe(x => {
+      this.state = { ...x, messages: clone(x.messages), messagesOld: this.state.messages };
+    }));
+  }
 
   ngOnInit() {
     this.messages = this._getNodes(this.messages || []);
@@ -111,16 +116,12 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
   ngAfterViewInit() {
     this._initDiagram();
 
-    this.subscription.add(this.stateSubject.subscribe(x => {
-      this.state = { ...x, messages: clone(x.messages), messagesOld: this.state.messages };
-    }));
-
     this.subscription.add(this
       .dependenciesOutput
       .subscribe(() => {
         this.messages = this.diagram.state.populate(this.messages);
 
-        this._initMessages(this.messages);
+        this._emitMessages(this.messages);
       }));
 
     this.subscription.add(this
@@ -132,7 +133,7 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
         mess.authoringX = coordindates.x || 0;
         mess.authoringY = coordindates.y || 0;
 
-        this._initMessages(this.messages);
+        this._emitMessages(this.messages);
       }));
 
     this.subscription.add(this.singleDependenciesOutput.subscribe((x: any) => {
@@ -192,7 +193,7 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
     
     this.subscription.add(this.nodesFor.changes.subscribe(() => this.handleNodesRender()));
 
-    setTimeout(() => this.diagram.initState(this.messages), 200);
+    this.diagram.initState(this.messages);
   }
 
   @HostListener('document:keydown', ['$event'])
@@ -286,7 +287,7 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
     draggableElement && draggableElement.classList.remove('no-events');
   }
 
-  private _initMessages(messages: any[]) {
+  private _emitMessages(messages: any[]) {
     this.stateSubject.next({
       ...this.state,
       messages,
