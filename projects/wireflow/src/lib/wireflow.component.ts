@@ -22,6 +22,7 @@ import { ActionModalComponent } from './shared/action-modal/action-modal.compone
 import { TimeDependencyModalComponent } from './shared/time-dependency-modal/time-dependency-modal.component';
 import { ProximityDependencyModalComponent } from './shared/proximity-dependency-modal/proximity-dependency-modal.component';
 import { diff, clone } from './utils';
+import { MiddlePoint } from './core/middle-point';
 
 interface MessageEditorStateModel {
   messages: GameMessageCommon[];
@@ -119,7 +120,7 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
     this.subscription.add(this
       .dependenciesOutput
       .subscribe(() => {
-        this.messages = this.diagram.state.populate(this.messages);
+        this.messages = this._populateOutputMessages(this.messages);
 
         this._emitMessages(this.messages);
       }));
@@ -127,7 +128,7 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
     this.subscription.add(this
       .coordinatesOutputSubject
       .subscribe((coordindates: any) => {
-        this.messages = this.diagram.state.populate(this.messages);
+        this.messages = this._populateOutputMessages(this.messages);
         const mess = this.messages.find(r => r.id.toString() === coordindates.messageId.toString());
 
         mess.authoringX = coordindates.x || 0;
@@ -634,6 +635,42 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private _openModal(template: any, initialState = {}) {
     this.modalRef = this.modalService.show(template, {initialState, backdrop: 'static'});
+  }
+
+  private _populateOutputMessages(messages: any[]) {
+    const mainMiddlePoints: MiddlePoint[] = this.diagram.state.middlePointsOutput.filter(mp => !mp.parentMiddlePoint);
+  
+    return clone(messages).map((x: any) => {
+      const message = {...x};
+  
+      const currentMiddlePoint = mainMiddlePoints.find(mp => Number(mp.generalItemId) === x.id);
+  
+      if (currentMiddlePoint) {
+        message.dependsOn = currentMiddlePoint.dependency;
+      } else {
+        const singleConnector = this.diagram.state.connectorsOutput.find(c => !c.middlePoint && c.inputPort.generalItemId === x.id.toString());
+  
+        if (singleConnector) {
+          if (singleConnector.outputPort && singleConnector.outputPort.nodeType &&
+            singleConnector.outputPort.nodeType.includes('ProximityDependency') && singleConnector.proximity) {
+            message.dependsOn = {
+              type: singleConnector.outputPort.nodeType,
+              ...singleConnector.proximity,
+              generalItemId: x.dependsOn.generalItemId
+            };
+          } else {
+            message.dependsOn = {
+              type: singleConnector.outputPort.nodeType,
+              action: singleConnector.outputPort.action,
+              generalItemId: singleConnector.outputPort.generalItemId
+            };
+          }
+        } else {
+          message.dependsOn = {};
+        }
+      }
+      return message;
+    });
   }
 
   ngOnDestroy() {

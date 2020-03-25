@@ -1,9 +1,8 @@
 import { NodePort } from './node-port';
 import { State } from './state'; // TODO: Remove dependency
-import { getNumberFromPixels } from '../utils';
+import { getNumberFromPixels, Point } from '../utils';
 import { DraggableUiElement } from './draggable-ui-element';
 import { BaseUiElement } from './base-ui-element';
-import { Point } from './interfaces/point';
 
 export class NodeShape extends BaseUiElement implements DraggableUiElement {
   id: string;

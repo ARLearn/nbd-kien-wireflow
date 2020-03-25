@@ -1,4 +1,4 @@
-import { BezierCoordinates } from './interfaces/bezier-interfaces';
+import { BezierCoordinates } from '../utils';
 
 export class BezierPath implements BezierCoordinates { // TODO: Replace inheritance with composition
   public p1x: number; // TODO: Use "point" {x,y} object

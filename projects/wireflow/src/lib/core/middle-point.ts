@@ -1,12 +1,10 @@
-import { Subscription } from 'rxjs';
 import { Connector } from './connector';
 import { NodePort } from './node-port';
 import { ActionToolbar, ActionToolbarAction } from './toolbars/action-toolbar';
 import { NodeShape } from './node-shape'; // TODO: remove dependency
 import { State } from './state'; // TODO: remove dependency
-import { getNumberFromPixels } from '../utils';
+import { getNumberFromPixels, Point } from '../utils';
 import { BaseUiElement } from './base-ui-element';
-import { Point } from './interfaces/point';
 import { DraggableUiElement } from './draggable-ui-element';
 import { Dependency } from '../models/core';
 
@@ -24,7 +22,6 @@ export class MiddlePoint extends BaseUiElement implements DraggableUiElement {
 
   private mainIcon: any;
   private pencilIcon: any;
-  private _subscription = new Subscription();
 
   constructor(
     private state: State,
@@ -39,13 +36,14 @@ export class MiddlePoint extends BaseUiElement implements DraggableUiElement {
     this.pencilIcon = this.nativeElement.querySelector('.middle-point-pencil');
 
     this.actionToolbar = new ActionToolbar(this.state);
-    this._subscription.add(this.actionToolbar.action.subscribe(action => this._onToolbarAction(action)));
+    this.when(this.actionToolbar.action, action => this._onToolbarAction(action));
 
     this.show();
 
     this.nativeElement.setAttribute('data-drag', `${this.id}:middle-point`);
     this.nativeElement.onclick = () => this._onClick();
 
+    // TODO: replace with this.connectorsService.appendToConnectorLayer()
     this.state.connectorLayer.append(this.nativeElement);
   }
 
@@ -165,7 +163,7 @@ export class MiddlePoint extends BaseUiElement implements DraggableUiElement {
   }
 
   remove({ fromParent }: { fromParent?: boolean } = {}) {
-    this._subscription && this._subscription.unsubscribe();
+    this._unsubscriber && this._unsubscriber.unsubscribe();
     
     if (fromParent === undefined) { fromParent = false; }
 
@@ -195,6 +193,7 @@ export class MiddlePoint extends BaseUiElement implements DraggableUiElement {
       this.inputConnector = null;
     }
 
+    // TODO: replace with this.connectorsService.removeFromConnectorLayer()
     if (this.state.connectorLayer.contains(this.nativeElement)) {
       this.state.connectorLayer.removeChild(this.nativeElement);
     }

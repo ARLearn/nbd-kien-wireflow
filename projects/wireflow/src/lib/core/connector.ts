@@ -1,14 +1,13 @@
 import { NodeShape } from './node-shape';
 import { MiddlePoint } from './middle-point'; // TODO: remove dependency
 import { NodePort } from './node-port'; // TODO: remove dependency 
-import { ConnectorToolbar, ConnectorToolbarAction } from './toolbars/connector-toolbar';
+import { ConnectorToolbar, ChangeSingleDependencyTypeAction } from './toolbars/connector-toolbar';
 import { ConnectorMiddlePoint, ConnectorMiddlePointAction } from './connector-middle-point';
 import { BezierPath } from './bezier-path';
 import { State } from './state'; // TODO: remove dependency
-import { getNumberFromPixels } from '../utils';
+import { getNumberFromPixels, Point } from '../utils';
 import { Subscription } from 'rxjs';
 import { DraggableUiElement } from './draggable-ui-element';
-import { Point } from './interfaces/point';
 
 export const bezierWeight = 0.675; // TODO: Move to connector
 
@@ -101,11 +100,12 @@ export class Connector implements DraggableUiElement {
     this._subscription.add(this.baseMiddlePoint.action.subscribe(action => this._onMiddlePointAction(action)));
     
     this.connectorToolbar = new ConnectorToolbar(this.state);
-    this._subscription.add(this.connectorToolbar.action.subscribe(action => this._onToolbarAction(action)));
+    this._subscription.add(this.connectorToolbar.changeSingleDependencyType.subscribe(data => this._changeSingleDependencyType(data.targetType)));
 
     this.connectorElement.onmouseenter = (e) => this.onHover(e);
     this.connectorElement.onmouseleave = (e) => this.onHoverLeave(e);
 
+    // TODO: replace with this.connectorsService.prependToConnectorLayer()
     this.state.connectorLayer.prepend(this.connectorElement);
   }
 
@@ -248,6 +248,7 @@ export class Connector implements DraggableUiElement {
 
     this.connectorToolbar && this.connectorToolbar.remove();
 
+    // TODO: replace with this.connectorsService.removeFromConnectorLayer()
     if (this.state.connectorLayer.contains(this.connectorElement)) {
       this.state.connectorLayer.removeChild(this.connectorElement);
     }
@@ -494,12 +495,6 @@ export class Connector implements DraggableUiElement {
     this.connectorToolbar
       .move(coordinates)
       .toggle();
-  }
-
-  private _onToolbarAction(action: ConnectorToolbarAction) {
-    switch (action.action) {
-      case 'changeSingleDependencyType': return this._changeSingleDependencyType(action.type);
-    }
   }
 
   private _changeSingleDependencyType(type: string) {

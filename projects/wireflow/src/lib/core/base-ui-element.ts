@@ -1,8 +1,11 @@
-import { Point } from './interfaces/point';
+import { Subscription, Observable } from 'rxjs';
+import { Point } from '../utils';
 
 declare const TweenLite;
 
-export class BaseUiElement { // TODO: Convert inheritance to composition of N services
+export class BaseUiElement {
+  
+  protected _unsubscriber = new Subscription();
   private _point: Point;
   private _isVisible = false;
 
@@ -11,6 +14,10 @@ export class BaseUiElement { // TODO: Convert inheritance to composition of N se
   ) {}
 
   get coordinates() { return this._point; }
+
+  when<T>(observable: Observable<T>, handler: (item: T) => void) {
+    this._unsubscriber.add(observable.subscribe(item => handler(item)));
+  }
 
   hide() {
     this._isVisible = false;
@@ -43,6 +50,7 @@ export class BaseUiElement { // TODO: Convert inheritance to composition of N se
 
   remove() {
     this.nativeElement && this.nativeElement.remove();
+    this._unsubscriber.unsubscribe();
   }
 
   private _update() {

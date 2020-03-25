@@ -1,8 +1,7 @@
 import { Subject } from 'rxjs';
 import { BaseUiElement } from '../base-ui-element';
-import { ObjectMap } from '../../utils';
+import { ObjectMap, Point } from '../../utils';
 import { State } from '../state'; // TODO: Remove dependency
-import { Point } from '../interfaces/point';
 
 export interface ActionToolbarAction extends ObjectMap<any> {
   action: 'createNode';
@@ -28,7 +27,7 @@ export class ActionToolbar extends BaseUiElement {
     this._btnLocation.onclick = (e) => this._onClickLocation(e);
     this._btnQrScan.onclick = (e) => this._onClickQrScan(e);
 
-    // TODO: Move to client code
+    // TODO: replace with this.connectorsService.appendToConnectorLayer()
     this.state.connectorLayer.appendChild(this.nativeElement);
   }
 

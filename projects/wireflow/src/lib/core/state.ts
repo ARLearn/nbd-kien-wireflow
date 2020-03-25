@@ -1,35 +1,41 @@
-import { NodeShape } from './node-shape';
-import { NodePort } from './node-port';
-import { Connector } from './connector';
-import { MiddlePoint } from './middle-point';
-import { counter, getNumberFromPixels, clone } from '../utils';
+import { NodeShape } from './node-shape'; // TODO: Remove dependency, use model instead
+import { NodePort } from './node-port'; // TODO: Remove dependency, use model instead
+import { Connector } from './connector'; // TODO: Remove dependency, use model instead
+import { MiddlePoint } from './middle-point'; // TODO: Remove dependency, use model instead
+import { counter, getNumberFromPixels } from '../utils';
 import { Subject } from 'rxjs';
 import { GameMessageCommon } from '../models/core';
 
 export class State {
-  shapes: NodeShape[] = []; // TODO: Move to state
-  ports: NodePort[] = []; // TOOD: Move to node shape
+  shapes: NodeShape[] = []; // TODO: Remove array, use array of models instead
+  nodeShapeModels; // TODO: Move to nodesService
+
+  ports: NodePort[] = []; // TODO: Remove array, use array of models instead
+  portModels; // TODO: Move to nodesService
 
   diagramElement;
   shapeElements;
-  svg; // TODO: Move to state
+  svg; 
   dragProxy;
   frag;
-  connectorElement;
-  connectorLayer; // TODO: Move to state
+  connectorElement; 
+  connectorLayer; // TODO: Move to connectorsService
 
-  connectorsOutput: Connector[] = []; // TODO: Move to state
-  middlePointsOutput: MiddlePoint[] = []; // TODO: Move to state
+  connectorsOutput: Connector[] = []; // TODO: Remove array, use array of models instead
+  connectorModels; // TODO: Move to connectorsService
+  
+  middlePointsOutput: MiddlePoint[] = []; // TODO: Remove array, use array of models instead
+  middlePointModels; // TODO: Move to connectorsService
 
-  idCounter = counter(); // TODO: Move to state
+  idCounter = counter(); // TODO: Remove here, and add to each service class individually
 
-  changeDependencies$ = new Subject();
-  coordinatesOutput$ = new Subject();
-  singleDependenciesOutput$ = new Subject();
-  newNodeOutput$ = new Subject();
-  removeNode$ = new Subject();
-  middlePointClick$ = new Subject<MiddlePoint>();
-  shapeClick$ = new Subject<NodeShape>();
+  changeDependencies$ = new Subject(); // TODO: Move to some service
+  coordinatesOutput$ = new Subject(); // TODO: Move to some service
+  singleDependenciesOutput$ = new Subject(); // TODO: Move to some service
+  newNodeOutput$ = new Subject(); // TODO: Move to nodesService
+  removeNode$ = new Subject(); // TODO: Move to nodesService
+  middlePointClick$ = new Subject<MiddlePoint>(); // TODO: Move to connectorsService
+  shapeClick$ = new Subject<NodeShape>(); // TODO: Move to nodesService
 
   init(diagramEl, shapeEls, svgEl, dragProxyEl, fragEl, connectorEl, connectorLayerEl) {
     this.diagramElement = diagramEl;
@@ -41,14 +47,15 @@ export class State {
     this.connectorLayer = connectorLayerEl;
   }
 
-  addConnectorToOutput(mc) { // TODO: Move to shape, or diagram, or state
+  addConnectorToOutput(mc) { // TODO: Move to connectorsService
     this.connectorsOutput = [ ...this.connectorsOutput, mc ];
   }
 
-  removeConnectorFromOutput(mc) { // TODO: Move to state
+  removeConnectorFromOutput(mc) {  // TODO: Move to connectorsService
     this.connectorsOutput = this.connectorsOutput.filter(connector => connector.id !== mc.id);
   }
 
+  // TODO: Move to connectorsService
   createInputConnector(message: any, coords: { x: number; y: number }, inputMiddlePoint: MiddlePoint): Connector {
     const connector = new Connector(this, coords.x, coords.y, null);
     connector.setMiddlePoint(inputMiddlePoint);
@@ -56,7 +63,7 @@ export class State {
   
     if (!inputMiddlePoint.parentMiddlePoint) {
       const input = this.getInputPortByGeneralItemId(message.id);
-      input.addConnector(connector); // TODO: Move to state
+      input.addConnector(connector); 
       connector.setOutputPort(input);
       connector.updateHandle(input);
     } else {
@@ -68,7 +75,7 @@ export class State {
     return connector;
   }
   
-  // TODO: Move to node shape (or move to state)
+  // TODO: Move to connectorsService
   createConnector(node: any, currentConnector: Connector = null, nodeShape = null, dependency = null) {
     const nodeEl = document.querySelector(`.node-container[general-item-id="${ node.id }"]`) as HTMLElement;
   
@@ -109,7 +116,7 @@ export class State {
     return currentConnector;
   }
   
-  // TODO: Move to connector
+  // TODO: Move to connectorsService
   getDiagramCoords() { // TODO: Accept "diagramElement" argument
     let x = 0;
     let y = 0;
@@ -122,6 +129,7 @@ export class State {
     return { x, y };
   }
   
+  // TODO: Move to connectorsService
   initMiddlePointGroup(message: any, input: MiddlePoint, outputs: any) {
     const dependency = outputs[0];
     const shape = this.getShapeByGeneralItemId(message.id);
@@ -187,6 +195,7 @@ export class State {
     return input;
   }
   
+  // TODO: Move to nodesService
   initNodeMessage(message: GameMessageCommon) {
     const mp = 
       new MiddlePoint(this, message.id, message.dependsOn)
@@ -197,73 +206,43 @@ export class State {
     this.middlePointsOutput.forEach(mpo => mpo.init());
   }
   
+  // TODO: Move to nodesService
   getShapeById(id) {
     return this.shapes.find(x => x.id === id);
   }
   
+  // TODO: Move to nodesService
   getShapeByGeneralItemId(generalItemId) {
     return this.shapes.find(x => x.generalItemId === generalItemId.toString());
   }
   
+  // TODO: Move to nodesService
   getPortById(id) {
     return this.ports.find(p => p.id === id);
   }
   
+  // TODO: Move to nodesService
   getInputPortByGeneralItemId(generalItemId) {
     return this.ports.find(p => p.isInput && p.generalItemId === generalItemId.toString());
   }
   
+  // TODO: Move to nodesService
   getOutputPortByGeneralItemId(generalItemId, action) {
     return this.ports.find(p => !p.isInput && p.generalItemId === generalItemId.toString() && p.action === action);
   }
   
+  // TODO: Move to connectorsService
   getMiddlePointById(id) {
     return this.middlePointsOutput.find(mp => mp.id === id);
   }
   
-  // TODO: Move to diagram
+  // TODO: Move to connectorsService
   unSelectAllConnectors() {
     this.connectorsOutput.forEach(x => x.deselect());
     this.middlePointsOutput.forEach(m => m.inputConnector.deselect());
   }
   
-  populate(messages: any[]) {
-    const mainMiddlePoints: MiddlePoint[] = this.middlePointsOutput.filter(mp => !mp.parentMiddlePoint);
-  
-  
-    return clone(messages).map((x: any) => {
-      const message = {...x};
-  
-      const currentMiddlePoint = mainMiddlePoints.find(mp => Number(mp.generalItemId) === x.id);
-  
-      if (currentMiddlePoint) {
-        message.dependsOn = currentMiddlePoint.dependency;
-      } else {
-        const singleConnector = this.connectorsOutput.find(c => !c.middlePoint && c.inputPort.generalItemId === x.id.toString());
-  
-        if (singleConnector) {
-          if (singleConnector.outputPort && singleConnector.outputPort.nodeType &&
-            singleConnector.outputPort.nodeType.includes('ProximityDependency') && singleConnector.proximity) {
-            message.dependsOn = {
-              type: singleConnector.outputPort.nodeType,
-              ...singleConnector.proximity,
-              generalItemId: x.dependsOn.generalItemId
-            };
-          } else {
-            message.dependsOn = {
-              type: singleConnector.outputPort.nodeType,
-              action: singleConnector.outputPort.action,
-              generalItemId: singleConnector.outputPort.generalItemId
-            };
-          }
-        } else {
-          message.dependsOn = {};
-        }
-      }
-      return message;
-    });
-  }
-  
+  // TODO: Move to wireflow component, decompose into service calls
   renderLastAddedNode(lastAddedNode: any, currentMiddleConnector: any, lastDependency: any) {
     let dep;
     if (currentMiddleConnector.shape) {
