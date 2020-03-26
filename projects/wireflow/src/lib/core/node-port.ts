@@ -2,6 +2,10 @@ import { Connector } from './connector';
 import { State } from './state';
 import { DraggableUiElement } from './draggable-ui-element';
 
+(SVGElement.prototype as any).getTransformToElement = (SVGElement.prototype as any).getTransformToElement || function(toElement) {
+  return toElement.getScreenCTM().inverse().multiply(this.getScreenCTM());
+};
+
 export class NodePort implements DraggableUiElement {
   id: string;
   parentNode: any;
