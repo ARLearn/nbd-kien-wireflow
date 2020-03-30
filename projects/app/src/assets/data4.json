@@ -1,0 +1,303 @@
+[{
+  "type": "org.celstec.arlearn2.beans.generalItem.NarratorItem",
+  "gameId": 5634472569470976,
+  "deleted": false,
+  "lastModificationDate": 1585558070338,
+  "id": 5644774618955776,
+  "scope": "user",
+  "name": "default color",
+  "description": "hallo!",
+  "autoLaunch": false,
+  "authoringX": 218.5781,
+  "authoringY": 41.125,
+  "fileReferences": {
+    "background": "/game/5634472569470976/icon.png"
+  },
+  "richText": "I show the default color",
+  "message": true
+}, {
+  "type": "org.celstec.arlearn2.beans.generalItem.VideoObject",
+  "gameId": 5634472569470976,
+  "deleted": false,
+  "lastModificationDate": 1585558071235,
+  "id": 5645612305350656,
+  "scope": "user",
+  "name": "yellow video",
+  "description": "",
+  "dependsOn": {
+    "type": "org.celstec.arlearn2.beans.dependencies.ActionDependency",
+    "action": "read",
+    "generalItemId": 5698390272770048
+  },
+  "autoLaunch": false,
+  "authoringX": 521.1054,
+  "authoringY": 42.8282,
+  "fileReferences": {
+    "video": "/game/5634472569470976/video.mp4"
+  },
+  "primaryColor": "#fbff04",
+  "message": true
+}, {
+  "type": "org.celstec.arlearn2.beans.generalItem.NarratorItem",
+  "gameId": 5634472569470976,
+  "deleted": false,
+  "lastModificationDate": 1585558071034,
+  "id": 5648825477758976,
+  "scope": "user",
+  "name": "specific color",
+  "description": "specific",
+  "dependsOn": {
+    "type": "org.celstec.arlearn2.beans.dependencies.AndDependency",
+    "dependencies": [{
+      "type": "org.celstec.arlearn2.beans.dependencies.ActionDependency",
+      "action": "read",
+      "generalItemId": "5645612305350656"
+    }, {
+      "type": "org.celstec.arlearn2.beans.dependencies.ActionDependency",
+      "action": "answer_correct",
+      "generalItemId": "5737833507586048"
+    }]
+  },
+  "autoLaunch": false,
+  "authoringX": 914.9609,
+  "authoringY": 12.5742,
+  "primaryColor": "#0be900",
+  "richText": "klik hier groen",
+  "message": true
+}, {
+  "type": "org.celstec.arlearn2.beans.generalItem.NarratorItem",
+  "gameId": 5634472569470976,
+  "deleted": false,
+  "lastModificationDate": 1585558071131,
+  "id": 5657382461898752,
+  "scope": "user",
+  "name": "introduction",
+  "description": "verder",
+  "label": "test",
+  "autoLaunch": false,
+  "authoringX": 244.3554,
+  "authoringY": 537.8556,
+  "fileReferences": {
+    "background": "/game/5634472569470976/fotografie/Schermafbeelding 2020-02-19 om 14.48.56.png"
+  },
+  "primaryColor": "#fafe0d",
+  "richText": "ga naar de ingang en....",
+  "message": true
+}, {
+  "type": "org.celstec.arlearn2.beans.generalItem.MultipleChoiceImageTest",
+  "gameId": 5634472569470976,
+  "deleted": false,
+  "lastModificationDate": 1585558070348,
+  "id": 5670698806673408,
+  "scope": "user",
+  "name": "meerkeuze test",
+  "description": "",
+  "dependsOn": {
+    "type": "org.celstec.arlearn2.beans.dependencies.ActionDependency",
+    "action": "read",
+    "generalItemId": 5694038866919424
+  },
+  "autoLaunch": false,
+  "authoringX": 1286.2813,
+  "authoringY": 131.3281,
+  "fileReferences": {
+    "tFC1L": "/game/5634472569470976//Schermafbeelding 2020-02-05 om 20.44.54.png",
+    "background": "/game/5634472569470976//Schermafbeelding 2020-02-12 om 20.35.00.png",
+    "wrong": "/game/5634472569470976//Schermafbeelding 2020-02-12 om 20.35.00.png",
+    "TufHL": "/game/5634472569470976//Schermafbeelding 2020-02-05 om 20.45.03.png",
+    "correct": "/game/5634472569470976//background4.jpg"
+  },
+  "answers": [{
+    "type": "org.celstec.arlearn2.beans.generalItem.MultipleChoiceAnswerItem",
+    "isCorrect": true,
+    "feedback": "optie 1",
+    "answer": "",
+    "id": "tFC1L"
+  }, {
+    "type": "org.celstec.arlearn2.beans.generalItem.MultipleChoiceAnswerItem",
+    "isCorrect": false,
+    "feedback": "test 2",
+    "answer": "",
+    "id": "TufHL"
+  }],
+  "columns": 3,
+  "message": true
+}, {
+  "type": "org.celstec.arlearn2.beans.generalItem.MultipleChoiceImageTest",
+  "gameId": 5634472569470976,
+  "deleted": false,
+  "lastModificationDate": 1585558071734,
+  "id": 5671536392404992,
+  "scope": "user",
+  "name": "meerkeuze figure",
+  "description": "",
+  "autoLaunch": false,
+  "authoringX": 1250.6953,
+  "authoringY": 6.7656,
+  "fileReferences": {
+    "background": "/game/5634472569470976/background4.jpg",
+    "d8bn1": "/game/5634472569470976/background3.jpg",
+    "nsXfL": "/game/5634472569470976/icon.png"
+  },
+  "primaryColor": "#fc0712",
+  "answers": [{
+    "type": "org.celstec.arlearn2.beans.generalItem.MultipleChoiceAnswerItem",
+    "isCorrect": false,
+    "feedback": "test",
+    "answer": "",
+    "id": "d8bn1"
+  }, {
+    "type": "org.celstec.arlearn2.beans.generalItem.MultipleChoiceAnswerItem",
+    "isCorrect": true,
+    "feedback": "goed",
+    "answer": "",
+    "id": "nsXfL"
+  }],
+  "columns": 3,
+  "message": true
+}, {
+  "type": "org.celstec.arlearn2.beans.generalItem.NarratorItem",
+  "gameId": 5634472569470976,
+  "deleted": false,
+  "lastModificationDate": 1585558070438,
+  "id": 5694038866919424,
+  "scope": "user",
+  "name": "You found me",
+  "description": "",
+  "autoLaunch": false,
+  "authoringX": 762.8631,
+  "authoringY": 366.75,
+  "fileReferences": {
+    "background": "/game/5634472569470976/testfolder/Schermafbeelding 2020-03-01 om 14.45.11.png"
+  },
+  "richText": "You found the QR code and scanned it, now this message is unlocked",
+  "message": true
+}, {
+  "type": "org.celstec.arlearn2.beans.generalItem.NarratorItem",
+  "gameId": 5634472569470976,
+  "deleted": false,
+  "lastModificationDate": 1585558070352,
+  "id": 5698390272770048,
+  "scope": "user",
+  "name": "test23",
+  "description": "",
+  "autoLaunch": false,
+  "authoringX": 203.2305,
+  "authoringY": 171.8633,
+  "fileReferences": {
+    "background": "/game/5634472569470976//background.jpg"
+  },
+  "message": true
+}, {
+  "type": "org.celstec.arlearn2.beans.generalItem.SingleChoiceTest",
+  "gameId": 5634472569470976,
+  "deleted": false,
+  "lastModificationDate": 1585558071230,
+  "id": 5737833507586048,
+  "scope": "user",
+  "name": "plain sc",
+  "description": "",
+  "autoLaunch": false,
+  "authoringX": 496.8398,
+  "authoringY": 224.9961,
+  "fileReferences": {
+    "background": "/game/5634472569470976/background4.jpg"
+  },
+  "primaryColor": "#4d2019",
+  "answers": [{
+    "type": "org.celstec.arlearn2.beans.generalItem.MultipleChoiceAnswerItem",
+    "isCorrect": true,
+    "feedback": "",
+    "answer": "b1",
+    "id": "n1zfw"
+  }],
+  "message": true
+}, {
+  "type": "org.celstec.arlearn2.beans.generalItem.MultipleChoiceTest",
+  "gameId": 5634472569470976,
+  "deleted": false,
+  "lastModificationDate": 1585558071133,
+  "id": 5743573328723968,
+  "scope": "user",
+  "name": "plain mc",
+  "description": "",
+  "autoLaunch": false,
+  "authoringX": 879.8516,
+  "authoringY": 203.0117,
+  "fileReferences": {
+    "background": "/game/5634472569470976/background4.jpg"
+  },
+  "primaryColor": "#f81106",
+  "answers": [{
+    "type": "org.celstec.arlearn2.beans.generalItem.MultipleChoiceAnswerItem",
+    "isCorrect": true,
+    "feedback": "",
+    "answer": "a1",
+    "id": "cmWZb"
+  }],
+  "message": true
+}, {
+  "type": "org.celstec.arlearn2.beans.generalItem.SingleChoiceImageTest",
+  "gameId": 5634472569470976,
+  "deleted": false,
+  "lastModificationDate": 1585558090800,
+  "id": 5762767671787520,
+  "scope": "user",
+  "name": "single choice met figuren titel",
+  "description": "",
+  "dependsOn": {
+    "type": "org.celstec.arlearn2.beans.dependencies.AndDependency",
+    "dependencies": [{
+      "type": "org.celstec.arlearn2.beans.dependencies.ActionDependency",
+      "action": "next",
+      "generalItemId": "5694038866919424"
+    }, {
+      "type": "org.celstec.arlearn2.beans.dependencies.ActionDependency",
+      "action": "next",
+      "generalItemId": "5648825477758976"
+    }, {
+      "type": "org.celstec.arlearn2.beans.dependencies.ActionDependency",
+      "action": "read",
+      "generalItemId": "711392256"
+    }]
+  },
+  "autoLaunch": false,
+  "authoringX": 1261.2265,
+  "authoringY": 264.2499,
+  "fileReferences": {
+    "5OGR8": "/game/5634472569470976/testfolder/Schermafbeelding 2020-03-01 om 14.45.11.png",
+    "correct": "/game/5634472569470976//Schermafbeelding 2020-02-12 om 20.35.00.png",
+    "vYmIV": "/game/5634472569470976/background3.jpg",
+    "wrong": "/game/5634472569470976//background3.jpg",
+    "background": "/game/5634472569470976/background4.jpg"
+  },
+  "primaryColor": "#ff000c",
+  "answers": [{
+    "type": "org.celstec.arlearn2.beans.generalItem.MultipleChoiceAnswerItem",
+    "isCorrect": true,
+    "feedback": "deze optie was goed",
+    "answer": "",
+    "id": "5OGR8"
+  }, {
+    "type": "org.celstec.arlearn2.beans.generalItem.MultipleChoiceAnswerItem",
+    "isCorrect": false,
+    "feedback": "foute optie",
+    "answer": "",
+    "id": "vYmIV"
+  }],
+  "columns": 3,
+  "message": true
+}, {
+  "type": "org.celstec.arlearn2.beans.generalItem.ScanTag",
+  "gameId": 5634472569470976,
+  "deleted": false,
+  "lastModificationDate": 1585558071430,
+  "id": 5763503788916736,
+  "scope": "user",
+  "name": "scan een code",
+  "description": "",
+  "autoLaunch": false,
+  "authoringX": -6.7616,
+  "authoringY": 308.793,
+  "message": true
+}]
