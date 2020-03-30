@@ -1,6 +1,6 @@
 import { Subject } from 'rxjs';
 import { BaseModelUiElement } from '../base-model-ui-element';
-import { ToolbarItem } from '../models/ToolbarItem';
+import { ToolbarItem } from '../models';
 import { BaseModelEvent } from '../base-model-event';
 
 export class ToolbarButton extends BaseModelUiElement<ToolbarItem> {
@@ -25,7 +25,5 @@ export class ToolbarButton extends BaseModelUiElement<ToolbarItem> {
     event.stopPropagation();
 
     this._action.next({source: this.model});
-
-    this.hide();
   }
 }

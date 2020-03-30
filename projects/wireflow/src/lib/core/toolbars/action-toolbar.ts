@@ -1,37 +1,56 @@
-import { Subject } from 'rxjs';
+import { Subject, merge} from 'rxjs';
 import { BaseUiElement } from '../base-ui-element';
-import { ObjectMap, Point } from '../../utils';
+import { Point } from '../../utils';
 import { State } from '../state'; // TODO: Remove dependency
+import { ToolbarButton } from './toolbar-button';
+import { ToolbarItem } from '../models';
+import { DependencyTypeAction, DependencyTypeProximity } from '../../models/core';
 
-export interface ActionToolbarAction extends ObjectMap<any> {
-  action: 'createNode';
+export interface AddChildAction {
+  targetType:
+    DependencyTypeAction
+  | DependencyTypeProximity;
+  subtype?: 'scantag';
 }
 
 export class ActionToolbar extends BaseUiElement {
-  private _btnActionDependency: HTMLElement;
-  private _btnLocation: HTMLElement;
-  private _btnQrScan: HTMLElement;
 
-  private _action = new Subject<ActionToolbarAction>();
+  // Models
+  private _itemActionDependency = { data: { targetType: 'org.celstec.arlearn2.beans.dependencies.ActionDependency' } } as ToolbarItem<AddChildAction>;
+  private _itemLocation = { data: { targetType: 'org.celstec.arlearn2.beans.dependencies.ProximityDependency' } } as ToolbarItem<AddChildAction>;
+  private _itemQrScan = { data: { targetType: 'org.celstec.arlearn2.beans.dependencies.ActionDependency', subtype: 'scantag' } } as ToolbarItem<AddChildAction>;
+
+  // Child UI components
+  private _btnActionDependency: ToolbarButton;
+  private _btnLocation: ToolbarButton;
+  private _btnQrScan: ToolbarButton;
+
+  // Events
+  private _addChild = new Subject<AddChildAction>();
 
   constructor(
-    private state: State,
+    private state: State, // TODO: Decompose into services. Use connectorsService here
   ) {
-    super(document.querySelector('#diagram > .action-toolbar').cloneNode(true) as HTMLElement);
 
-    this._btnActionDependency = this.nativeElement.querySelector('.connector-toolbar__btn--action-dependency');
-    this._btnLocation = this.nativeElement.querySelector('.connector-toolbar__btn--location');
-    this._btnQrScan = this.nativeElement.querySelector('.connector-toolbar__btn--qr-scan');
+    super(
+      document.querySelector('#diagram > .action-toolbar').cloneNode(true) as HTMLElement
+    );
 
-    this._btnActionDependency.onclick = (e) => this._onClickActionDependency(e);
-    this._btnLocation.onclick = (e) => this._onClickLocation(e);
-    this._btnQrScan.onclick = (e) => this._onClickQrScan(e);
+    this._btnActionDependency = new ToolbarButton(this.nativeElement.querySelector('.connector-toolbar__btn--action-dependency'), this._itemActionDependency);
+    this._btnLocation = new ToolbarButton(this.nativeElement.querySelector('.connector-toolbar__btn--location'), this._itemLocation);
+    this._btnQrScan = new ToolbarButton(this.nativeElement.querySelector('.connector-toolbar__btn--qr-scan'), this._itemQrScan);
+
+    this.when(merge(
+      this._btnActionDependency.action,
+      this._btnLocation.action,
+      this._btnQrScan.action
+    ), e => this._onAction(e.source));
 
     // TODO: replace with this.connectorsService.appendToConnectorLayer()
     this.state.connectorLayer.appendChild(this.nativeElement);
   }
 
-  get action() { return this._action.asObservable(); }
+  get addChild() { return this._addChild.asObservable(); }
 
   move({x, y}: Point) {
     super.move({
@@ -41,37 +60,8 @@ export class ActionToolbar extends BaseUiElement {
     return this;
   }
 
-  private _onClickActionDependency(event: MouseEvent) {
-    event.stopPropagation();
-
-    this._action.next({
-      action: 'createNode',
-      type: 'org.celstec.arlearn2.beans.dependencies.ActionDependency',
-    });
-
-    this.hide();
-  }
-
-  private _onClickLocation(event: MouseEvent) {
-    event.stopPropagation();
-
-    this._action.next({
-      action: 'createNode',
-      type: 'org.celstec.arlearn2.beans.dependencies.ProximityDependency',
-    });
-
-    this.hide();
-  }
-
-  private _onClickQrScan(event: MouseEvent) {
-    event.stopPropagation();
-
-    this._action.next({
-      action: 'createNode',
-      type: 'org.celstec.arlearn2.beans.dependencies.ActionDependency',
-      subtype: 'scantag',
-    });
-
+  private _onAction(toolbarItem: ToolbarItem) {
+    this._addChild.next(toolbarItem.data);
     this.hide();
   }
 }

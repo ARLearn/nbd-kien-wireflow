@@ -1,6 +1,6 @@
 import { Connector } from './connector';
 import { NodePort } from './node-port';
-import { ActionToolbar, ActionToolbarAction } from './toolbars/action-toolbar';
+import { ActionToolbar } from './toolbars/action-toolbar';
 import { NodeShape } from './node-shape'; // TODO: remove dependency
 import { State } from './state'; // TODO: remove dependency
 import { getNumberFromPixels, Point } from '../utils';
@@ -36,7 +36,7 @@ export class MiddlePoint extends BaseUiElement implements DraggableUiElement {
     this.pencilIcon = this.nativeElement.querySelector('.middle-point-pencil');
 
     this.actionToolbar = new ActionToolbar(this.state);
-    this.when(this.actionToolbar.action, action => this._onToolbarAction(action));
+    this._unsubscriber.add(this.actionToolbar.addChild.subscribe(data => this._addChild(data)));
 
     this.show();
 
@@ -51,7 +51,7 @@ export class MiddlePoint extends BaseUiElement implements DraggableUiElement {
 
   init() {
     this.move(this.coordinates);
-    
+
     this.outputConnectors.forEach(x => {
       x.updateMiddlePoint(this.coordinates.x, this.coordinates.y);
 
@@ -135,8 +135,8 @@ export class MiddlePoint extends BaseUiElement implements DraggableUiElement {
     if (removeDependency && this.dependency.dependencies && connector.outputPort) {
       const depToFind = {
         type: connector.dependencyType,
-        generalItemId: connector.outputPort.generalItemId,
-        action: connector.outputPort.action,
+        generalItemId: connector.outputPort.model.generalItemId,
+        action: connector.outputPort.model.action,
         subtype: connector.subType,
       };
 
@@ -164,7 +164,7 @@ export class MiddlePoint extends BaseUiElement implements DraggableUiElement {
 
   remove({ fromParent }: { fromParent?: boolean } = {}) {
     this._unsubscriber && this._unsubscriber.unsubscribe();
-    
+
     if (fromParent === undefined) { fromParent = false; }
 
     this.outputConnectors.forEach(oc => oc.remove({ onlyConnector: false }));
@@ -193,7 +193,7 @@ export class MiddlePoint extends BaseUiElement implements DraggableUiElement {
       this.inputConnector = null;
     }
 
-    // TODO: replace with this.connectorsService.removeFromConnectorLayer()
+    // TODO: Move to Diagram
     if (this.state.connectorLayer.contains(this.nativeElement)) {
       this.state.connectorLayer.removeChild(this.nativeElement);
     }
@@ -255,28 +255,23 @@ export class MiddlePoint extends BaseUiElement implements DraggableUiElement {
     this.state.middlePointClick$.next(this);
   }
 
-  private _onToolbarAction(action: ActionToolbarAction) {
-    switch (action.action) {
-      case 'createNode': return this._createNode(action.type, action.subtype);
-    }
-  }
+  private _addChild({ targetType, subtype }: { targetType: string, subtype?: string }) {
+    const dependency = {
+      type: targetType,
+      subtype: subtype,
+      action: 'read' as any,
+      generalItemId: Math.floor(Math.random() * 1000000000).toString() as any,
+      scope: undefined,
+    } as Dependency;
 
-  private _createNode(type: string, subtype: string) {
-    const coords = this.coordinates;
-
-    this.state.newNodeOutput$.next({
+    this.state.middlePointAddChild$.next({
       id: this.generalItemId,
       message: {
-        authoringX: coords.x,
-        authoringY: coords.y
+        authoringX: this.coordinates.x,
+        authoringY: this.coordinates.y,
       },
       middlePoint: this,
-      dependency: {
-        type,
-        subtype,
-        action: 'read',
-        generalItemId: Math.floor(Math.random() * 1000000000).toString()
-      }
+      dependency,
     });
   }
 

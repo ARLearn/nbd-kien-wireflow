@@ -1,7 +1,7 @@
 import { NodeShape } from './node-shape';
 import { MiddlePoint } from './middle-point'; // TODO: remove dependency
-import { NodePort } from './node-port'; // TODO: remove dependency 
-import { ConnectorToolbar, ChangeSingleDependencyTypeAction } from './toolbars/connector-toolbar';
+import { NodePort } from './node-port';
+import { ConnectorToolbar } from './toolbars/connector-toolbar';
 import { ConnectorMiddlePoint, ConnectorMiddlePointAction } from './connector-middle-point';
 import { BezierPath } from './bezier-path';
 import { State } from './state'; // TODO: remove dependency
@@ -12,7 +12,6 @@ import { DraggableUiElement } from './draggable-ui-element';
 export const bezierWeight = 0.675; // TODO: Move to connector
 
 declare const TweenLite;
-declare const Draggable;
 
 interface ConnectorRemoveOptions {
   onlyConnector?: boolean;
@@ -98,7 +97,7 @@ export class Connector implements DraggableUiElement {
       new ConnectorMiddlePoint(this.state, this.connectorElement.querySelector('.base-middle-point'))
         .hide();
     this._subscription.add(this.baseMiddlePoint.action.subscribe(action => this._onMiddlePointAction(action)));
-    
+
     this.connectorToolbar = new ConnectorToolbar(this.state);
     this._subscription.add(this.connectorToolbar.changeSingleDependencyType.subscribe(data => this._changeSingleDependencyType(data.targetType)));
 
@@ -130,7 +129,7 @@ export class Connector implements DraggableUiElement {
 
     this.staticPort = port;
     this.dragElement.setAttribute('data-drag', `${this.id}:connector`);
-    this.staticElement.setAttribute('data-drag', `${port.id}:port`);
+    this.staticElement.setAttribute('data-drag', `${port.model.id}:port`);
 
     this.baseX = port.global.x;
     this.baseY = port.global.y;
@@ -139,87 +138,59 @@ export class Connector implements DraggableUiElement {
       x: port.global.x,
       y: port.global.y
     });
+
+    return this;
   }
 
   onDrag() {
     this._updatePath();
   }
 
-  onDragEnd() {
-    this.placeHandle();
-  }
+  onDragEnd(hitPort: NodePort) {
 
-  placeHandle() { // TODO: Decompose into "portHit", "shapeHit" events
-    const skipShape = this.staticPort.parentNode.element;
-
-    let hitPort;
-
-    for (const shape of this.state.shapes) {
-
-      if (shape.nativeElement === skipShape) {
-        continue;
-      }
-
-      if (Draggable.hitTest(this.dragElement, shape.nativeElement)) {
-        // TODO: Move to "shapeHit" event handler
-
-        const shapePorts = this.isInput ? shape.outputs : shape.inputs;
-
-        for (const port of shapePorts) {
-
-          // @ts-ignore
-          if (Draggable.hitTest(this.dragElement, port.portElement)) {
-            hitPort = port;
-            break;
-          }
-        }
-
-        if (hitPort) {
-          break;
-        }
-      }
-    }
-
-    if (hitPort) {
-      // TODO: Move to "portHit" event handler
-
-      if (this.isInput) {
-        this.outputPort = hitPort;
-      } else {
-        this.inputPort = hitPort;
-      }
-
-      this.dragElement = null;
-
-      const inputPort = hitPort.isInput ? hitPort : this.inputPort;
-      inputPort.connectors.forEach(c => c !== this && c.remove({ onlyConnector: false }));
-
-      hitPort.addConnector(this);
-      this.updateHandle(hitPort);
-
-      this.state.addConnectorToOutput(this);
-      this.state.changeDependencies$.next();
-    } else {
+    if (!hitPort || hitPort.parentNode.nativeElement === this.staticPort.parentNode.nativeElement) {
       this.remove();
+      return;
+    } 
+
+    if (this.isInput) {
+      this.outputPort = hitPort;
+    } else {
+      this.inputPort = hitPort;
     }
+
+    this.dragElement = null;
+
+    const inputPort = hitPort.isInput ? hitPort : this.inputPort;
+    inputPort.connectors.forEach(c => c !== this && c.remove({ onlyConnector: false }));
+
+    hitPort.addConnector(this);
+    this.updateHandle(hitPort);
+
+    this.state.addConnectorToOutput(this);
+    this.state.changeDependencies$.next();
+  
   }
 
   move(e: MouseEvent) {
+    // TODO: Move to client code
     const coords = this.state.getDiagramCoords();
     const dx = coords.x;
     const dy = coords.y;
-
-    TweenLite.set(this.outputHandle, {
+    const point = {
       x: e.x - dx,
       y: e.y - dy,
-    });
+    };
+    // End move
 
-    this._updatePath(e.x - dx, e.y - dy);
+    TweenLite.set(this.outputHandle, point);
+
+    this._updatePath(point.x, point.y);
   }
 
   remove(opts: ConnectorRemoveOptions = {}) {
     this._subscription && this._subscription.unsubscribe();
-    
+
     if (opts.onlyConnector === undefined) { opts.onlyConnector = true; }
     if (opts.removeDependency === undefined) { opts.removeDependency = true; }
     if (opts.removeVirtualNode === undefined) { opts.removeVirtualNode = true; }
@@ -233,22 +204,21 @@ export class Connector implements DraggableUiElement {
     const usedPorts = this.state.ports.filter(x => x.connectors.includes(this));
 
     if (usedPorts.length > 0) {
-      usedPorts.forEach(x => x.removeConnector(this)); // TODO: Move to state
+      usedPorts.forEach(x => x.removeConnector(this));
     }
 
     const isInput = (this.outputPort && this.outputPort.isInput) || this.isInput;
 
-    if (isInput && !opts.onlyConnector) { 
-      this.middlePoint && this.middlePoint.remove(); // TODO: Move to client code
+    if (isInput && !opts.onlyConnector) {
+      this.middlePoint && this.middlePoint.remove(); // TODO: Inverse dependency
     } else {
-      if (this.middlePoint && opts.onlyConnector) { // TODO: Move to client code
+      if (this.middlePoint && opts.onlyConnector) { // TODO: Inverse dependency
         this.middlePoint.removeOutputConnector(this, opts.removeDependency);
       }
     }
 
     this.connectorToolbar && this.connectorToolbar.remove();
 
-    // TODO: replace with this.connectorsService.removeFromConnectorLayer()
     if (this.state.connectorLayer.contains(this.connectorElement)) {
       this.state.connectorLayer.removeChild(this.connectorElement);
     }
@@ -256,10 +226,10 @@ export class Connector implements DraggableUiElement {
     if (opts.removeVirtualNode && this.outputPort &&
         this.outputPort.nodeType && this.outputPort.nodeType.includes('ProximityDependency')) {
 
-      const id = this.outputPort.generalItemId;
+      const id = this.outputPort.model.generalItemId;
 
       this.outputPort.parentNode.remove();
-      this.state.removeNode$.next(id);
+      this.state.connectorRemove$.next(id);
     }
 
     this.state.removeConnectorFromOutput(this);
@@ -313,10 +283,12 @@ export class Connector implements DraggableUiElement {
     this.state.svg.onmousemove = null;
     this.state.svg.onclick = null;
     this.onClick = null;
+    return this;
   }
 
   setOutputPort(port) {
     this.outputPort = port;
+    return this;
   }
 
   setInputPort(port) {
@@ -450,11 +422,11 @@ export class Connector implements DraggableUiElement {
       p4x = x4;
       p4y = y4;
     }
-    
+
     this.bezierPath.setCoords(p1x, p1y, p2x, p2y, p3x, p3y, p4x, p4y);
-    
+
     const data = this.bezierPath.toString();
-    
+
     this.path.setAttribute('d', data);
     this.pathOutline.setAttribute('d', data);
 
@@ -503,5 +475,5 @@ export class Connector implements DraggableUiElement {
       type,
     });
   }
-  
+
 }

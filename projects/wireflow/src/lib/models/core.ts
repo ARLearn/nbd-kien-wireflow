@@ -54,6 +54,7 @@ export interface ScanTagScreen extends GameMessageCommon {
 
 export type GameMessage = MultipleChoiceScreen | ScanTagScreen;
 
+export type DependencyTypeProximity = 'org.celstec.arlearn2.beans.dependencies.ProximityDependency';
 export type DependencyTypeAction = 'org.celstec.arlearn2.beans.dependencies.ActionDependency';
 export type DependencyTypeTime = 'org.celstec.arlearn2.beans.dependencies.TimeDependency';
 export type DependencyTypeAnd = 'org.celstec.arlearn2.beans.dependencies.AndDependency';
@@ -84,6 +85,7 @@ export interface TimeDependency {
 }
 
 export interface ProximityDependency {
+  type: DependencyTypeProximity;
   lng: number;
   lat: number;
   radius: number;

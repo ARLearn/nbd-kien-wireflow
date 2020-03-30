@@ -1,19 +1,17 @@
-import { Connector } from './connector';
+import { Connector } from './connector'; // TODO: Remove dependency
 import { State } from './state';
 import { DraggableUiElement } from './draggable-ui-element';
+import { BaseModelUiElement } from './base-model-ui-element';
+import { PortModel } from './models';
 
 (SVGElement.prototype as any).getTransformToElement = (SVGElement.prototype as any).getTransformToElement || function(toElement) {
   return toElement.getScreenCTM().inverse().multiply(this.getScreenCTM());
 };
 
-export class NodePort implements DraggableUiElement {
-  id: string;
-  parentNode: any;
+export class NodePort extends BaseModelUiElement<PortModel> implements DraggableUiElement {
+  parentNode: BaseModelUiElement;
   isInput: any;
-  generalItemId: any;
   nodeType: any;
-  action: any;
-  element: any;
   portElement: any;
   portScrim: any;
   global: any;
@@ -21,25 +19,25 @@ export class NodePort implements DraggableUiElement {
   inputNodeType: any;
   connectors: Connector[]; // TODO: Remove
 
-  constructor(private state: State, parentNode, element, isInput) {
+  constructor(private state: State, parentNode: BaseModelUiElement<any>, nativeElement: HTMLElement, opts: PortModel, isInput: boolean) {
 
-    this.id = `port_${this.state.idCounter()}`;
+    super(
+      nativeElement,
+      opts
+    );
 
     this.parentNode = parentNode;
     this.isInput = isInput;
-    this.generalItemId = element.getAttribute('general-item-id');
-    this.nodeType = element.getAttribute('node-type');
-    this.inputNodeType = element.getAttribute('input-node-type');
-    this.action = element.getAttribute('action');
+    this.nodeType = nativeElement.getAttribute('node-type');
+    this.inputNodeType = nativeElement.getAttribute('input-node-type');
 
     this.connectors = [];
 
-    this.element = element;
-    this.portElement = element.querySelector('.port');
-    this.portScrim = element.querySelector('.port-scrim');
+    this.portElement = nativeElement.querySelector('.port');
+    this.portScrim = nativeElement.querySelector('.port-scrim');
 
-    if (!this.parentNode.dependencyType.includes('ProximityDependency')) {
-      this.portScrim.setAttribute('data-drag', `${this.id}:port`);
+    if (!this.parentNode.model.dependencyType.includes('ProximityDependency')) {
+      this.portScrim.setAttribute('data-drag', `${this.model.id}:port`);
     }
 
     const bbox = this.portElement.getBBox();
@@ -59,7 +57,8 @@ export class NodePort implements DraggableUiElement {
     const transform = this.portElement.getTransformToElement(this.state.diagramElement);
     this.global = this.center.matrixTransform(transform);
 
-    if (this.connectors) { // TODO: Move to client code (or to state)
+    // TODO: Emit "drag", in handler lookup connectors and call updateHandle(), lookup midpoint, and call move()
+    if (this.connectors) {
       this.connectors.forEach(mc => {
         mc.updateHandle(this);
         if (mc.isInput && mc.middlePoint) {

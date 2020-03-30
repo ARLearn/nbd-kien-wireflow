@@ -3,13 +3,13 @@ import { BaseUiElement } from '../base-ui-element';
 import { Point } from '../../utils';
 import { State } from '../state'; // TODO: Remove dependency
 import { ToolbarButton } from './toolbar-button';
-import { ToolbarItem } from '../models/ToolbarItem';
+import { ToolbarItem } from '../models';
 import { DependencyTypeTime, DependencyTypeOr, DependencyTypeAnd } from '../../models/core';
 
 export interface ChangeSingleDependencyTypeAction {
-  targetType: 
-    DependencyTypeAnd 
-  | DependencyTypeOr 
+  targetType:
+    DependencyTypeAnd
+  | DependencyTypeOr
   | DependencyTypeTime;
 }
 
