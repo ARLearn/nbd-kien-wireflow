@@ -10,7 +10,7 @@ import {
   OnDestroy,
 } from '@angular/core';
 import { Subscription, Subject, Observable } from 'rxjs';
-import { distinct, map, skip } from 'rxjs/operators';
+import { distinct, map, skip, filter } from 'rxjs/operators';
 import { BsModalRef, BsModalService } from 'ngx-bootstrap';
 
 import { Diagram } from './core/diagram';
@@ -91,7 +91,7 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
           const a = this.state.messagesOld.filter((x: any) => !x.virtual);
           b = b.filter(x => !x.virtual);
 
-          return diff(b, a, item => hash.MD5(item));
+          return diff(b, a, item => this._getMessageHash(item));
         }),
         map(result => {
           const messages = clone(result);
@@ -103,9 +103,10 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
           });
 
           return messages;
-        })
-      )
-      .pipe(skip(1));
+        }),
+        skip(1),
+        filter(x => x.length > 0),
+      );
 
     this.subscription.add(this.stateSubject.subscribe(x => {
       this.state = { ...x, messages: clone(x.messages), messagesOld: this.state.messages };
@@ -137,9 +138,10 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
       .subscribe((coordindates: any) => {
         this.messages = this._populateOutputMessages(this.messages);
         const mess = this.messages.find(r => r.id.toString() === coordindates.messageId.toString());
-
-        mess.authoringX = coordindates.x || 0;
-        mess.authoringY = coordindates.y || 0;
+        if (mess) {
+          mess.authoringX = coordindates.x || 0;
+          mess.authoringY = coordindates.y || 0;
+        }
 
         this._emitMessages(this.messages);
       }));
@@ -1017,6 +1019,16 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     this._createConnector(lastAddedNode, currentMiddleConnector, currentMiddleConnector.shape, dep);
+  }
+
+  private _getMessageHash(input: GameMessageCommon) {
+    return hash.MD5({
+      ...input,
+      inputs: undefined,
+      outputs: undefined,
+      authoringX: parseInt(input.authoringX as any),
+      authoringY: parseInt(input.authoringY as any),
+    });
   }
 
   ngOnDestroy() {

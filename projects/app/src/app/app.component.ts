@@ -7,9 +7,8 @@ import { AppService } from './app.service';
   styleUrls: ['./app.component.scss']
 })
 export class AppComponent implements OnInit {
-  title = 'wireflow';
-
-  public messages: any;
+  title = 'Wireflow Demo';
+  messages: any[];
 
   constructor(private service: AppService) { }
 
@@ -17,7 +16,15 @@ export class AppComponent implements OnInit {
     this.messages = await (this.service.getData().toPromise());
   }
 
-  messagesChange(messages) {
-    console.log('FROM APP', messages);
+  messagesChange(changes: any[]) {
+    console.log('FROM APP', changes);
+
+    this._updateMessages(changes);
+  }
+  
+  private _updateMessages(changes: any[]) {
+    setTimeout(() => {
+      this.messages = this.messages.map(m => changes.find(c => c.id == m.id) || m);
+    }, 100);
   }
 }
