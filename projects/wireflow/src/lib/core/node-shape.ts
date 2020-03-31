@@ -72,8 +72,6 @@ export class NodeShape extends BaseModelUiElement<NodeModel> implements Draggabl
   }
 
   remove() {
-    this.inputs.forEach(p => this.state.ports.splice(this.state.ports.indexOf(p), 1)); // TODO: Remove
-    this.outputs.forEach(p => this.state.ports.splice(this.state.ports.indexOf(p), 1)); // TODO: Remove
     this.state.nodeShapeModels.splice(this.state.nodeShapeModels.indexOf(this.model), 1);
     this.state.nodeShapeRemove$.next(this.model.id);
   }

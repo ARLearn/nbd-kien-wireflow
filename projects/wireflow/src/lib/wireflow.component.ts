@@ -162,9 +162,38 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
       }
     }));
 
-    this.subscription.add(this.connectorRemove.subscribe(id => {
-      this.messages.splice(this.messages.findIndex(m => m['virtual'] && m.id.toString() === id.toString()), 1);
-      this.populatedNodes.splice(this.populatedNodes.findIndex(m => m['virtual'] && m.id.toString() === id.toString()), 1);
+    this.subscription.add(this.connectorRemove.subscribe(({opts, connector}) => {
+
+      const usedPorts = this.diagram.getPortsBy(x => x.connectors.includes(connector));
+
+      if (usedPorts.length > 0) {
+        usedPorts.forEach(x => x.removeConnector(connector));
+      }
+
+      const isInput = (connector.outputPort && connector.outputPort.isInput) || connector.isInput;
+
+      if (isInput && !opts.onlyConnector) {
+        connector.middlePoint && connector.middlePoint.remove(); // TODO: Inverse dependency
+      } else {
+        if (connector.middlePoint && opts.onlyConnector) { // TODO: Inverse dependency
+          connector.middlePoint.removeOutputConnector(connector, opts.removeDependency);
+        }
+      }
+
+      if (
+           opts.removeVirtualNode
+        && connector.outputPort
+        && connector.outputPort.nodeType
+        && connector.outputPort.nodeType.includes('ProximityDependency')
+      ) {
+        connector.outputPort.parentNode.remove();
+        
+        const outputGeneralItemId = connector.outputPort.model.generalItemId;
+        this.messages.splice(this.messages.findIndex(m => m['virtual'] && m.id.toString() === outputGeneralItemId.toString()), 1);
+        this.populatedNodes.splice(this.populatedNodes.findIndex(m => m['virtual'] && m.id.toString() === outputGeneralItemId.toString()), 1);
+      }
+
+      this.diagram.state.removeConnectorFromOutput(connector);
     }));
 
     this.subscription.add(this.nodePortNew.subscribe(({model, parentNode, isInput}) => {
@@ -180,7 +209,6 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
       } else {
         parentNode.outputs.push(port);
       }
-      this.diagram.state.ports.push(port); // TODO: Remove
     }));
 
     this.subscription.add(this.nodeShapeNew.subscribe(({message, model, point}) => {
@@ -763,7 +791,7 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
 
         middlePoint.inputConnector.moveOutputHandle(newMiddlePoint.coordinates);
 
-        const inpConn = this.diagram.state.createInputConnector(message, coords, newMiddlePoint);
+        const inpConn = this.diagram.createInputConnector(message, coords, newMiddlePoint);
 
         newMiddlePoint.setInputConnector(inpConn)
         .init()
@@ -813,7 +841,7 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
 
       const mp =
         new MiddlePoint(this.diagram.state, message.id, dependency)
-          .setInputPort(this.diagram.state.getInputPortByGeneralItemId(message.id))
+          .setInputPort(this.diagram.getInputPortByGeneralItemId(message.id))
           .setParentMiddlePoint(middlePoint);
 
       middlePoint.addChildMiddlePoint(mp);
@@ -863,7 +891,7 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
 
     if (dependency) {
       const action = dependency.type.includes('ProximityDependency') ? 'in range' : dependency.action;
-      output = this.diagram.state.getOutputPortByGeneralItemId(dependency.generalItemId, action);
+      output = this.diagram.getOutputPortByGeneralItemId(dependency.generalItemId, action);
     } else {
       output = nodeShape.outputs[0];
     }
@@ -922,8 +950,8 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
       );
     }).filter(x => !!x);
 
-    const inputPort = this.diagram.state.getInputPortByGeneralItemId(message.id);
-    const outputPort = this.diagram.state.getOutputPortByGeneralItemId(dependency.generalItemId || '', dependency.action || '');
+    const inputPort = this.diagram.getInputPortByGeneralItemId(message.id);
+    const outputPort = this.diagram.getOutputPortByGeneralItemId(dependency.generalItemId || '', dependency.action || '');
 
     let coords = { x: 0, y: 0 };
 
@@ -938,7 +966,7 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
       coords = { x: input.inputPort.global.x - 75, y: input.inputPort.global.y };
     }
 
-    const inpConn = this.diagram.state.createInputConnector(message, coords, input);
+    const inpConn = this.diagram.createInputConnector(message, coords, input);
     input.move(coords);
     input.setInputConnector(inpConn);
     input.init();
@@ -954,7 +982,7 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
   private _initNodeMessage(message: GameMessageCommon) {
     const mp =
       new MiddlePoint(this.diagram.state, message.id, message.dependsOn)
-        .setInputPort(this.diagram.state.getInputPortByGeneralItemId(message.id))
+        .setInputPort(this.diagram.getInputPortByGeneralItemId(message.id))
         .move({ x: 0, y: 0 });
     this._initMiddlePointGroup(message, mp, message.dependsOn.dependencies || [ message.dependsOn.offset ]);
 

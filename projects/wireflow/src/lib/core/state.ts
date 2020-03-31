@@ -29,10 +29,19 @@ export interface NodePortNewArgs {
   isInput: boolean; // TODO: Move to PortModel
 }
 
+export interface ConnectorRemoveArgs {
+  connector: Connector;
+  opts: ConnectorRemoveOptions;
+}
+
+export interface ConnectorRemoveOptions {
+  onlyConnector?: boolean;
+  removeDependency?: boolean;
+  removeVirtualNode?: boolean;
+}
+
 export class State {
   nodeShapeModels: NodeModel[] = []; // TODO: Move to nodesService
-
-  ports: NodePort[] = []; // TODO: Move to NodeShape
   portModels: PortModel[] = []; // TODO: Move to nodesService
 
   diagramElement;
@@ -58,7 +67,7 @@ export class State {
   nodePortNew$ = new Subject<NodePortNewArgs>(); // TODO: Move to nodesService
   nodeShapeNew$ = new Subject<NodeShapeNewArgs>(); // TODO: Move to nodesService
   nodeShapeRemove$ = new Subject<string>(); // TODO: Move to nodesService
-  connectorRemove$ = new Subject<string>(); // TODO: Move to connectorsService
+  connectorRemove$ = new Subject<ConnectorRemoveArgs>(); // TODO: Move to connectorsService
   middlePointClick$ = new Subject<MiddlePoint>(); // TODO: Move to connectorsService
   shapeClick$ = new Subject<NodeShape>(); // TODO: Move to nodesService
 
@@ -109,26 +118,6 @@ export class State {
     this.connectorsOutput = this.connectorsOutput.filter(connector => connector.id !== mc.id);
   }
 
-  // TODO: Move to connectorsService
-  createInputConnector(message: any, coords: { x: number; y: number }, inputMiddlePoint: MiddlePoint): Connector {
-    const connector = new Connector(this, coords.x, coords.y, null);
-    connector.setMiddlePoint(inputMiddlePoint);
-    connector.setIsInput(true);
-
-    if (!inputMiddlePoint.parentMiddlePoint) {
-      const input = this.getInputPortByGeneralItemId(message.id);
-      input.addConnector(connector);
-      connector.setOutputPort(input);
-      connector.updateHandle(input);
-    } else {
-      connector.moveOutputHandle(inputMiddlePoint.parentMiddlePoint.coordinates);
-    }
-
-    connector.connectorElement.classList.remove('middle-connector--new');
-    connector.removeHandlers();
-    return connector;
-  }
-
   getDiagramCoords() { // TODO: Move to Diagram
     let x = 0;
     let y = 0;
@@ -139,24 +128,6 @@ export class State {
     }
 
     return { x, y };
-  }
-
-  // TODO: Move to Diagram
-  getPortById(id) {
-    // TODO: Iterate this.shapes, then shape.inputs / shape.outputs 
-    return this.ports.find(p => p.model.id === id);
-  }
-
-  // TODO: Move to Diagram
-  getInputPortByGeneralItemId(generalItemId) {
-    // TODO: Iterate this.shapes, then shape.inputs / shape.outputs 
-    return this.ports.find(p => p.isInput && p.model.generalItemId === generalItemId.toString());
-  }
-
-  // TODO: Move to Diagram
-  getOutputPortByGeneralItemId(generalItemId, action) {
-    // TODO: Iterate this.shapes, then shape.inputs / shape.outputs 
-    return this.ports.find(p => !p.isInput && p.model.generalItemId === generalItemId.toString() && p.model.action === action);
   }
 
   // TODO: Move to connectorsService

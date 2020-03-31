@@ -194,9 +194,8 @@ export class MiddlePoint extends BaseUiElement implements DraggableUiElement {
     }
 
     // TODO: Move to Diagram
-    if (this.state.connectorLayer.contains(this.nativeElement)) {
-      this.state.connectorLayer.removeChild(this.nativeElement);
-    }
+    this.nativeElement && this.nativeElement.remove();
+    
     this.state.middlePointsOutput.splice(this.state.middlePointsOutput.indexOf(this), 1);
   }
 

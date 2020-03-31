@@ -68,12 +68,11 @@ export class NodePort extends BaseModelUiElement<PortModel> implements Draggable
     }
   }
 
-  public addConnector(connector) { // TODO: Move to client code (or to state)
+  addConnector(connector: Connector) { // TODO: Inverse dependency: store "ports" on connector object, instead of "connectors" on port object
     this.connectors.push(connector);
   }
 
-  public removeConnector(connector) { // TODO: Move to client code (or to state)
-    const idx = this.connectors.indexOf(connector);
-    this.connectors.splice(idx, 1);
+  removeConnector(connector: Connector) { // TODO: Inverse dependency: store "ports" on connector object, instead of "connectors" on port object
+    this.connectors.splice(this.connectors.indexOf(connector), 1);
   }
 }

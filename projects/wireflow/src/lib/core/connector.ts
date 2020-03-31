@@ -4,7 +4,7 @@ import { NodePort } from './node-port';
 import { ConnectorToolbar } from './toolbars/connector-toolbar';
 import { ConnectorMiddlePoint, ConnectorMiddlePointAction } from './connector-middle-point';
 import { BezierPath } from './bezier-path';
-import { State } from './state'; // TODO: remove dependency
+import { State, ConnectorRemoveOptions } from './state'; // TODO: remove dependency
 import { getNumberFromPixels, Point } from '../utils';
 import { Subscription } from 'rxjs';
 import { DraggableUiElement } from './draggable-ui-element';
@@ -12,12 +12,6 @@ import { DraggableUiElement } from './draggable-ui-element';
 export const bezierWeight = 0.675; // TODO: Move to connector
 
 declare const TweenLite;
-
-interface ConnectorRemoveOptions {
-  onlyConnector?: boolean;
-  removeDependency?: boolean;
-  removeVirtualNode?: boolean;
-}
 
 export class Connector implements DraggableUiElement {
   id: string;
@@ -200,39 +194,10 @@ export class Connector implements DraggableUiElement {
     this.path = null;
     this.pathOutline = null;
 
-    // TODO: Get usedPorts from node shape (or from state)
-    const usedPorts = this.state.ports.filter(x => x.connectors.includes(this));
-
-    if (usedPorts.length > 0) {
-      usedPorts.forEach(x => x.removeConnector(this));
-    }
-
-    const isInput = (this.outputPort && this.outputPort.isInput) || this.isInput;
-
-    if (isInput && !opts.onlyConnector) {
-      this.middlePoint && this.middlePoint.remove(); // TODO: Inverse dependency
-    } else {
-      if (this.middlePoint && opts.onlyConnector) { // TODO: Inverse dependency
-        this.middlePoint.removeOutputConnector(this, opts.removeDependency);
-      }
-    }
-
     this.connectorToolbar && this.connectorToolbar.remove();
+    this.connectorElement && this.connectorElement.remove();
 
-    if (this.state.connectorLayer.contains(this.connectorElement)) {
-      this.state.connectorLayer.removeChild(this.connectorElement);
-    }
-
-    if (opts.removeVirtualNode && this.outputPort &&
-        this.outputPort.nodeType && this.outputPort.nodeType.includes('ProximityDependency')) {
-
-      const id = this.outputPort.model.generalItemId;
-
-      this.outputPort.parentNode.remove();
-      this.state.connectorRemove$.next(id);
-    }
-
-    this.state.removeConnectorFromOutput(this);
+    this.state.connectorRemove$.next({ connector: this, opts });
   }
 
   initViewState() { // TODO: Rename to update()

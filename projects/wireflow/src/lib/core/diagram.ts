@@ -2,6 +2,8 @@ import { NodeShape } from './node-shape';
 import { Connector } from './connector';
 import { State } from './state';
 import { DraggableUiElement } from './draggable-ui-element';
+import { NodePort } from './node-port';
+import { MiddlePoint } from './middle-point';
 
 declare const TweenLite;
 declare const Draggable;
@@ -60,18 +62,63 @@ export class Diagram implements DraggableUiElement {
     return this.shapes.find(x => x.model.generalItemId === generalItemId.toString());
   }
 
+  getPortsBy(matcher: (p: NodePort) => boolean) {
+    const ports = new Array<NodePort>();
+    for (const shape of this.shapes)
+    for (const port of [...shape.inputs, ...shape.outputs]) {
+      if (matcher(port)) {
+        ports.push(port);
+      }
+    }
+    return ports;
+  }
+
+  getPortById(id) {
+    return this.getPortsBy(p => p.model.id === id)[0];
+  }
+
+  getInputPortByGeneralItemId(generalItemId) {
+    return this.getPortsBy(p => p.isInput && p.model.generalItemId === generalItemId.toString())[0];
+  }
+
+  getOutputPortByGeneralItemId(generalItemId, action) {
+    return this.getPortsBy(p => !p.isInput && p.model.generalItemId === generalItemId.toString() && p.model.action === action)[0];
+  }
+
+  // TODO: Move to connectorsService
+  createInputConnector(message: any, coords: { x: number; y: number }, inputMiddlePoint: MiddlePoint): Connector {
+
+    // TODO: Create ConnectorModel, and emit from connectorNew$ 
+
+    const connector = new Connector(this.state, coords.x, coords.y, null); // TODO: Move to subscription
+    connector.setMiddlePoint(inputMiddlePoint);
+    connector.setIsInput(true);
+
+    if (!inputMiddlePoint.parentMiddlePoint) {
+      const input = this.getInputPortByGeneralItemId(message.id);
+      input.addConnector(connector);
+      connector.setOutputPort(input);
+      connector.updateHandle(input);
+    } else {
+      connector.moveOutputHandle(inputMiddlePoint.parentMiddlePoint.coordinates);
+    }
+
+    connector.connectorElement.classList.remove('middle-connector--new');
+    connector.removeHandlers();
+    return connector;
+  }
+
   initConnector(dependency, message) {
 
-    const inputPort = this.state.getInputPortByGeneralItemId(message.id);
+    const inputPort = this.getInputPortByGeneralItemId(message.id);
 
     let outputPort;
     if (dependency.type.includes('ProximityDependency')) {
-      // TODO: Get output port from node shape
-      outputPort = this.state.ports.find(p => !p.isInput &&
+      outputPort = this.getPortsBy(p => !p.isInput &&
         p.model.generalItemId.toString() === dependency.generalItemId.toString() &&
-        p.nodeType.includes('ProximityDependency'));
+        p.nodeType.includes('ProximityDependency'))[0];
     } else {
-      outputPort = this.state.getOutputPortByGeneralItemId(dependency.generalItemId, dependency.action);
+      outputPort = this.getOutputPortByGeneralItemId(dependency.generalItemId, dependency.action);
     }
 
     if (inputPort && outputPort) {
@@ -84,8 +131,8 @@ export class Diagram implements DraggableUiElement {
         con.setProximity(dependency.lat, dependency.lng, dependency.radius);
       }
 
-      inputPort.addConnector(con); // TODO: Move to state
-      outputPort.addConnector(con); // TODO: Move to state
+      inputPort.addConnector(con); // TODO: Inverse dependency: store "ports" on connector object, instead of "connectors" on port object
+      outputPort.addConnector(con); // TODO: Inverse dependency: store "ports" on connector object, instead of "connectors" on port object
       con.updateHandle(outputPort);
 
       this.state.addConnectorToOutput(con);
@@ -119,7 +166,7 @@ export class Diagram implements DraggableUiElement {
         break;
 
       case 'port':
-        const port = this.state.getPortById(id);
+        const port = this.getPortById(id);
         const con = new Connector(this.state);
         con.removeHandlers();
         con.init(port);
