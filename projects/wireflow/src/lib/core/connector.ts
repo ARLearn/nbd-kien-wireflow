@@ -145,7 +145,7 @@ export class Connector implements DraggableUiElement {
     if (!hitPort || hitPort.parentNode.nativeElement === this.staticPort.parentNode.nativeElement) {
       this.remove();
       return;
-    } 
+    }
 
     if (this.isInput) {
       this.outputPort = hitPort;
@@ -163,17 +163,19 @@ export class Connector implements DraggableUiElement {
 
     this.state.addConnectorToOutput(this);
     this.state.changeDependencies$.next();
-  
+
   }
 
   move(e: MouseEvent) {
     // TODO: Move to client code
     const coords = this.state.getDiagramCoords();
-    const dx = coords.x;
-    const dy = coords.y;
+    const offset = this.state.getConnectorCoordinatesOffset();
+
+    const dx = coords.x + offset.x;
+    const dy = coords.y + offset.y;
     const point = {
-      x: e.x - dx,
-      y: e.y - dy,
+      x: e.clientX - dx,
+      y: e.clientY - dy,
     };
     // End move
 

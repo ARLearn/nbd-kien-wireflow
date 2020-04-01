@@ -41,6 +41,7 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
 
   @Input() messages: GameMessageCommon[];
   @Output() messagesChange: Observable<GameMessageCommon[]>;
+  @Output() selectMessage: Subject<GameMessageCommon>;
 
   populatedNodes: GameMessageCommon[];
   state = {
@@ -107,6 +108,8 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
         skip(1),
         filter(x => x.length > 0),
       );
+
+    this.selectMessage = new Subject<GameMessageCommon>();
 
     this.subscription.add(this.stateSubject.subscribe(x => {
       this.state = { ...x, messages: clone(x.messages), messagesOld: this.state.messages };
@@ -189,7 +192,7 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
         && connector.outputPort.nodeType.includes('ProximityDependency')
       ) {
         connector.outputPort.parentNode.remove();
-        
+
         const outputGeneralItemId = connector.outputPort.model.generalItemId;
         this.messages.splice(this.messages.findIndex(m => m['virtual'] && m.id.toString() === outputGeneralItemId.toString()), 1);
         this.populatedNodes.splice(this.populatedNodes.findIndex(m => m['virtual'] && m.id.toString() === outputGeneralItemId.toString()), 1);
@@ -199,9 +202,9 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
     }));
 
     this.subscription.add(this.nodePortNew.subscribe(({model, parentNode, isInput}) => {
-      const element = 
+      const element =
         document.querySelector<HTMLElement>(
-          isInput 
+          isInput
             ? `.input-field[general-item-id="${model.generalItemId}"]`
             : `.output-field[general-item-id="${model.generalItemId}"][action="${model.action}"]`
           );
@@ -217,10 +220,10 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
       const element = document.querySelector(`.node-container[general-item-id="${ message.id }"]`) as HTMLElement;
       this.diagram.shapes.push(new NodeShape(this.diagram.state, element, model, point));
     }));
-    
+
     this.subscription.add(this.nodeShapeRemove.subscribe(id => {
       const shapeToDelete = this.diagram.shapes.find(x => x.model.id === id);
-      this.diagram.shapes.splice(this.diagram.shapes.indexOf(shapeToDelete), 1); 
+      this.diagram.shapes.splice(this.diagram.shapes.indexOf(shapeToDelete), 1);
     }));
 
     this.subscription.add(this.middlePointClick.subscribe(x => {
@@ -243,6 +246,10 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
           });
         }
       }
+
+      this.selectMessage.next(
+        this.messages.find(m => m.id.toString() === x.model.generalItemId)
+      );
     }));
 
     this.subscription.add(this.nodesFor.changes.subscribe(() => this._handleNodesRender()));
@@ -886,7 +893,7 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
   private _createConnector(node: GameMessageCommon, currentConnector: Connector = null, nodeShape: NodeShape = null, dependency = null) {
     if (!nodeShape) {
       this.diagram.state.createNode(node);
-      nodeShape = this.diagram.shapes.find(x => x.model.generalItemId === node.id.toString())
+      nodeShape = this.diagram.shapes.find(x => x.model.generalItemId === node.id.toString());
     }
 
     let output;
@@ -937,6 +944,12 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
       }
 
       if (!dep.generalItemId) { return; }
+
+      const portExists = this.diagram.portsExistsBy(
+        p => p.model.generalItemId === dep.generalItemId && p.model.action === dep.action
+      );
+
+      if (!portExists) { return; }
 
       return this._createConnector(
         message,

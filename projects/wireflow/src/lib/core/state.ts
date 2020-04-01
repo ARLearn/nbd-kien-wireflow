@@ -8,13 +8,13 @@ import { NodeModel, PortModel } from './models';
 import { GameMessageCommon, Dependency } from '../models/core';
 
 export interface MiddlePointAddChildArgs {
-  id: number,
+  id: number;
   message: {
     authoringX: number,
     authoringY: number,
-  },
-  dependency?: Dependency,
-  middlePoint?: MiddlePoint,
+  };
+  dependency?: Dependency;
+  middlePoint?: MiddlePoint;
 }
 
 export interface NodeShapeNewArgs {
@@ -128,6 +128,17 @@ export class State {
     }
 
     return { x, y };
+  }
+
+  getConnectorCoordinatesOffset(): Point {
+    let x;
+    let y;
+    const parent = this.svg.parentNode as HTMLElement;
+
+    x = parent.offsetLeft;
+    y = parent.offsetTop;
+
+    return { x, y } as Point;
   }
 
   // TODO: Move to connectorsService

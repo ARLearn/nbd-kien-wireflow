@@ -21,7 +21,11 @@ export class AppComponent implements OnInit {
 
     this._updateMessages(changes);
   }
-  
+
+  selectMessage(message: any) {
+    console.log('FROM SELECT', message);
+  }
+
   private _updateMessages(changes: any[]) {
     setTimeout(() => {
       this.messages = this.messages.map(m => changes.find(c => c.id == m.id) || m);

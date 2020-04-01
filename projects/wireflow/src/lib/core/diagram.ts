@@ -4,6 +4,7 @@ import { State } from './state';
 import { DraggableUiElement } from './draggable-ui-element';
 import { NodePort } from './node-port';
 import { MiddlePoint } from './middle-point';
+import {Point} from "../utils";
 
 declare const TweenLite;
 declare const Draggable;
@@ -73,6 +74,10 @@ export class Diagram implements DraggableUiElement {
     return ports;
   }
 
+  portsExistsBy(matcher: (p: NodePort) => boolean): boolean {
+    return this.getPortsBy(matcher).length > 0;
+  }
+
   getPortById(id) {
     return this.getPortsBy(p => p.model.id === id)[0];
   }
@@ -88,7 +93,7 @@ export class Diagram implements DraggableUiElement {
   // TODO: Move to connectorsService
   createInputConnector(message: any, coords: { x: number; y: number }, inputMiddlePoint: MiddlePoint): Connector {
 
-    // TODO: Create ConnectorModel, and emit from connectorNew$ 
+    // TODO: Create ConnectorModel, and emit from connectorNew$
 
     const connector = new Connector(this.state, coords.x, coords.y, null); // TODO: Move to subscription
     connector.setMiddlePoint(inputMiddlePoint);
@@ -219,7 +224,7 @@ export class Diagram implements DraggableUiElement {
   }
 
   private _getHitPort({dragElement,isInput}: Connector, shapes: NodeShape[]) {
-    for (const shape of shapes) { 
+    for (const shape of shapes) {
       if (Draggable.hitTest(dragElement, shape.nativeElement)) {
 
         const shapePorts = isInput ? shape.outputs : shape.inputs;
