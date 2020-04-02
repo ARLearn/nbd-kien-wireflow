@@ -1,17 +1,23 @@
-<form (keydown)="$event.stopPropagation();" (ngSubmit)="f.valid && onSubmit(f.value, data)" #f="ngForm">
+<form (keydown)="$event.stopPropagation();" (ngSubmit)="f.valid && submitForm.next(f.value)" #f="ngForm">
   <div class="modal-header">
-    <h5 class="modal-title pull-left">Provide an QR label</h5>
-    <button type="button" class="close pull-right" aria-label="Close" (click)="modalRef.hide()">
-      <span aria-hidden="true">&times;</span>
-    </button>
+    <h5 class="modal-title">Provide an QR label</h5>
   </div>
   <div class="modal-body">
     <div>
-      <input class="form-control" #nameInput type="text" name="action" placeholder="QR label" ngModel required autocomplete="off" />
+      <input
+        class="form-control"
+        #nameInput
+        type="text"
+        name="action"
+        placeholder="QR label"
+        [(ngModel)]="action"
+        required
+        autocomplete="off"
+      />
     </div>
   </div>
   <div class="modal-footer">
     <button type="submit" class="btn btn-success">Confirm</button>
-    <button type="reset" (click)="modalRef.hide()" class="btn btn-secondary">Cancel</button>
+    <button type="reset" class="btn btn-secondary" (click)="cancel.next()">Cancel</button>
   </div>
 </form>

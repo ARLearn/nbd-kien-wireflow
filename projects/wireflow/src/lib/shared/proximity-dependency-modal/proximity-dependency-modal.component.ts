@@ -1,6 +1,7 @@
-import { Component, ElementRef, NgZone, OnInit, ViewChild } from '@angular/core';
-import { BsModalRef } from 'ngx-bootstrap';
+import {Component, ElementRef, NgZone, OnDestroy, OnInit, Output, ViewChild} from '@angular/core';
 import { MapsAPILoader } from '@agm/core';
+import {NgxSmartModalService} from 'ngx-smart-modal';
+import {Subject, Subscription} from 'rxjs';
 
 declare const google;
 
@@ -17,9 +18,9 @@ interface Marker {
   templateUrl: './proximity-dependency-modal.component.html',
   styleUrls: ['./proximity-dependency-modal.component.scss']
 })
-export class ProximityDependencyModalComponent implements OnInit {
-  public data: any;
-  public onSubmit: any;
+export class ProximityDependencyModalComponent implements OnInit, OnDestroy {
+  @Output() public submitForm: Subject<any>;
+  @Output() public cancel: Subject<void>;
 
   // google maps zoom level
   public zoom = 8;
@@ -40,22 +41,31 @@ export class ProximityDependencyModalComponent implements OnInit {
   public searchElementRef: ElementRef;
 
   private autocomplete: any;
+  private subscription: Subscription;
 
   constructor(
-    public modalRef: BsModalRef,
+  //   public modalRef: BsModalRef,
+    public ngxSmartModalService: NgxSmartModalService,
     private mapsAPILoader: MapsAPILoader,
     private ngZone: NgZone,
-  ) { }
+  ) {
+    this.submitForm = new Subject<any>();
+    this.cancel = new Subject<void>();
+  }
 
   public ngOnInit() {
     // set current position
     this.setCurrentPosition();
 
-    if (this.data.initialData) {
-      this.defLat = this.marker.lat = this.data.initialData.lat;
-      this.defLng = this.marker.lng = this.data.initialData.lng;
-      this.marker.radius = this.data.initialData.radius;
-    }
+    this.subscription = this.ngxSmartModalService.getModal('proximityModal').onOpen.subscribe(() => {
+      const data = this.ngxSmartModalService.getModalData('proximityModal');
+
+      if (data.initialData) {
+        this.defLat = this.marker.lat = data.initialData.lat;
+        this.defLng = this.marker.lng = data.initialData.lng;
+        this.marker.radius = data.initialData.radius;
+      }
+    });
 
     // load Places Autocomplete
     this.mapsAPILoader.load().then(() => {
@@ -127,5 +137,9 @@ export class ProximityDependencyModalComponent implements OnInit {
         this.zoom = 12;
       });
     }
+  }
+
+  ngOnDestroy(): void {
+    this.subscription && this.subscription.unsubscribe();
   }
 }

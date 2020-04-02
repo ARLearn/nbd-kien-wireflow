@@ -5,3 +5,48 @@ agm-map {
 ::ng-deep .pac-container {
   z-index: 1100;
 }
+
+.modal {
+  &-header {
+    padding: 0 0 0.75rem;
+  }
+  &-title {
+    margin: 0.5rem 0;
+    font-size: 16px;
+  }
+  &-body {
+    padding: 0 0 0.75rem;
+  }
+  &-footer {
+    margin: 0 -5px;
+  }
+}
+
+.form-control {
+  width: 100%;
+  margin: 0.5rem 0;
+  padding: 0.5rem 1rem;
+  border: 1px solid #b4b4b4;
+  border-radius: 4px;
+  background-color: transparent;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.btn {
+  border: none;
+  border-radius: 4px;
+  background: none;
+  padding: 0.6rem;
+  cursor: pointer;
+  margin: 5px;
+  outline: none;
+
+  &-secondary {
+    background: #d4d4d4;
+  }
+  &-success {
+    background: #29cb0e;
+    color: #ffffff;
+  }
+}

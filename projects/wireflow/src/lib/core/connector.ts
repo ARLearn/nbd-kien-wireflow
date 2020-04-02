@@ -175,7 +175,7 @@ export class Connector implements DraggableUiElement {
     const dy = coords.y + offset.y;
     const point = {
       x: e.clientX - dx,
-      y: e.clientY - dy,
+      y: e.clientY - dy + window.scrollY,
     };
     // End move
 

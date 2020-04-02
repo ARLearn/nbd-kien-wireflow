@@ -4,24 +4,20 @@ import {
   Component,
   HostListener,
   Input,
+  OnDestroy,
   OnInit,
   Output,
   ViewChildren,
-  OnDestroy,
+  ViewEncapsulation,
 } from '@angular/core';
-import { Subscription, Subject, Observable } from 'rxjs';
-import { distinct, map, skip, filter } from 'rxjs/operators';
-import { BsModalRef, BsModalService } from 'ngx-bootstrap';
+import { Observable, Subject, Subscription } from 'rxjs';
+import { distinct, filter, map, skip } from 'rxjs/operators';
+import { NgxSmartModalService } from 'ngx-smart-modal';
 
 import { Diagram } from './core/diagram';
-import {
-  GameMessageCommon, MultipleChoiceScreen
-} from './models/core';
+import { GameMessageCommon, MultipleChoiceScreen } from './models/core';
 import { Connector } from './core/connector';
-import { ActionModalComponent } from './shared/action-modal/action-modal.component';
-import { TimeDependencyModalComponent } from './shared/time-dependency-modal/time-dependency-modal.component';
-import { ProximityDependencyModalComponent } from './shared/proximity-dependency-modal/proximity-dependency-modal.component';
-import { diff, clone } from './utils';
+import { clone, diff } from './utils';
 import { MiddlePoint } from './core/middle-point';
 import { NodeShape } from './core/node-shape';
 import { NodePort } from './core/node-port';
@@ -35,6 +31,7 @@ interface MessageEditorStateModel {
   selector: 'lib-wireflow',
   templateUrl: './wireflow.component.html',
   styleUrls: ['./wireflow.component.scss'],
+  encapsulation: ViewEncapsulation.None
 })
 export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChildren('nodes') nodesFor: any;
@@ -65,7 +62,7 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
   private heightPoint = 25.6;
   private currentMiddleConnector: Connector;
 
-  private modalRef: BsModalRef;
+  // private modalRef: BsModalRef;
   private subscription = new Subscription();
   private lastDependency: any;
   private lastGeneralItemId: string;
@@ -83,7 +80,7 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
   get shapeClick() { return this.diagram && this.diagram.state.shapeClick$; }
 
   constructor(
-    private modalService: BsModalService,
+    public ngxSmartModalService: NgxSmartModalService
   ) {
     this.messagesChange = this.stateSubject
       .pipe(
@@ -151,7 +148,7 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
 
     this.subscription.add(this.singleDependenciesOutput.subscribe((x: any) => {
       if (x.type.includes('TimeDependency')) {
-        this._openModal(TimeDependencyModalComponent, {data: x, onSubmit: this._onTimeDependencySubmit.bind(this) });
+        this.ngxSmartModalService.getModal('timeModal').setData({data: x, onSubmit: this._onTimeDependencySubmit.bind(this) }, true).open();
       } else {
         this._changeSingleDependency(this.messages, x.type, x.connector);
       }
@@ -159,9 +156,9 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
 
     this.subscription.add(this.middlePointAddChild.subscribe(x => {
       if (x.dependency.type === 'org.celstec.arlearn2.beans.dependencies.ActionDependency' && x.dependency.subtype === 'scantag') {
-        this._openModal(ActionModalComponent, {data: x, onSubmit: this._onQrTagSubmit.bind(this)});
+        this.ngxSmartModalService.getModal('actionQrModal').setData(x, true).open();
       } else if (x.dependency.type === 'org.celstec.arlearn2.beans.dependencies.ProximityDependency') {
-        this._openModal(ProximityDependencyModalComponent, {data: x, onSubmit: this._onProximityDependencySubmit.bind(this) });
+        this.ngxSmartModalService.getModal('proximityModal').setData(x, true).open();
       } else {
         this._initMiddleConnector(x);
       }
@@ -228,10 +225,10 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
 
     this.subscription.add(this.middlePointClick.subscribe(x => {
       if (x.dependency.type.includes('TimeDependency')) {
-        this._openModal(TimeDependencyModalComponent, {
+        this.ngxSmartModalService.getModal('timeModal').setData({
           data: { initialData: x.dependency.timeDelta, middlePoint: x },
           onSubmit: this._onChangeTimeDependency.bind(this)
-        });
+        }, true).open();
       }
     }));
 
@@ -240,10 +237,9 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
         const connector = x.outputs[0].connectors[0];
 
         if (connector) {
-          this._openModal(ProximityDependencyModalComponent, {
-            data: { initialData: connector.proximity, connector },
-            onSubmit: this._onChangeProximityDependency.bind(this)
-          });
+          this.ngxSmartModalService.getModal('proximityModal').setData({
+            initialData: connector.proximity, connector
+          }, true).open();
         }
       }
 
@@ -638,13 +634,16 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
     return result;
   }
 
-  private _onQrTagSubmit(formValue: any, data: any) {
+  onQrTagSubmit(formValue: any) {
+    const modal = this.ngxSmartModalService.getModal('actionQrModal');
+    const data = modal.getData();
     data.dependency.action = formValue.action;
-    this.modalRef.hide();
     this._initMiddleConnector(data);
   }
 
-  private _onProximityDependencySubmit({ lng, lat, radius }: any, data: any) {
+  onProximityDependencySubmit({ lng, lat, radius }: any) {
+    const modal = this.ngxSmartModalService.getModal('proximityModal');
+    const data = modal.getData();
     delete data.dependency.action;
     delete data.dependency.subtype;
 
@@ -652,22 +651,24 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
     data.dependency.lat = lat;
     data.dependency.radius = radius;
 
-    this.modalRef.hide();
-
     this._initMiddleConnector(data);
   }
 
-  private _onTimeDependencySubmit(formValue: any, data: any) {
+  private _onTimeDependencySubmit(formValue: any) {
     const options = {
       timeDelta: formValue.seconds * 1000
     };
-    this.modalRef.hide();
+
+    const modal = this.ngxSmartModalService.getModal('timeModal');
+    const { data } = modal.getData();
     this._changeSingleDependency(this.messages, data.type, data.connector, options);
   }
 
-  private _onChangeTimeDependency(formValue: any, data: any) {
+  private _onChangeTimeDependency(formValue: any) {
+    const modal = this.ngxSmartModalService.getModal('timeModal');
+    const { data } = modal.getData();
+
     data.middlePoint.dependency.timeDelta = formValue.seconds * 1000;
-    this.modalRef.hide();
     this.diagram.state.changeDependencies$.next();
   }
 
@@ -689,12 +690,7 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
       connector.setProximity(lat, lng, radius);
     }
 
-    this.modalRef.hide();
     this.diagram.state.changeDependencies$.next();
-  }
-
-  private _openModal(template: any, initialState = {}) {
-    this.modalRef = this.modalService.show(template, {initialState, backdrop: 'static'});
   }
 
   private _populateOutputMessages(messages: any[]) {

@@ -1,9 +1,6 @@
-<form (keydown)="onFormKeyDown($event)" (ngSubmit)="f.valid && onSubmit(f.value, data)" #f="ngForm">
+<form (keydown)="onFormKeyDown($event)" (ngSubmit)="f.valid && submitForm.next(f.value)" #f="ngForm">
   <div class="modal-header">
-    <h5 class="modal-title pull-left">Proximity</h5>
-    <button type="button" class="close pull-right" aria-label="Close" (click)="modalRef.hide()">
-      <span aria-hidden="true">&times;</span>
-    </button>
+    <h5 class="modal-title">Proximity</h5>
   </div>
   <div class="modal-body">
     <agm-map
@@ -105,6 +102,6 @@
   </div>
   <div class="modal-footer">
     <button type="submit" class="btn btn-success">Confirm</button>
-    <button type="reset" (click)="modalRef.hide()" class="btn btn-secondary">Cancel</button>
+    <button type="reset" class="btn btn-secondary" (click)="cancel.next()">Cancel</button>
   </div>
 </form>

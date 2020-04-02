@@ -1,153 +1,169 @@
-<div class="content">
-  <div class="main svg-drag">
-    <svg id="svg">
+<div class="wireflow-component">
 
-      <g id="diagram" data-drag="diagram:diagram" data-drag-type="diagram">
-        <g id="node-layer">
-          <g
-            class="node-container" #nodes *ngFor="let node of populatedNodes"
-            [attr.general-item-id]="node.id"
-            [attr.dependency-type]="node.type"
-            (mouseenter)="onNodeMouseEnter($event)"
-            (mouseleave)="onNodeMouseLeave($event)"
-          >
-            <rect class="node-background" width="204" [attr.height]="getHeight(node) + 51" x="0" y="0" rx="6" ry="6" />
+  <ngx-smart-modal #actionQrModal identifier="actionQrModal">
+    <lib-action-modal (cancel)="actionQrModal.close()" (submitForm)="onQrTagSubmit($event); actionQrModal.close()"></lib-action-modal>
+  </ngx-smart-modal>
 
-            <g class="node-header">
-              <rect class="header-round-rect" width="200" height="40" x="2" y="2" rx="4" ry="4" />
-              <rect class="header-rect" width="200" height="36" x="2" y="6" />
-              <text class="header-title" x="102" y="30">{{ node.name }}</text>
-            </g>
+  <ngx-smart-modal #proximityModal identifier="proximityModal">
+    <lib-proximity-dependency-modal (cancel)="proximityModal.close()" (submitForm)="onProximityDependencySubmit($event); proximityModal.close()"></lib-proximity-dependency-modal>
+  </ngx-smart-modal>
 
-            <g class="node-content">
+  <ngx-smart-modal #timeModal identifier="timeModal">
+    <lib-time-dependency-modal (cancel)="timeModal.close()"></lib-time-dependency-modal>
+  </ngx-smart-modal>
 
-              <rect class="content-round-rect" width="200" [attr.height]="getHeight(node) + 5" x="2" y="44" rx="4" ry="4" />
-              <rect class="content-rect" width="200" [attr.height]="getHeight(node)" x="2" y="44" />
+  <div class="content">
+    <div class="main svg-drag">
+      <svg id="svg">
 
-              <g class="inputs" *ngIf="!node.virtual">
-                <g class="input-field" *ngFor="let input of node.inputs; let i = index;"
-                   [attr.transform]="'translate(0, ' + 25 * (2 + i) + ')'"
-                   [attr.general-item-id]="input.generalItemId"
-                   [attr.input-node-type]="input.type"
-                >
-                  <g class="port">
-                    <circle class="port-outer" cx="15" cy="10" r="7.5" />
-                    <circle class="port-inner" cx="15" cy="10" r="5" [id]="node.id + '-' + input.generalItemId" />
-                    <circle class="port-scrim" cx="15" cy="10" r="7.5" />
-                  </g>
-                  <text class="port-label" x="28" y="14">{{ input.title }}</text>
-                </g>
+        <g id="diagram" data-drag="diagram:diagram" data-drag-type="diagram">
+          <g id="node-layer">
+            <g
+              class="node-container" #nodes *ngFor="let node of populatedNodes"
+              [attr.general-item-id]="node.id"
+              [attr.dependency-type]="node.type"
+              (mouseenter)="onNodeMouseEnter($event)"
+              (mouseleave)="onNodeMouseLeave($event)"
+            >
+              <rect class="node-background" width="204" [attr.height]="getHeight(node) + 51" x="0" y="0" rx="6" ry="6" />
+
+              <g class="node-header">
+                <rect class="header-round-rect" width="200" height="40" x="2" y="2" rx="4" ry="4" />
+                <rect class="header-rect" width="200" height="36" x="2" y="6" />
+                <text class="header-title" x="102" y="30">{{ node.name }}</text>
               </g>
 
-              <g class="outputs">
-                <g class="output-field" *ngFor="let output of node.outputs; let i = index;"
-                   [attr.transform]="'translate(0, ' + 25 * (2 + i) + ')'"
-                   [attr.general-item-id]="output.generalItemId"
-                   [attr.action]="output.action"
-                   [attr.node-type]="output.type"
-                   (mouseenter)="onPortMouseEnter($event, output)"
-                   (mouseleave)="onPortMouseLeave($event, output)"
-                >
-                  <g class="port" data-clickable="false">
-                    <circle class="port-outer" cx="189" cy="10" r="7.5" />
-                    <circle class="port-inner" cx="189" cy="10" r="5" />
-                    <circle class="port-scrim" cx="189" cy="10" r="7.5" data-clickable="false" />
-                  </g>
-                  <text class="port-label" x="176" y="14">{{ output.action }}</text>
-                </g>
-              </g>
+              <g class="node-content">
 
+                <rect class="content-round-rect" width="200" [attr.height]="getHeight(node) + 5" x="2" y="44" rx="4" ry="4" />
+                <rect class="content-rect" width="200" [attr.height]="getHeight(node)" x="2" y="44" />
+
+                <g class="inputs" *ngIf="!node.virtual">
+                  <g class="input-field" *ngFor="let input of node.inputs; let i = index;"
+                     [attr.transform]="'translate(0, ' + 25 * (2 + i) + ')'"
+                     [attr.general-item-id]="input.generalItemId"
+                     [attr.input-node-type]="input.type"
+                  >
+                    <g class="port">
+                      <circle class="port-outer" cx="15" cy="10" r="7.5" />
+                      <circle class="port-inner" cx="15" cy="10" r="5" [id]="node.id + '-' + input.generalItemId" />
+                      <circle class="port-scrim" cx="15" cy="10" r="7.5" />
+                    </g>
+                    <text class="port-label" x="28" y="14">{{ input.title }}</text>
+                  </g>
+                </g>
+
+                <g class="outputs">
+                  <g class="output-field" *ngFor="let output of node.outputs; let i = index;"
+                     [attr.transform]="'translate(0, ' + 25 * (2 + i) + ')'"
+                     [attr.general-item-id]="output.generalItemId"
+                     [attr.action]="output.action"
+                     [attr.node-type]="output.type"
+                     (mouseenter)="onPortMouseEnter($event, output)"
+                     (mouseleave)="onPortMouseLeave($event, output)"
+                  >
+                    <g class="port" data-clickable="false">
+                      <circle class="port-outer" cx="189" cy="10" r="7.5" />
+                      <circle class="port-inner" cx="189" cy="10" r="5" />
+                      <circle class="port-scrim" cx="189" cy="10" r="7.5" data-clickable="false" />
+                    </g>
+                    <text class="port-label" x="176" y="14">{{ output.action }}</text>
+                  </g>
+                </g>
+
+              </g>
             </g>
           </g>
-        </g>
 
-        <g id="connections-layer"></g>
+          <g id="connections-layer"></g>
 
-        <g class="connector">
+          <g class="connector">
 
-          <path class="connector-path-outline" />
-          <path class="connector-path" />
+            <path class="connector-path-outline" />
+            <path class="connector-path" />
 
-          <circle class="base-middle-point" style="display: none" cx="2" cy="2" r="8" />
+            <circle class="base-middle-point" style="display: none" cx="2" cy="2" r="8" />
 
-          <circle class="connector-handle input-handle" cx="0" cy="0" r="4" />
-          <g class="connector-middle-point" style="display: none">
+            <circle class="connector-handle input-handle" cx="0" cy="0" r="4" />
+            <g class="connector-middle-point" style="display: none">
+              <circle class="connector-handle" cx="2" cy="2" r="16" />
+              <text x="-5" y="9" class="middle-point-font">+</text>
+            </g>
+
+            <circle class="connector-handle output-handle" cx="0" cy="0" r="4" />
+          </g>
+
+          <g class="middle-point" style="display: none;">
             <circle class="connector-handle" cx="2" cy="2" r="16" />
             <text x="-5" y="9" class="middle-point-font">+</text>
+            <svg class="middle-point-pencil" style="display: none;" x="-4" y="-4" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"><path d="M7.127 22.562l-7.127 1.438 1.438-7.128 5.689 5.69zm1.414-1.414l11.228-11.225-5.69-5.692-11.227 11.227 5.689 5.69zm9.768-21.148l-2.816 2.817 5.691 5.691 2.816-2.819-5.691-5.689z"/></svg>
           </g>
 
-          <circle class="connector-handle output-handle" cx="0" cy="0" r="4" />
-        </g>
+          <g class="connector-toolbar dependency-type-toolbar" style="display: none">
+            <g class="connector-toolbar__btn connector-toolbar__btn--and" transform="translate(0, 0)">
+              <rect width="32" height="32" class="connector-toolbar__btn" fill="red" />
+              <svg version="1.1" x="4" y="4" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 512.008 512.008" width="24" height="24"><g><path d="M507.331,100.68l-96-96c-6.24-6.24-16.384-6.24-22.624,0l-96,96c-4.576,4.608-5.952,11.456-3.488,17.44 s8.32,9.888,14.784,9.888h48v44.48c0,16.288-7.968,31.264-21.344,40.128l-58.464,38.976c-5.472,3.584-10.848,7.744-16.192,12.576 c-5.344-4.832-10.688-8.96-16.096-12.512l-58.624-39.072c-13.312-8.832-21.28-23.808-21.28-40.096v-44.48h48 c6.464,0,12.32-3.904,14.784-9.888s1.088-12.832-3.456-17.44l-96-96c-6.24-6.24-16.384-6.24-22.624,0l-96,96c-4.576,4.608-5.952,11.456-3.488,17.44s8.32,9.888,14.784,9.888h48v44.48c0,48.32,23.968,93.12,64.096,119.872l58.624,39.072c13.312,8.832,21.28,23.808,21.28,40.096v124.48c0,8.832,7.168,16,16,16h64c8.832,0,16-7.168,16-16v-124.48 c0-16.288,7.968-31.264,21.344-40.128l58.56-39.04c40.128-26.752,64.096-71.552,64.096-119.872v-44.48h48 c6.464,0,12.32-3.904,14.784-9.888S511.875,105.288,507.331,100.68z"/></g></svg>
+            </g>
 
-        <g class="middle-point" style="display: none;">
-          <circle class="connector-handle" cx="2" cy="2" r="16" />
-          <text x="-5" y="9" class="middle-point-font">+</text>
-          <svg class="middle-point-pencil" style="display: none;" x="-4" y="-4" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"><path d="M7.127 22.562l-7.127 1.438 1.438-7.128 5.689 5.69zm1.414-1.414l11.228-11.225-5.69-5.692-11.227 11.227 5.689 5.69zm9.768-21.148l-2.816 2.817 5.691 5.691 2.816-2.819-5.691-5.689z"/></svg>
-        </g>
+            <g class="connector-toolbar__btn connector-toolbar__btn--or" transform="translate(34, 0)">
+              <rect width="32" height="32" class="connector-toolbar__btn" fill="red" />
+              <svg x="4" y="4" xmlns="http://www.w3.org/2000/svg" version="1" viewBox="0 0 24 24" width="24" height="24" enable-background="new 0 0 24 24"><path d="M 2 2 L 3.3125 10.3125 L 5.65625 7.96875 L 7.8125 10.09375 C 8.4125 10.69375 8.8875 11.3 9.1875 12 C 9.5875 10.8 10.1125 9.59375 10.8125 8.59375 C 10.6125 8.29375 10.29375 8.0125 10.09375 7.8125 L 7.96875 5.65625 L 10.3125 3.3125 L 2 2 z M 22 2 L 13.6875 3.3125 L 15.75 5.375 L 14.15625 7 L 13.6875 7.5 C 11.333947 9.8535534 10 12.98869 10 16.3125 L 10 22 L 14 22 L 14 16.3125 C 14 14.03631 14.853553 11.958947 16.5 10.3125 L 18.59375 8.21875 L 20.6875 10.3125 L 22 2 z"/></svg>
+            </g>
 
-        <g class="connector-toolbar dependency-type-toolbar" style="display: none">
-          <g class="connector-toolbar__btn connector-toolbar__btn--and" transform="translate(0, 0)">
-            <rect width="32" height="32" class="connector-toolbar__btn" fill="red" />
-            <svg version="1.1" x="4" y="4" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 512.008 512.008" width="24" height="24"><g><path d="M507.331,100.68l-96-96c-6.24-6.24-16.384-6.24-22.624,0l-96,96c-4.576,4.608-5.952,11.456-3.488,17.44 s8.32,9.888,14.784,9.888h48v44.48c0,16.288-7.968,31.264-21.344,40.128l-58.464,38.976c-5.472,3.584-10.848,7.744-16.192,12.576 c-5.344-4.832-10.688-8.96-16.096-12.512l-58.624-39.072c-13.312-8.832-21.28-23.808-21.28-40.096v-44.48h48 c6.464,0,12.32-3.904,14.784-9.888s1.088-12.832-3.456-17.44l-96-96c-6.24-6.24-16.384-6.24-22.624,0l-96,96c-4.576,4.608-5.952,11.456-3.488,17.44s8.32,9.888,14.784,9.888h48v44.48c0,48.32,23.968,93.12,64.096,119.872l58.624,39.072c13.312,8.832,21.28,23.808,21.28,40.096v124.48c0,8.832,7.168,16,16,16h64c8.832,0,16-7.168,16-16v-124.48 c0-16.288,7.968-31.264,21.344-40.128l58.56-39.04c40.128-26.752,64.096-71.552,64.096-119.872v-44.48h48 c6.464,0,12.32-3.904,14.784-9.888S511.875,105.288,507.331,100.68z"/></g></svg>
+            <g class="connector-toolbar__btn connector-toolbar__btn--time" transform="translate(68, 0)">
+              <rect width="32" height="32" class="connector-toolbar__btn" fill="red" />
+              <svg x="4" y="4" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M12 2c5.514 0 10 4.486 10 10s-4.486 10-10 10-10-4.486-10-10 4.486-10 10-10zm0-2c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm1 12v-6h-2v8h7v-2h-5z"/></svg>
+            </g>
           </g>
 
-          <g class="connector-toolbar__btn connector-toolbar__btn--or" transform="translate(34, 0)">
-            <rect width="32" height="32" class="connector-toolbar__btn" fill="red" />
-            <svg x="4" y="4" xmlns="http://www.w3.org/2000/svg" version="1" viewBox="0 0 24 24" width="24" height="24" enable-background="new 0 0 24 24"><path d="M 2 2 L 3.3125 10.3125 L 5.65625 7.96875 L 7.8125 10.09375 C 8.4125 10.69375 8.8875 11.3 9.1875 12 C 9.5875 10.8 10.1125 9.59375 10.8125 8.59375 C 10.6125 8.29375 10.29375 8.0125 10.09375 7.8125 L 7.96875 5.65625 L 10.3125 3.3125 L 2 2 z M 22 2 L 13.6875 3.3125 L 15.75 5.375 L 14.15625 7 L 13.6875 7.5 C 11.333947 9.8535534 10 12.98869 10 16.3125 L 10 22 L 14 22 L 14 16.3125 C 14 14.03631 14.853553 11.958947 16.5 10.3125 L 18.59375 8.21875 L 20.6875 10.3125 L 22 2 z"/></svg>
+          <g class="connector-toolbar action-toolbar" style="display: none;">
+            <g class="connector-toolbar__btn connector-toolbar__btn--action-dependency" transform="translate(0, 0)">
+              <rect width="32" height="32" class="connector-toolbar__btn" fill="red" />
+              <svg x="4" y="4" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M24 17h-3v-3h-2v3h-3v2h3v3h2v-3h3v-2zm-10 5h-14v-20h7c1.695 1.942 2.371 3 4 3h13v7h-2v-5h-11c-2.34 0-3.537-1.388-4.916-3h-4.084v16h12v2z"/></svg>
+            </g>
+
+            <g class="connector-toolbar__btn connector-toolbar__btn--location" transform="translate(34, 0)">
+              <rect width="32" height="32" class="connector-toolbar__btn" fill="red" />
+              <svg x="4" y="4" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M12 0c-4.198 0-8 3.403-8 7.602 0 4.198 3.469 9.21 8 16.398 4.531-7.188 8-12.2 8-16.398 0-4.199-3.801-7.602-8-7.602zm0 11c-1.657 0-3-1.343-3-3s1.343-3 3-3 3 1.343 3 3-1.343 3-3 3z"/></svg>
+            </g>
+
+            <g class="connector-toolbar__btn connector-toolbar__btn--qr-scan" transform="translate(68, 0)">
+              <rect width="32" height="32" class="connector-toolbar__btn" fill="red" />
+              <svg x="4" y="4" width="24" height="24" viewBox="0 0 16 16"      xmlns="http://www.w3.org/2000/svg" version="1.1"      xmlns:xlink="http://www.w3.org/1999/xlink" id="s1">    <title>QR coder</title>    <desc>Manually edited diagram of qr code</desc>    <!--  <rect x="0" y="0" width="300" height="422" stroke="none" fill="#CFA"/>  -->  <g transform="scale(.5,.5)" fill="none" stroke="#000" stroke-width="2" stroke-linecap="butt">    <path id="A" d="M3,3 h8 v8 h-8 v-8 z M6,7 h2"/>    <use xlink:href="#A" x="18" y="0" />    <use xlink:href="#A" x="0" y="18" />    <path d="M18,3 h-3 v4 h2 v4 h-2 v3" />    <path d="M2,15 h2 m2,0 h4 m6,0 h2 m2,0 h4 m4,0 h2"/>    <path d="M4,17 h2 m2,0 h8 m6,0 h2 m2,0 h4" />    <path d="M14,19 h2 m2,0 h2 m6,0 h2" />    <path d="M16,21 h2 m2,0 h8"/>     <path d="M14,23 h2 m2,0 h2 m4,0 h2 m2,0 h2" />    <path d="M14,25 h4 m2,0 h2 m2, 0 h4" />    <path d="M14,27 h2 m6,0 h2 m4,0 h2" />    <path d="M16,29 h8 m2,0 h2"/>    </g>  <!-- vim:nowrap:sw=2:so=2:et:ai: -->  </svg>
+            </g>
           </g>
 
-          <g class="connector-toolbar__btn connector-toolbar__btn--time" transform="translate(68, 0)">
-            <rect width="32" height="32" class="connector-toolbar__btn" fill="red" />
-            <svg x="4" y="4" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M12 2c5.514 0 10 4.486 10 10s-4.486 10-10 10-10-4.486-10-10 4.486-10 10-10zm0-2c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm1 12v-6h-2v8h7v-2h-5z"/></svg>
-          </g>
-        </g>
+          <g class="middle-connector middle-connector--new" style="display: none;">
 
-        <g class="connector-toolbar action-toolbar" style="display: none;">
-          <g class="connector-toolbar__btn connector-toolbar__btn--action-dependency" transform="translate(0, 0)">
-            <rect width="32" height="32" class="connector-toolbar__btn" fill="red" />
-            <svg x="4" y="4" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M24 17h-3v-3h-2v3h-3v2h3v3h2v-3h3v-2zm-10 5h-14v-20h7c1.695 1.942 2.371 3 4 3h13v7h-2v-5h-11c-2.34 0-3.537-1.388-4.916-3h-4.084v16h12v2z"/></svg>
-          </g>
+            <path class="connector-path-outline" />
+            <path class="connector-path" />
 
-          <g class="connector-toolbar__btn connector-toolbar__btn--location" transform="translate(34, 0)">
-            <rect width="32" height="32" class="connector-toolbar__btn" fill="red" />
-            <svg x="4" y="4" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M12 0c-4.198 0-8 3.403-8 7.602 0 4.198 3.469 9.21 8 16.398 4.531-7.188 8-12.2 8-16.398 0-4.199-3.801-7.602-8-7.602zm0 11c-1.657 0-3-1.343-3-3s1.343-3 3-3 3 1.343 3 3-1.343 3-3 3z"/></svg>
+            <circle class="base-middle-point" style="display: none" cx="2" cy="2" r="8" />
+
+            <circle class="connector-handle input-handle" cx="0" cy="0" r="4" />
+            <circle class="connector-handle output-handle" cx="0" cy="0" r="4" />
           </g>
 
-          <g class="connector-toolbar__btn connector-toolbar__btn--qr-scan" transform="translate(68, 0)">
-            <rect width="32" height="32" class="connector-toolbar__btn" fill="red" />
-            <svg x="4" y="4" width="24" height="24" viewBox="0 0 16 16"      xmlns="http://www.w3.org/2000/svg" version="1.1"      xmlns:xlink="http://www.w3.org/1999/xlink" id="s1">    <title>QR coder</title>    <desc>Manually edited diagram of qr code</desc>    <!--  <rect x="0" y="0" width="300" height="422" stroke="none" fill="#CFA"/>  -->  <g transform="scale(.5,.5)" fill="none" stroke="#000" stroke-width="2" stroke-linecap="butt">    <path id="A" d="M3,3 h8 v8 h-8 v-8 z M6,7 h2"/>    <use xlink:href="#A" x="18" y="0" />    <use xlink:href="#A" x="0" y="18" />    <path d="M18,3 h-3 v4 h2 v4 h-2 v3" />    <path d="M2,15 h2 m2,0 h4 m6,0 h2 m2,0 h4 m4,0 h2"/>    <path d="M4,17 h2 m2,0 h8 m6,0 h2 m2,0 h4" />    <path d="M14,19 h2 m2,0 h2 m6,0 h2" />    <path d="M16,21 h2 m2,0 h8"/>     <path d="M14,23 h2 m2,0 h2 m4,0 h2 m2,0 h2" />    <path d="M14,25 h4 m2,0 h2 m2, 0 h4" />    <path d="M14,27 h2 m6,0 h2 m4,0 h2" />    <path d="M16,29 h8 m2,0 h2"/>    </g>  <!-- vim:nowrap:sw=2:so=2:et:ai: -->  </svg>
+          <g class="connector-middle-point-and" style="display: none;">
+            <circle cx="12" cy="-12" r="9" fill="black" />
+            <circle cx="12" cy="-12" r="8" fill="white" />
+            <svg version="1.1" x="6" y="-17" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 512.008 512.008" width="12" height="12"><g><path d="M507.331,100.68l-96-96c-6.24-6.24-16.384-6.24-22.624,0l-96,96c-4.576,4.608-5.952,11.456-3.488,17.44 s8.32,9.888,14.784,9.888h48v44.48c0,16.288-7.968,31.264-21.344,40.128l-58.464,38.976c-5.472,3.584-10.848,7.744-16.192,12.576 c-5.344-4.832-10.688-8.96-16.096-12.512l-58.624-39.072c-13.312-8.832-21.28-23.808-21.28-40.096v-44.48h48 c6.464,0,12.32-3.904,14.784-9.888s1.088-12.832-3.456-17.44l-96-96c-6.24-6.24-16.384-6.24-22.624,0l-96,96c-4.576,4.608-5.952,11.456-3.488,17.44s8.32,9.888,14.784,9.888h48v44.48c0,48.32,23.968,93.12,64.096,119.872l58.624,39.072c13.312,8.832,21.28,23.808,21.28,40.096v124.48c0,8.832,7.168,16,16,16h64c8.832,0,16-7.168,16-16v-124.48 c0-16.288,7.968-31.264,21.344-40.128l58.56-39.04c40.128-26.752,64.096-71.552,64.096-119.872v-44.48h48 c6.464,0,12.32-3.904,14.784-9.888S511.875,105.288,507.331,100.68z"/></g></svg>
           </g>
+          <g class="connector-middle-point-or" style="display: none;">
+            <circle cx="12" cy="-12" r="9" fill="black" />
+            <circle cx="12" cy="-12" r="8" fill="white" />
+            <svg x="6" y="-17" xmlns="http://www.w3.org/2000/svg" version="1" viewBox="0 0 24 24" width="12" height="12" enable-background="new 0 0 24 24"><path d="M 2 2 L 3.3125 10.3125 L 5.65625 7.96875 L 7.8125 10.09375 C 8.4125 10.69375 8.8875 11.3 9.1875 12 C 9.5875 10.8 10.1125 9.59375 10.8125 8.59375 C 10.6125 8.29375 10.29375 8.0125 10.09375 7.8125 L 7.96875 5.65625 L 10.3125 3.3125 L 2 2 z M 22 2 L 13.6875 3.3125 L 15.75 5.375 L 14.15625 7 L 13.6875 7.5 C 11.333947 9.8535534 10 12.98869 10 16.3125 L 10 22 L 14 22 L 14 16.3125 C 14 14.03631 14.853553 11.958947 16.5 10.3125 L 18.59375 8.21875 L 20.6875 10.3125 L 22 2 z"/></svg>
+          </g>
+          <g class="connector-middle-point-time" style="display: none;">
+            <circle cx="12" cy="-12" r="9" fill="black" />
+            <circle cx="12" cy="-12" r="8" fill="white" />
+            <svg x="6" y="-18" xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24"><path d="M12 2c5.514 0 10 4.486 10 10s-4.486 10-10 10-10-4.486-10-10 4.486-10 10-10zm0-2c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm1 12v-6h-2v8h7v-2h-5z"/></svg>
+          </g>
+
+          <circle id="drag-proxy" cx="0" cy="0" r="1" fill="none" />
         </g>
-
-        <g class="middle-connector middle-connector--new" style="display: none;">
-
-          <path class="connector-path-outline" />
-          <path class="connector-path" />
-
-          <circle class="base-middle-point" style="display: none" cx="2" cy="2" r="8" />
-
-          <circle class="connector-handle input-handle" cx="0" cy="0" r="4" />
-          <circle class="connector-handle output-handle" cx="0" cy="0" r="4" />
-        </g>
-
-        <g class="connector-middle-point-and" style="display: none;">
-          <circle cx="12" cy="-12" r="9" fill="black" />
-          <circle cx="12" cy="-12" r="8" fill="white" />
-          <svg version="1.1" x="6" y="-17" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 512.008 512.008" width="12" height="12"><g><path d="M507.331,100.68l-96-96c-6.24-6.24-16.384-6.24-22.624,0l-96,96c-4.576,4.608-5.952,11.456-3.488,17.44 s8.32,9.888,14.784,9.888h48v44.48c0,16.288-7.968,31.264-21.344,40.128l-58.464,38.976c-5.472,3.584-10.848,7.744-16.192,12.576 c-5.344-4.832-10.688-8.96-16.096-12.512l-58.624-39.072c-13.312-8.832-21.28-23.808-21.28-40.096v-44.48h48 c6.464,0,12.32-3.904,14.784-9.888s1.088-12.832-3.456-17.44l-96-96c-6.24-6.24-16.384-6.24-22.624,0l-96,96c-4.576,4.608-5.952,11.456-3.488,17.44s8.32,9.888,14.784,9.888h48v44.48c0,48.32,23.968,93.12,64.096,119.872l58.624,39.072c13.312,8.832,21.28,23.808,21.28,40.096v124.48c0,8.832,7.168,16,16,16h64c8.832,0,16-7.168,16-16v-124.48 c0-16.288,7.968-31.264,21.344-40.128l58.56-39.04c40.128-26.752,64.096-71.552,64.096-119.872v-44.48h48 c6.464,0,12.32-3.904,14.784-9.888S511.875,105.288,507.331,100.68z"/></g></svg>
-        </g>
-        <g class="connector-middle-point-or" style="display: none;">
-          <circle cx="12" cy="-12" r="9" fill="black" />
-          <circle cx="12" cy="-12" r="8" fill="white" />
-          <svg x="6" y="-17" xmlns="http://www.w3.org/2000/svg" version="1" viewBox="0 0 24 24" width="12" height="12" enable-background="new 0 0 24 24"><path d="M 2 2 L 3.3125 10.3125 L 5.65625 7.96875 L 7.8125 10.09375 C 8.4125 10.69375 8.8875 11.3 9.1875 12 C 9.5875 10.8 10.1125 9.59375 10.8125 8.59375 C 10.6125 8.29375 10.29375 8.0125 10.09375 7.8125 L 7.96875 5.65625 L 10.3125 3.3125 L 2 2 z M 22 2 L 13.6875 3.3125 L 15.75 5.375 L 14.15625 7 L 13.6875 7.5 C 11.333947 9.8535534 10 12.98869 10 16.3125 L 10 22 L 14 22 L 14 16.3125 C 14 14.03631 14.853553 11.958947 16.5 10.3125 L 18.59375 8.21875 L 20.6875 10.3125 L 22 2 z"/></svg>
-        </g>
-        <g class="connector-middle-point-time" style="display: none;">
-          <circle cx="12" cy="-12" r="9" fill="black" />
-          <circle cx="12" cy="-12" r="8" fill="white" />
-          <svg x="6" y="-18" xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24"><path d="M12 2c5.514 0 10 4.486 10 10s-4.486 10-10 10-10-4.486-10-10 4.486-10 10-10zm0-2c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm1 12v-6h-2v8h7v-2h-5z"/></svg>
-        </g>
-
-        <circle id="drag-proxy" cx="0" cy="0" r="1" fill="none" />
-      </g>
-    </svg>
+      </svg>
+    </div>
   </div>
+
 </div>
