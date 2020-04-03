@@ -87,7 +87,9 @@ export class Diagram implements DraggableUiElement {
   }
 
   getOutputPortByGeneralItemId(generalItemId, action) {
-    return this.getPortsBy(p => !p.model.isInput && p.model.generalItemId === generalItemId.toString() && p.model.action === action)[0];
+    return this.getPortsBy(p => {
+      return !p.model.isInput && p.model.generalItemId.toString() === generalItemId.toString() && p.model.action === action;
+    })[0];
   }
 
   // TODO: Move to connectorsService
@@ -207,11 +209,15 @@ export class Diagram implements DraggableUiElement {
         break;
       default: {
         if (this.target) {
-          delete this.openedConnector;
-          const hitPort = this.target instanceof Connector && this._getHitPort(
+          const hitShape = this.target instanceof Connector && this._getHitShape(
             this.target as Connector,
-            this.shapes,
+            this.shapes
           );
+          delete this.openedConnector;
+          const hitPort = this.target instanceof Connector && hitShape && ( this._getHitPort(
+            this.target as Connector,
+            hitShape,
+          ) || ( !(this.target as Connector).isInputConnector && hitShape.inputs[0] ) );
           this.target.onDragEnd && this.target.onDragEnd(hitPort);
         }
         break;
@@ -219,19 +225,22 @@ export class Diagram implements DraggableUiElement {
     }
   }
 
-  private _getHitPort({dragElement,isInputConnector: isInput}: Connector, shapes: NodeShape[]) {
+  private _getHitShape({ dragElement }: Connector, shapes: NodeShape[]) {
     for (const shape of shapes) {
       if (Draggable.hitTest(dragElement, shape.nativeElement)) {
+        return shape;
+      }
+    }
+  }
 
-        const shapePorts = isInput ? shape.outputs : shape.inputs;
+  private _getHitPort({dragElement, isInputConnector: isInput}: Connector, shape: NodeShape) {
+    const shapePorts = isInput ? shape.outputs : shape.inputs;
 
-        for (const port of shapePorts) {
+    for (const port of shapePorts) {
 
-          // @ts-ignore
-          if (Draggable.hitTest(dragElement, port.portElement)) {
-            return port;
-          }
-        }
+      // @ts-ignore
+      if (Draggable.hitTest(dragElement, port.portElement)) {
+        return port;
       }
     }
   }

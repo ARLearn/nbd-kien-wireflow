@@ -1,7 +1,7 @@
 import { NodeShape } from './node-shape';
 import { MiddlePoint } from './middle-point'; // TODO: remove dependency
 import { NodePort } from './node-port';
-import { ConnectorToolbar } from './toolbars/connector-toolbar';
+import {ChangeSingleDependencyWithDependencyAction, ConnectorToolbar} from './toolbars/connector-toolbar';
 import { ConnectorMiddlePoint, ConnectorMiddlePointAction } from './connector-middle-point';
 import { BezierPath } from './bezier-path';
 import { State, ConnectorRemoveOptions } from './state'; // TODO: remove dependency
@@ -93,7 +93,14 @@ export class Connector implements DraggableUiElement {
     this._subscription.add(this.baseMiddlePoint.action.subscribe(action => this._onMiddlePointAction(action)));
 
     this.connectorToolbar = new ConnectorToolbar(this.state);
-    this._subscription.add(this.connectorToolbar.changeSingleDependencyType.subscribe(data => this._changeSingleDependencyType(data.targetType)));
+    this._subscription.add(
+      this.connectorToolbar.changeSingleDependencyType
+        .subscribe(data => this._changeSingleDependencyType(data.targetType))
+    );
+    this._subscription.add(
+      this.connectorToolbar.changeSingleDependencyTypeWithDependency
+        .subscribe(data => this._changeSingleDependencyTypeWithDependency(data))
+    );
 
     this.connectorElement.onmouseenter = (e) => this.onHover(e);
     this.connectorElement.onmouseleave = (e) => this.onHoverLeave(e);
@@ -144,7 +151,6 @@ export class Connector implements DraggableUiElement {
   }
 
   onDragEnd(port: NodePort) {
-
     if (!port || port.parentNode.nativeElement === this.staticPort.parentNode.nativeElement) {
       this.remove();
       return;
@@ -157,12 +163,12 @@ export class Connector implements DraggableUiElement {
     } else {
       this.setInputPort(port);
     }
-    
+
     // TODO: Emit "connectorAttach" event
-    
+
     // TODO: Move to "connectorAttach" handler
     const inputPort = port.model.isInput ? port : this._inputPort;
-    
+
     inputPort.model.connectors
       .filter(c => c !== this)
       .forEach(c => {
@@ -470,4 +476,12 @@ export class Connector implements DraggableUiElement {
     });
   }
 
+  private _changeSingleDependencyTypeWithDependency(data: ChangeSingleDependencyWithDependencyAction) {
+    this.state.singleDependencyWithNewDependencyOutput$.next({
+      connector: this,
+      type: data.type,
+      targetType: data.targetType,
+      subtype: data.subtype
+    });
+  }
 }

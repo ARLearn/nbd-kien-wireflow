@@ -36,7 +36,7 @@ export class MiddlePoint extends BaseUiElement implements DraggableUiElement {
     this.pencilIcon = this.nativeElement.querySelector('.middle-point-pencil');
 
     this.actionToolbar = new ActionToolbar(this.state);
-    this._unsubscriber.add(this.actionToolbar.addChild.subscribe(data => this._addChild(data)));
+    this._unsubscriber.add(this.actionToolbar.addChild.subscribe(data => this.addChild(data)));
 
     this.show();
 
@@ -195,7 +195,7 @@ export class MiddlePoint extends BaseUiElement implements DraggableUiElement {
 
     // TODO: Move to Diagram
     this.nativeElement && this.nativeElement.remove();
-    
+
     this.state.middlePointsOutput.splice(this.state.middlePointsOutput.indexOf(this), 1);
   }
 
@@ -254,7 +254,7 @@ export class MiddlePoint extends BaseUiElement implements DraggableUiElement {
     this.state.middlePointClick$.next(this);
   }
 
-  private _addChild({ targetType, subtype }: { targetType: string, subtype?: string }) {
+  addChild({ targetType, subtype }: { targetType: string, subtype?: string }) {
     const dependency = {
       type: targetType,
       subtype: subtype,

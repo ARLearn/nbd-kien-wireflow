@@ -71,6 +71,7 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
   get dependenciesOutput() { return this.diagram && this.diagram.state.changeDependencies$; }
   get coordinatesOutputSubject() { return this.diagram && this.diagram.state.coordinatesOutput$.pipe(distinct()); }
   get singleDependenciesOutput() { return this.diagram && this.diagram.state.singleDependenciesOutput$.pipe(distinct()); }
+  get singleDependencyWithNewDependencyOutput() { return this.diagram && this.diagram.state.singleDependencyWithNewDependencyOutput$.pipe(distinct()); }
   get middlePointAddChild() { return this.diagram && this.diagram.state.middlePointAddChild$.pipe(distinct()); }
   get nodeShapeNew() { return this.diagram && this.diagram.state.nodeShapeNew$.pipe(distinct()); }
   get nodeShapeRemove() { return this.diagram && this.diagram.state.nodeShapeRemove$.pipe(distinct()); }
@@ -154,6 +155,14 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
       } else {
         this._changeSingleDependency(this.messages, x.type, x.connector);
       }
+    }));
+
+    this.subscription.add(this.singleDependencyWithNewDependencyOutput.subscribe((x: any) => {
+      const mp = this._changeSingleDependency(this.messages, x.type, x.connector, null, false);
+      mp.addChild({
+        targetType: x.targetType,
+        subtype: x.subtype
+      });
     }));
 
     this.subscription.add(this.middlePointAddChild.subscribe(x => {
@@ -342,8 +351,9 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
   onPortMouseEnter(event: MouseEvent, output: any) {
     if (this.currentMiddleConnector && this.lastDependency) {
       if (this.currentMiddleConnector.dependencyType.includes('ProximityDependency')) { return; }
-
-      this.lastDependency.action = output.action;
+      if (!this.currentMiddleConnector.subType.includes('scantag')) {
+        this.lastDependency.action = output.action;
+      }
 
       const draggableElement = this._getDraggableElement(event.target as HTMLElement);
       draggableElement && draggableElement.classList.add('no-events');
@@ -353,7 +363,10 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
   onPortMouseLeave(event: MouseEvent, output: any) {
     if (this.currentMiddleConnector && !this.processing) {
       if (this.currentMiddleConnector.dependencyType.includes('ProximityDependency')) { return; }
-      this.lastDependency.action = 'read';
+      if (!this.currentMiddleConnector.subType.includes('scantag')) {
+        this.lastDependency.action = 'read';
+      }
+
       this.lastDependency.generalItemId = this.lastGeneralItemId;
     }
     const draggableElement = this._getDraggableElement(event.target as HTMLElement);
@@ -451,7 +464,7 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
         message = this._populateNode({
           ...x.message,
           id: x.dependency.generalItemId,
-          name: '23123',
+          name: 'proximity',
           type: x.dependency.type,
           action: x.dependency.type.includes('ProximityDependency') ? 'in range' : x.dependency.action,
           dependsOn: {},
@@ -765,7 +778,7 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
     this.diagram.state.changeDependencies$.next();
   }
 
-  private _changeSingleDependency(messages, type, connector: Connector, options = null) {
+  private _changeSingleDependency(messages, type, connector: Connector, options = null, notifyChanges = true) {
     // Connector
     const middlePoint = connector.middlePoint as MiddlePoint;
 
@@ -822,7 +835,9 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
 
         this.diagram.state.middlePointsOutput.push(newMiddlePoint);
 
-        return this.diagram.state.changeDependencies$.next();
+        notifyChanges && this.diagram.state.changeDependencies$.next();
+
+        return newMiddlePoint;
       }
 
       let dependency;
@@ -871,6 +886,10 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
 
       mp.move(coords)
         .init();
+
+      notifyChanges && this.diagram.state.changeDependencies$.next();
+
+      return mp;
     } else {
       const message: any = messages.find(r => r.id.toString() === connector.inputPort.model.generalItemId.toString());
 
@@ -895,10 +914,10 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
       connector.detachOutputPort();
       connector.remove();
 
-      this._initNodeMessage(message);
-    }
+      notifyChanges && this.diagram.state.changeDependencies$.next();
 
-    this.diagram.state.changeDependencies$.next();
+      return this._initNodeMessage(message);
+    }
   }
 
   private _createConnector(node: GameMessageCommon, currentConnector: Connector = null, nodeShape: NodeShape = null, dependency = null) {
@@ -1012,18 +1031,20 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
     this._initMiddlePointGroup(message, mp, message.dependsOn.dependencies || [ message.dependsOn.offset ]);
 
     this.diagram.state.middlePointsOutput.forEach(mpo => mpo.init());
+
+    return mp;
   }
 
   private _renderLastAddedNode(lastAddedNode: GameMessageCommon, currentMiddleConnector: Connector, lastDependency: any) {
     let dep;
     if (currentMiddleConnector.shape) {
       const shape = currentMiddleConnector.shape;
-      const lastOutput = lastAddedNode['outputs'].find(
-        o => o.model.generalItemId.toString() === shape.model.generalItemId.toString() && o.model.action === lastDependency.action
-      );
+      const lastOutput = lastAddedNode['outputs'].find(o => {
+          return o.generalItemId.toString() === shape.model.generalItemId.toString() && o.action === lastDependency.action;
+      });
 
       const shapeOutputPort = shape.outputs.find(
-        o => o.model.generalItemId.toString() === lastOutput.model.generalItemId.toString() && o.model.action === lastOutput.model.action
+        o => o.model.generalItemId.toString() === lastOutput.generalItemId.toString() && o.model.action === lastOutput.action
       );
 
       let port: NodePort;
@@ -1032,13 +1053,13 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
         port = shapeOutputPort;
         port.model.connectors.push(currentMiddleConnector); // TODO: Replace with con.setOutputPort(port)?
       } else {
-        const {action, generalItemId} = lastOutput.model;
+        const { action, generalItemId } = lastOutput;
         this.diagram.state.createPort(action, generalItemId, currentMiddleConnector.shape, false);
       }
 
       dep = lastDependency || {};
 
-      dep.generalItemId = port.model.generalItemId;
+      dep.generalItemId = lastOutput.generalItemId;
     }
 
     this._createConnector(lastAddedNode, currentMiddleConnector, currentMiddleConnector.shape, dep);

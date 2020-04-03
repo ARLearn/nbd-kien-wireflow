@@ -68,6 +68,7 @@ export class State {
   changeDependencies$ = new Subject(); // TODO: Move to some service
   coordinatesOutput$ = new Subject(); // TODO: Move to some service
   singleDependenciesOutput$ = new Subject(); // TODO: Move to some service
+  singleDependencyWithNewDependencyOutput$ = new Subject(); // TODO: Move to some service
   nodePortNew$ = new Subject<NodePortNewArgs>(); // TODO: Move to nodesService
   nodeShapeNew$ = new Subject<NodeShapeNewArgs>(); // TODO: Move to nodesService
   nodeShapeRemove$ = new Subject<string>(); // TODO: Move to nodesService
