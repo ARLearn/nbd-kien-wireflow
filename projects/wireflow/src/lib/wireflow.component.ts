@@ -75,6 +75,8 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
   get nodeShapeNew() { return this.diagram && this.diagram.state.nodeShapeNew$.pipe(distinct()); }
   get nodeShapeRemove() { return this.diagram && this.diagram.state.nodeShapeRemove$.pipe(distinct()); }
   get connectorRemove() { return this.diagram && this.diagram.state.connectorRemove$.pipe(distinct()); }
+  get connectorUpdate() { return this.diagram && this.diagram.state.connectorUpdate$; }
+  get connectorDetach() { return this.diagram && this.diagram.state.connectorDetach$; }
   get nodePortNew() { return this.diagram && this.diagram.state.nodePortNew$; }
   get middlePointClick() { return this.diagram && this.diagram.state.middlePointClick$; }
   get shapeClick() { return this.diagram && this.diagram.state.shapeClick$; }
@@ -164,15 +166,28 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
       }
     }));
 
+    this.subscription.add(this.connectorUpdate.subscribe(({connector, port}) => {
+      connector.updateHandle(port);
+      if (connector.isInputConnector && connector.middlePoint) {
+        connector.middlePoint.move(connector.middlePoint.coordinates);
+      }
+    }));
+
+    this.subscription.add(this.connectorDetach.subscribe(({connector, port}) => {
+      const index = port.model.connectors.indexOf(connector);
+        if (index !== -1) {
+          port.model.connectors.splice(index, 1);
+        }
+    }));
+
     this.subscription.add(this.connectorRemove.subscribe(({opts, connector}) => {
 
-      const usedPorts = this.diagram.getPortsBy(x => x.connectors.includes(connector));
+      const usedPorts = this.diagram.getPortsBy(x => x.model.connectors.includes(connector));
+      usedPorts.forEach(port => {
+        this.diagram.state.connectorDetach$.next({ connector, port });
+      });
 
-      if (usedPorts.length > 0) {
-        usedPorts.forEach(x => x.removeConnector(connector));
-      }
-
-      const isInput = (connector.outputPort && connector.outputPort.isInput) || connector.isInput;
+      const isInput = (connector.outputPort && connector.outputPort.model.isInput) || connector.isInputConnector;
 
       if (isInput && !opts.onlyConnector) {
         connector.middlePoint && connector.middlePoint.remove(); // TODO: Inverse dependency
@@ -198,15 +213,15 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
       this.diagram.state.removeConnectorFromOutput(connector);
     }));
 
-    this.subscription.add(this.nodePortNew.subscribe(({model, parentNode, isInput}) => {
+    this.subscription.add(this.nodePortNew.subscribe(({model, parentNode}) => {
       const element =
         document.querySelector<HTMLElement>(
-          isInput
+          model.isInput
             ? `.input-field[general-item-id="${model.generalItemId}"]`
             : `.output-field[general-item-id="${model.generalItemId}"][action="${model.action}"]`
           );
-      const port = new NodePort(this.diagram.state, parentNode, element, model, isInput);
-      if (isInput) {
+      const port = new NodePort(this.diagram.state, parentNode, element, model);
+      if (model.isInput) {
         parentNode.inputs.push(port);
       } else {
         parentNode.outputs.push(port);
@@ -234,7 +249,7 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
 
     this.subscription.add(this.shapeClick.subscribe(x => {
       if (x.model.dependencyType && x.model.dependencyType.includes('ProximityDependency')) {
-        const connector = x.outputs[0].connectors[0];
+        const connector = x.outputs[0].model.connectors[0];
 
         if (connector) {
           this.ngxSmartModalService.getModal('proximityModal').setData({
@@ -750,7 +765,7 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
     this.diagram.state.changeDependencies$.next();
   }
 
-  private _changeSingleDependency(messages, type, connector, options = null) {
+  private _changeSingleDependency(messages, type, connector: Connector, options = null) {
     // Connector
     const middlePoint = connector.middlePoint as MiddlePoint;
 
@@ -758,7 +773,7 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
       const message = messages.find(r => r.id === middlePoint.generalItemId);
       const coords = connector.getMiddlePointCoordinates();
 
-      if (connector.isInput && middlePoint.parentMiddlePoint) {
+      if (connector.isInputConnector && middlePoint.parentMiddlePoint) {
         const parentMiddlePoint = middlePoint.parentMiddlePoint;
 
         const dep: any = { type };
@@ -877,7 +892,7 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
         message.dependsOn.dependencies = [ dependencySingle ];
       }
 
-      connector.outputPort.removeConnector(connector);
+      connector.detachOutputPort();
       connector.remove();
 
       this._initNodeMessage(message);
@@ -892,7 +907,7 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
       nodeShape = this.diagram.shapes.find(x => x.model.generalItemId === node.id.toString());
     }
 
-    let output;
+    let output: NodePort;
 
     if (dependency) {
       const action = dependency.type.includes('ProximityDependency') ? 'in range' : dependency.action;
@@ -902,7 +917,6 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     if (currentConnector) {
-      output.addConnector(currentConnector);
       currentConnector.setOutputPort(output);
       currentConnector.updateHandle(output);
 
@@ -1012,11 +1026,11 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
         o => o.model.generalItemId.toString() === lastOutput.model.generalItemId.toString() && o.model.action === lastOutput.model.action
       );
 
-      let port;
+      let port: NodePort;
 
       if (shapeOutputPort) {
         port = shapeOutputPort;
-        port.addConnector(currentMiddleConnector);
+        port.model.connectors.push(currentMiddleConnector); // TODO: Replace with con.setOutputPort(port)?
       } else {
         const {action, generalItemId} = lastOutput.model;
         this.diagram.state.createPort(action, generalItemId, currentMiddleConnector.shape, false);

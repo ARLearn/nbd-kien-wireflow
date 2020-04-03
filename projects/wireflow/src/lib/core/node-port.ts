@@ -1,5 +1,4 @@
-import { Connector } from './connector'; // TODO: Remove dependency
-import { State } from './state';
+import { State } from './state'; // TODO: Remove dependency
 import { DraggableUiElement } from './draggable-ui-element';
 import { BaseModelUiElement } from './base-model-ui-element';
 import { PortModel } from './models';
@@ -10,16 +9,14 @@ import { PortModel } from './models';
 
 export class NodePort extends BaseModelUiElement<PortModel> implements DraggableUiElement {
   parentNode: BaseModelUiElement;
-  isInput: any;
-  nodeType: any;
-  portElement: any;
-  portScrim: any;
-  global: any;
+  nodeType: string;
+  portElement: SVGGraphicsElement;
+  portScrim: SVGGraphicsElement;
+  global: SVGPoint;
   center: SVGPoint;
-  inputNodeType: any;
-  connectors: Connector[]; // TODO: Remove
+  inputNodeType: string;
 
-  constructor(private state: State, parentNode: BaseModelUiElement<any>, nativeElement: HTMLElement, opts: PortModel, isInput: boolean) {
+  constructor(private state: State, parentNode: BaseModelUiElement<any>, nativeElement: HTMLElement, opts: PortModel) {
 
     super(
       nativeElement,
@@ -27,11 +24,8 @@ export class NodePort extends BaseModelUiElement<PortModel> implements Draggable
     );
 
     this.parentNode = parentNode;
-    this.isInput = isInput;
     this.nodeType = nativeElement.getAttribute('node-type');
     this.inputNodeType = nativeElement.getAttribute('input-node-type');
-
-    this.connectors = [];
 
     this.portElement = nativeElement.querySelector('.port');
     this.portScrim = nativeElement.querySelector('.port-scrim');
@@ -54,25 +48,13 @@ export class NodePort extends BaseModelUiElement<PortModel> implements Draggable
   get dragType() { return 'port'; }
 
   update() {
-    const transform = this.portElement.getTransformToElement(this.state.diagramElement);
+    const transform = (this.portElement as any).getTransformToElement(this.state.diagramElement);
     this.global = this.center.matrixTransform(transform);
 
-    // TODO: Emit "drag", in handler lookup connectors and call updateHandle(), lookup midpoint, and call move()
-    if (this.connectors) {
-      this.connectors.forEach(mc => {
-        mc.updateHandle(this);
-        if (mc.isInput && mc.middlePoint) {
-          mc.middlePoint.move(mc.middlePoint.coordinates);
-        }
+    if (this.model.connectors) {
+      this.model.connectors.forEach(connector => {
+        this.state.connectorUpdate$.next({connector, port: this});
       });
     }
-  }
-
-  addConnector(connector: Connector) { // TODO: Inverse dependency: store "ports" on connector object, instead of "connectors" on port object
-    this.connectors.push(connector);
-  }
-
-  removeConnector(connector: Connector) { // TODO: Inverse dependency: store "ports" on connector object, instead of "connectors" on port object
-    this.connectors.splice(this.connectors.indexOf(connector), 1);
   }
 }

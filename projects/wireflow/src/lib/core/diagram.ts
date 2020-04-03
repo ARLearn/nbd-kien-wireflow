@@ -83,11 +83,11 @@ export class Diagram implements DraggableUiElement {
   }
 
   getInputPortByGeneralItemId(generalItemId) {
-    return this.getPortsBy(p => p.isInput && p.model.generalItemId === generalItemId.toString())[0];
+    return this.getPortsBy(p => p.model.isInput && p.model.generalItemId === generalItemId.toString())[0];
   }
 
   getOutputPortByGeneralItemId(generalItemId, action) {
-    return this.getPortsBy(p => !p.isInput && p.model.generalItemId === generalItemId.toString() && p.model.action === action)[0];
+    return this.getPortsBy(p => !p.model.isInput && p.model.generalItemId === generalItemId.toString() && p.model.action === action)[0];
   }
 
   // TODO: Move to connectorsService
@@ -101,7 +101,6 @@ export class Diagram implements DraggableUiElement {
 
     if (!inputMiddlePoint.parentMiddlePoint) {
       const input = this.getInputPortByGeneralItemId(message.id);
-      input.addConnector(connector);
       connector.setOutputPort(input);
       connector.updateHandle(input);
     } else {
@@ -117,9 +116,9 @@ export class Diagram implements DraggableUiElement {
 
     const inputPort = this.getInputPortByGeneralItemId(message.id);
 
-    let outputPort;
+    let outputPort: NodePort;
     if (dependency.type.includes('ProximityDependency')) {
-      outputPort = this.getPortsBy(p => !p.isInput &&
+      outputPort = this.getPortsBy(p => !p.model.isInput &&
         p.model.generalItemId.toString() === dependency.generalItemId.toString() &&
         p.nodeType.includes('ProximityDependency'))[0];
     } else {
@@ -136,8 +135,6 @@ export class Diagram implements DraggableUiElement {
         con.setProximity(dependency.lat, dependency.lng, dependency.radius);
       }
 
-      inputPort.addConnector(con); // TODO: Inverse dependency: store "ports" on connector object, instead of "connectors" on port object
-      outputPort.addConnector(con); // TODO: Inverse dependency: store "ports" on connector object, instead of "connectors" on port object
       con.updateHandle(outputPort);
 
       this.state.addConnectorToOutput(con);
@@ -175,7 +172,6 @@ export class Diagram implements DraggableUiElement {
         const con = new Connector(this.state);
         con.removeHandlers();
         con.init(port);
-        port.addConnector(con); // TODO: Move to state
         con.updateHandle(port);
 
         this.target = con;
@@ -223,7 +219,7 @@ export class Diagram implements DraggableUiElement {
     }
   }
 
-  private _getHitPort({dragElement,isInput}: Connector, shapes: NodeShape[]) {
+  private _getHitPort({dragElement,isInputConnector: isInput}: Connector, shapes: NodeShape[]) {
     for (const shape of shapes) {
       if (Draggable.hitTest(dragElement, shape.nativeElement)) {
 

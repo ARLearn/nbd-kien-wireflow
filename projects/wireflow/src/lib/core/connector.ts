@@ -9,7 +9,7 @@ import { getNumberFromPixels, Point } from '../utils';
 import { Subscription } from 'rxjs';
 import { DraggableUiElement } from './draggable-ui-element';
 
-export const bezierWeight = 0.675; // TODO: Move to connector
+export const bezierWeight = 0.675;
 
 declare const TweenLite;
 
@@ -17,15 +17,13 @@ export class Connector implements DraggableUiElement {
   id: string;
   baseX: number; // TODO: Use "point" object
   baseY: number;
-  isInput = false;
+  isInputConnector = false;
   isSelected: boolean;
   dependencyType: any;
   subType: any;
   proximity?: { lat?: number, lng?: number; radius?: number };
 
   bezierPath: BezierPath;
-  inputPort: NodePort;
-  outputPort: NodePort;
   baseMiddlePoint: ConnectorMiddlePoint;
   middlePoint: MiddlePoint; // TODO: Replace with coordinates
   shape: NodeShape;
@@ -42,6 +40,8 @@ export class Connector implements DraggableUiElement {
 
   private path: any;
   private pathOutline: any;
+  private _inputPort: NodePort;
+  private _outputPort: NodePort;
   private _subscription = new Subscription();
 
   constructor(private state: State, x = -1, y = -1, middlePoint = null, dependencyType = null, subtype = null) {
@@ -104,19 +104,22 @@ export class Connector implements DraggableUiElement {
 
   get dragType() { return 'connector'; }
 
+  get inputPort() { return this._inputPort; }
+  get outputPort() { return this._outputPort; }
+
   setIsInput(isInput: boolean) {
-    this.isInput = isInput;
+    this.isInputConnector = isInput;
   }
 
-  init(port) {
-    this.isInput = port.isInput;
+  init(port: NodePort) {
+    this.isInputConnector = port.model.isInput;
 
-    if (port.isInput) {
-      this.inputPort = port;
+    if (port.model.isInput) {
+      this.setInputPort(port);
       this.dragElement = this.outputHandle;
       this.staticElement = this.inputHandle;
     } else {
-      this.outputPort = port;
+      this.setOutputPort(port);
       this.dragElement = this.inputHandle;
       this.staticElement = this.outputHandle;
     }
@@ -140,30 +143,35 @@ export class Connector implements DraggableUiElement {
     this._updatePath();
   }
 
-  onDragEnd(hitPort: NodePort) {
+  onDragEnd(port: NodePort) {
 
-    if (!hitPort || hitPort.parentNode.nativeElement === this.staticPort.parentNode.nativeElement) {
+    if (!port || port.parentNode.nativeElement === this.staticPort.parentNode.nativeElement) {
       this.remove();
       return;
     }
 
-    if (this.isInput) {
-      this.outputPort = hitPort;
-    } else {
-      this.inputPort = hitPort;
-    }
-
     this.dragElement = null;
 
-    const inputPort = hitPort.isInput ? hitPort : this.inputPort;
-    inputPort.connectors.forEach(c => c !== this && c.remove({ onlyConnector: false }));
+    if (this.isInputConnector) {
+      this.setOutputPort(port);
+    } else {
+      this.setInputPort(port);
+    }
+    
+    // TODO: Emit "connectorAttach" event
+    
+    // TODO: Move to "connectorAttach" handler
+    const inputPort = port.model.isInput ? port : this._inputPort;
+    
+    inputPort.model.connectors
+      .filter(c => c !== this)
+      .forEach(c => {
+        c.remove({ onlyConnector: false });
+      });
 
-    hitPort.addConnector(this);
-    this.updateHandle(hitPort);
-
+    this.updateHandle(port);
     this.state.addConnectorToOutput(this);
     this.state.changeDependencies$.next();
-
   }
 
   move(e: MouseEvent) {
@@ -253,13 +261,32 @@ export class Connector implements DraggableUiElement {
     return this;
   }
 
-  setOutputPort(port) {
-    this.outputPort = port;
+  setOutputPort(port: NodePort) {
+    this._outputPort = port;
+    port.model.connectors.push(this);
     return this;
   }
 
-  setInputPort(port) {
-    this.inputPort = port;
+  detachOutputPort() {
+    this.detachPort(this._outputPort);
+  }
+
+  setInputPort(port: NodePort) {
+    this._inputPort = port;
+    port.model.connectors.push(this);
+    return this;
+  }
+
+  detachInputPort() {
+    this.detachPort(this._inputPort);
+  }
+
+  detachPort(port: NodePort) {
+    const {connectors} = port.model;
+    const index = connectors.indexOf(this);
+    if (index !== -1) {
+      connectors.splice(index, 1);
+    }
   }
 
   setMiddlePoint(mp: MiddlePoint) {
@@ -285,13 +312,13 @@ export class Connector implements DraggableUiElement {
     this._updatePath();
   }
 
-  updateHandle(port) {
-    if (port === this.inputPort) {
+  updateHandle(port) { // TODO: Rename into update(isInput, point)
+    if (port === this._inputPort) {
       TweenLite.set(this.inputHandle, {
         x: port.global.x,
         y: port.global.y
       });
-    } else if (port === this.outputPort) {
+    } else if (port === this._outputPort) {
       TweenLite.set(this.outputHandle, {
         x: port.global.x,
         y: port.global.y
@@ -313,31 +340,31 @@ export class Connector implements DraggableUiElement {
   }
 
   private onHover(e: MouseEvent) {
-    if (this.inputPort && this.inputPort.inputNodeType.includes('ProximityDependency')) { return; }
+    if (this._inputPort && this._inputPort.inputNodeType.includes('ProximityDependency')) { return; }
 
-    if (!this.middlePoint || !this.isInput || (this.middlePoint && this.middlePoint.parentMiddlePoint)) {
+    if (!this.middlePoint || !this.isInputConnector || (this.middlePoint && this.middlePoint.parentMiddlePoint)) {
       this.baseMiddlePoint.show();
       this.baseMiddlePoint.move(this.getMiddlePointCoordinates());
     }
   }
 
   private onHoverLeave(e: MouseEvent) {
-    if (!this.middlePoint || !this.isInput || (this.middlePoint && this.middlePoint.parentMiddlePoint)) {
+    if (!this.middlePoint || !this.isInputConnector || (this.middlePoint && this.middlePoint.parentMiddlePoint)) {
       if (this.connectorToolbar.isHidden()) {
         this.baseMiddlePoint.hide();
       }
     }
   }
 
-  private _updatePath(x = null, y = null) { // TODO: Rename into update(), create nested methods updatePath() & updateMiddlePoint()
+  private _updatePath(x = null, y = null) {
     let p1x; let p1y; // TODO: Use bezier coordinates object
     let p2x; let p2y;
     let p3x; let p3y;
     let p4x; let p4y;
 
-    const fixedEnd = !this.isInput || !this.middlePoint;
-    const fixedStart = !!(this.outputPort || this.inputPort);
-    const swapCoords = ((this.outputPort && this.outputPort.isInput) || this.isInput) && !this.inputPort;
+    const fixedEnd = !this.isInputConnector || !this.middlePoint;
+    const fixedStart = !!(this._outputPort || this._inputPort);
+    const swapCoords = ((this._outputPort && this._outputPort.model.isInput) || this.isInputConnector) && !this._inputPort;
 
     let {x1, y1, x4, y4} = this.getCoords();
 

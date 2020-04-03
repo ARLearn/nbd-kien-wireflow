@@ -26,7 +26,6 @@ export interface NodeShapeNewArgs {
 export interface NodePortNewArgs {
   model: PortModel;
   parentNode: NodeShape;
-  isInput: boolean; // TODO: Move to PortModel
 }
 
 export interface ConnectorRemoveArgs {
@@ -38,6 +37,11 @@ export interface ConnectorRemoveOptions {
   onlyConnector?: boolean;
   removeDependency?: boolean;
   removeVirtualNode?: boolean;
+}
+
+export interface ConnectorPortArgs {
+  connector: Connector;
+  port: NodePort;
 }
 
 export class State {
@@ -68,6 +72,8 @@ export class State {
   nodeShapeNew$ = new Subject<NodeShapeNewArgs>(); // TODO: Move to nodesService
   nodeShapeRemove$ = new Subject<string>(); // TODO: Move to nodesService
   connectorRemove$ = new Subject<ConnectorRemoveArgs>(); // TODO: Move to connectorsService
+  connectorUpdate$ = new Subject<ConnectorPortArgs>(); // TODO: Move to connectorsService
+  connectorDetach$ = new Subject<ConnectorPortArgs>(); // TODO: Move to connectorsService
   middlePointClick$ = new Subject<MiddlePoint>(); // TODO: Move to connectorsService
   shapeClick$ = new Subject<NodeShape>(); // TODO: Move to nodesService
 
@@ -93,11 +99,13 @@ export class State {
       id: `port_${this.idCounter()}`,
       generalItemId,
       action,
+      isInput,
+      connectors: [],
     } as PortModel;
 
     this.portModels.push(model);
 
-    this.nodePortNew$.next({ model, parentNode, isInput });
+    this.nodePortNew$.next({ model, parentNode });
   }
 
   init(diagramEl, shapeEls, svgEl, dragProxyEl, fragEl, connectorEl, connectorLayerEl) {
