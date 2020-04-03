@@ -941,11 +941,11 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
 
       if (!dep.generalItemId) { return; }
 
-      const portExists = this.diagram.portsExistsBy(
-        p => p.model.generalItemId === dep.generalItemId && p.model.action === dep.action
-      );
+      const portExists = this.diagram.portsExistsBy(p => {
+        return p.model.generalItemId.toString() === dep.generalItemId.toString() && p.model.action === dep.action
+      });
 
-      if (!portExists) { return; }
+      if (!dep.type.includes('Proximity') && !portExists) { return; }
 
       return this._createConnector(
         message,
