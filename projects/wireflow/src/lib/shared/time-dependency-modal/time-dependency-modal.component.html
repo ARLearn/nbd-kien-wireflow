@@ -1,0 +1,21 @@
+<form (keydown)="$event.stopPropagation();" (ngSubmit)="f.valid && onSubmit(f.value)" #f="ngForm">
+  <div class="modal-header">
+    <h5 class="modal-title">Timer</h5>
+  </div>
+  <div class="modal-body">
+    <div>
+      <input
+        class="form-control"
+        type="number" name="seconds"
+        placeholder="Please enter number of seconds"
+        [ngModel]="seconds"
+        required
+        autocomplete="off"
+      />
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button type="submit" class="btn btn-success">Confirm</button>
+    <button type="reset" class="btn btn-secondary" (click)="cancel.next()">Cancel</button>
+  </div>
+</form>

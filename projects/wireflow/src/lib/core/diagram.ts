@@ -1,56 +1,155 @@
-import {
-  connectorElement,
-  connectorLayer,
-  connectorLookup, connectorsBaseState, connectorsOutput, connectorsOutput$,
-  diagramElement,
-  dragProxy,
-  frag, init, portLookup, ports, setConnectorsOutput,
-  shapeElements,
-  shapeLookup, shapes,
-  svg
-} from './base';
 import { NodeShape } from './node-shape';
+import { Connector } from './connector';
+import { State } from './state';
+import { DraggableUiElement } from './draggable-ui-element';
+import { NodePort } from './node-port';
+import { MiddlePoint } from './middle-point';
+import {Point} from "../utils";
 
-export class Diagram {
-  dragElement: any;
+declare const TweenLite;
+declare const Draggable;
+
+// TODO: Merge with state, or wrap state inside, or make wrapped by state
+export class Diagram implements DraggableUiElement {
+  shapes: NodeShape[] = [];
+
   element: any;
-  target: any;
+  target: DraggableUiElement;
   dragType: any;
   draggable: any;
 
-  // tslint:disable-next-line:variable-name
-  constructor(_diagramElement, _shapeElements, _svg, _dragProxy, _frag, _connectorEl, _connectorLayer, messages) {
-    init(_diagramElement, _shapeElements, _svg, _dragProxy, _frag, _connectorEl, _connectorLayer);
+  mpAllowedTypes: string[] = [
+    'org.celstec.arlearn2.beans.dependencies.AndDependency',
+    'org.celstec.arlearn2.beans.dependencies.OrDependency',
+    'org.celstec.arlearn2.beans.dependencies.TimeDependency',
+  ];
 
-    this.dragElement = this.element = diagramElement;
+  private openedConnector: Connector;
 
-    shapeElements.forEach((element, i) => {
-      const message = messages.find(x => element.getAttribute('general-item-id') == x.id);
-      const shape = new NodeShape(element, Number(message.authoringX), Number(message.authoringY));
-      shapeLookup[shape.id] = shape;
-      shapes.push(shape);
-    });
+  state = new State();
+
+  constructor(diagramEl, shapeEls, svgEl, dragProxyEl, fragEl, connectorEl, connectorLayerEl) {
+    this.state.init(diagramEl, shapeEls, svgEl, dragProxyEl, fragEl, connectorEl, connectorLayerEl);
+
+    this.element = this.state.diagramElement;
 
     this.target = null;
     this.dragType = null;
 
-    // @ts-ignore
-    this.draggable = new Draggable(dragProxy, {
+    this.draggable = new Draggable(this.state.dragProxy, {
       allowContextMenu: true,
-      trigger: svg,
-      onDrag: () => this.dragTarget(),
-      onDragEnd: e => this.stopDragging(this.getDragArgs(e)),
-      onPress: e => this.prepareTarget(this.getDragArgs(e)),
+      trigger: this.state.svg,
+      onDrag: () => this._dragTarget(),
+      onDragEnd: e => this._stopDragging(this._getDragArgs(e)),
+      onPress: e => this._onDragStart(this._getDragArgs(e)),
+      onClick: () => this._onDragClick()
     });
-
   }
 
-  private getDragArgs({target}: any) {
-    let drag;
+  get dragElement() { return this.element; }
 
-    // tslint:disable-next-line:no-conditional-assignment
-    while (!(drag = target.getAttribute('data-drag')) && target !== svg) {
+  initShapes(messages) {
+    this.state.shapeElements.forEach(element => {
+      const message = messages.find(x => element.getAttribute('general-item-id') == x.id);
+      this.state.createNode(message);
+    });
+  }
+
+  getShapeById(id) {
+    return this.shapes.find(x => x.model.id === id);
+  }
+
+  getShapeByGeneralItemId(generalItemId) {
+    return this.shapes.find(x => x.model.generalItemId === generalItemId.toString());
+  }
+
+  getPortsBy(matcher: (p: NodePort) => boolean) {
+    const ports = new Array<NodePort>();
+    for (const shape of this.shapes)
+    for (const port of [...shape.inputs, ...shape.outputs]) {
+      if (matcher(port)) {
+        ports.push(port);
+      }
+    }
+    return ports;
+  }
+
+  portsExistsBy(matcher: (p: NodePort) => boolean): boolean {
+    return this.getPortsBy(matcher).length > 0;
+  }
+
+  getPortById(id) {
+    return this.getPortsBy(p => p.model.id === id)[0];
+  }
+
+  getInputPortByGeneralItemId(generalItemId) {
+    return this.getPortsBy(p => p.model.isInput && p.model.generalItemId === generalItemId.toString())[0];
+  }
+
+  getOutputPortByGeneralItemId(generalItemId, action) {
+    return this.getPortsBy(p => {
+      return !p.model.isInput && p.model.generalItemId.toString() === generalItemId.toString() && p.model.action === action;
+    })[0];
+  }
+
+  // TODO: Move to connectorsService
+  createInputConnector(message: any, coords: { x: number; y: number }, inputMiddlePoint: MiddlePoint): Connector {
+
+    // TODO: Create ConnectorModel, and emit from connectorNew$
+
+    const connector = new Connector(this.state, coords.x, coords.y, null); // TODO: Move to subscription
+    connector.setMiddlePoint(inputMiddlePoint);
+    connector.setIsInput(true);
+
+    if (!inputMiddlePoint.parentMiddlePoint) {
+      const input = this.getInputPortByGeneralItemId(message.id);
+      connector.setOutputPort(input);
+      connector.updateHandle(input);
+    } else {
+      connector.moveOutputHandle(inputMiddlePoint.parentMiddlePoint.coordinates);
+    }
+
+    connector.connectorElement.classList.remove('middle-connector--new');
+    connector.removeHandlers();
+    return connector;
+  }
+
+  initConnector(dependency, message) {
+
+    const inputPort = this.getInputPortByGeneralItemId(message.id);
+
+    let outputPort: NodePort;
+    if (dependency.type.includes('ProximityDependency')) {
+      outputPort = this.getPortsBy(p => !p.model.isInput &&
+        p.model.generalItemId.toString() === dependency.generalItemId.toString() &&
+        p.nodeType.includes('ProximityDependency'))[0];
+    } else {
+      outputPort = this.getOutputPortByGeneralItemId(dependency.generalItemId, dependency.action);
+    }
+
+    if (inputPort && outputPort) {
+      const con = new Connector(this.state)
+        .removeHandlers()
+        .init(inputPort)
+        .setOutputPort(outputPort);
+
+      if (dependency.type.includes('ProximityDependency')) {
+        con.setProximity(dependency.lat, dependency.lng, dependency.radius);
+      }
+
+      con.updateHandle(outputPort);
+
+      this.state.addConnectorToOutput(con);
+      return con;
+    }
+  }
+
+  private _getDragArgs({target}: any) {
+    let drag = target.getAttribute('data-drag');
+
+    while (!drag && target !== this.state.svg) {
       target = target.parentNode;
+      drag = target.getAttribute('data-drag');
     }
 
     drag = drag || 'diagram:diagram';
@@ -60,90 +159,102 @@ export class Diagram {
     return {target, id, dragType};
   }
 
-  initState(baseState: any[]) {
-    baseState.forEach(message => {
-
-      if (message.dependsOn && message.dependsOn.type && (
-           message.dependsOn.type === 'org.celstec.arlearn2.beans.dependencies.AndDependency' ||
-           message.dependsOn.type === 'org.celstec.arlearn2.beans.dependencies.OrDependency')) {
-
-        if (message.dependsOn && message.dependsOn.dependencies) {
-            message.dependsOn.dependencies.forEach(dep => {
-              this.drawConnector(dep, message);
-            });
-        }
-
-      } else {
-        if (message.dependsOn && message.dependsOn.generalItemId && message.dependsOn.action) {
-          this.drawConnector(message.dependsOn, message);
-        }
-
-      }
-    });
-
-    setConnectorsOutput(connectorsBaseState);
-  }
-
-  private drawConnector(dependency, message) {
-    const inputPort = ports.find(x => x.generalItemId == message.id && x.isInput);
-    const outputPort = ports.find(x => x.generalItemId == dependency.generalItemId && x.action === dependency.action && !x.isInput);
-
-    if (inputPort != null && outputPort != null) {
-      inputPort.createConnector();
-      inputPort.lastConnector.outputPort = outputPort;
-      outputPort.connectors.push(inputPort.lastConnector);
-      inputPort.update();
-      outputPort.update();
-
-      connectorsBaseState.push(inputPort.lastConnector);
-    }
-  }
-
-  prepareTarget({id, dragType}) {
+  private _onDragStart({id, dragType}) {
     switch (dragType) {
       case 'diagram':
         this.target = this;
         break;
 
       case 'shape':
-        this.target = shapeLookup[id];
+        this.target = this.getShapeById(id);
         break;
 
       case 'port':
-        const port = portLookup[id];
-        port.createConnector();
-        this.target = port.lastConnector;
+        const port = this.getPortById(id);
+        const con = new Connector(this.state);
+        con.removeHandlers();
+        con.init(port);
+        con.updateHandle(port);
+
+        this.target = con;
+        this.openedConnector = con;
         this.dragType = this.target.dragType;
         break;
 
-      case 'connector':
-        this.target = connectorLookup[id];
+      case 'middle-point':
+        this.target = this.state.getMiddlePointById(id); // TODO: Change to "getDraggableById"
         break;
     }
   }
 
-  dragTarget() {
-    // @ts-ignore
-    TweenLite.set(this.target.dragElement, {
-      x: `+=${this.draggable.deltaX}`,
-      y: `+=${this.draggable.deltaY}`,
-    });
+  private _dragTarget() {
+    if (this.target) {
+      TweenLite.set(this.target.dragElement, {
+        x: `+=${this.draggable.deltaX}`,
+        y: `+=${this.draggable.deltaY}`,
+      });
 
-    this.target.onDrag && this.target.onDrag();
+      this.target.onDrag && this.target.onDrag();
+    }
   }
 
-  stopDragging({id, dragType}) {
+  private _stopDragging({id, dragType}) {
     switch (dragType) {
-
       case 'shape':
-        this.target = shapeLookup[id];
+        this.target = this.getShapeById(id);
         const {e, f} = this.target.dragElement.getCTM();
-        this.target.onDragEnd(e, f);
+        if (!this._cleanupOpenedConnector()) {
+          this.target.onDragEnd(e, f);
+        }
         break;
-
-      default:
-        this.target.onDragEnd && this.target.onDragEnd();
+      default: {
+        if (this.target) {
+          const hitShape = this.target instanceof Connector && this._getHitShape(
+            this.target as Connector,
+            this.shapes
+          );
+          delete this.openedConnector;
+          const hitPort = this.target instanceof Connector && hitShape && ( this._getHitPort(
+            this.target as Connector,
+            hitShape,
+          ) || ( !(this.target as Connector).isInputConnector && hitShape.inputs[0] ) );
+          this.target.onDragEnd && this.target.onDragEnd(hitPort);
+        }
         break;
+      }
     }
+  }
+
+  private _getHitShape({ dragElement }: Connector, shapes: NodeShape[]) {
+    for (const shape of shapes) {
+      if (Draggable.hitTest(dragElement, shape.nativeElement)) {
+        return shape;
+      }
+    }
+  }
+
+  private _getHitPort({dragElement, isInputConnector: isInput}: Connector, shape: NodeShape) {
+    const shapePorts = isInput ? shape.outputs : shape.inputs;
+
+    for (const port of shapePorts) {
+
+      // @ts-ignore
+      if (Draggable.hitTest(dragElement, port.portElement)) {
+        return port;
+      }
+    }
+  }
+
+  private _onDragClick() {
+    this._cleanupOpenedConnector();
+  }
+
+  private _cleanupOpenedConnector() {
+    if (this.openedConnector && !(this.openedConnector.inputPort && this.openedConnector.outputPort)) {
+      this.openedConnector.remove();
+      delete this.openedConnector;
+      return true;
+    }
+    return false;
   }
 }

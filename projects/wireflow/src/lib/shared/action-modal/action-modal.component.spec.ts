@@ -1,20 +1,20 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { EditorPageComponent } from './editor-page.component';
+import { ActionModalComponent } from './action-modal.component';
 
-describe('EditorPageComponent', () => {
-  let component: EditorPageComponent;
-  let fixture: ComponentFixture<EditorPageComponent>;
+describe('ActionModalComponent', () => {
+  let component: ActionModalComponent;
+  let fixture: ComponentFixture<ActionModalComponent>;
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [ EditorPageComponent ]
+      declarations: [ ActionModalComponent ]
     })
     .compileComponents();
   }));
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(EditorPageComponent);
+    fixture = TestBed.createComponent(ActionModalComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

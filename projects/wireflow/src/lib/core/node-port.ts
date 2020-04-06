@@ -1,105 +1,60 @@
-import {
-  addConnectorToOutput,
-  connectorLookup,
-  connectorPool,
-  diagramElement,
-  idCounter, removeConnectorFromOutput,
-  svg
-} from './base';
-import { Connector } from './connector';
+import { State } from './state'; // TODO: Remove dependency
+import { DraggableUiElement } from './draggable-ui-element';
+import { BaseModelUiElement } from './base-model-ui-element';
+import { PortModel } from './models';
 
-export class NodePort {
-  id: string;
-  dragType: string;
-  parentNode: any;
-  isInput: any;
-  generalItemId: any;
-  nodeType: any;
-  action: any;
-  element: any;
-  portElement: any;
-  connectors: any[];
-  portScrim: any;
-  global: any;
+(SVGElement.prototype as any).getTransformToElement = (SVGElement.prototype as any).getTransformToElement || function(toElement) {
+  return toElement.getScreenCTM().inverse().multiply(this.getScreenCTM());
+};
+
+export class NodePort extends BaseModelUiElement<PortModel> implements DraggableUiElement {
+  parentNode: BaseModelUiElement;
+  nodeType: string;
+  portElement: SVGGraphicsElement;
+  portScrim: SVGGraphicsElement;
+  global: SVGPoint;
   center: SVGPoint;
-  lastConnector: any;
+  inputNodeType: string;
 
-  constructor(parentNode, element, isInput) {
+  constructor(private state: State, parentNode: BaseModelUiElement<any>, nativeElement: HTMLElement, opts: PortModel) {
 
-    this.id = `port_${idCounter()}`;
-    this.dragType = 'port';
+    super(
+      nativeElement,
+      opts
+    );
 
     this.parentNode = parentNode;
-    this.isInput = isInput;
-    this.generalItemId = element.getAttribute('general-item-id');
-    this.nodeType = element.getAttribute('node-type');
-    this.action = element.getAttribute('action');
+    this.nodeType = nativeElement.getAttribute('node-type');
+    this.inputNodeType = nativeElement.getAttribute('input-node-type');
 
-    this.element = element;
-    this.portElement = element.querySelector('.port');
-    this.portScrim = element.querySelector('.port-scrim');
+    this.portElement = nativeElement.querySelector('.port');
+    this.portScrim = nativeElement.querySelector('.port-scrim');
 
-    this.portScrim.setAttribute('data-drag', `${this.id}:port`);
-
-    this.connectors = [];
+    if (!this.parentNode.model.dependencyType.includes('ProximityDependency')) {
+      this.portScrim.setAttribute('data-drag', `${this.model.id}:port`);
+    }
 
     const bbox = this.portElement.getBBox();
 
-    this.global = svg.createSVGPoint();
-    this.center = svg.createSVGPoint();
+    this.global = this.state.svg.createSVGPoint();
+    this.center = this.state.svg.createSVGPoint();
     this.center.x = bbox.x + bbox.width / 2;
     this.center.y = bbox.y + bbox.height / 2;
 
     this.update();
   }
 
-  createConnector() {
-    let connector: Connector;
-
-    if (connectorPool.length) {
-      connector = connectorPool.pop();
-      connectorLookup[connector.id] = connector;
-    } else {
-      connector = new Connector();
-    }
-
-    connector.init(this);
-    this.lastConnector = connector;
-    this.connectors.push(connector);
-  }
-
-  removeConnector(connection) {
-    this.clear();
-    const index = this.connectors.indexOf(connection);
-
-    if (index > -1) {
-      this.connectors.splice(index, 1);
-      if (connection.inputPort && connection.outputPort) {
-        removeConnectorFromOutput(connection);
-      }
-    }
-
-  }
-
-  addConnector(connection) {
-    this.clear();
-
-    if (!this.connectors.some(c => c.inputPort.id === connection.inputPort.id && c.outputPort.id === connection.outputPort.id)) {
-      this.connectors.push(connection);
-      addConnectorToOutput(connection);
-    }
-  }
+  get dragElement() { return null; }
+  get dragType() { return 'port'; }
 
   update() {
-    const transform = this.portElement.getTransformToElement(diagramElement);
+    const transform = (this.portElement as any).getTransformToElement(this.state.diagramElement);
     this.global = this.center.matrixTransform(transform);
 
-    for (const connector of this.connectors) {
-      connector.updateHandle(this);
+    if (this.model.connectors) {
+      this.model.connectors.forEach(connector => {
+        this.state.connectorUpdate$.next({connector, port: this});
+      });
     }
-  }
-
-  clear() {
-    this.connectors = this.connectors.filter(x => x.inputPort && x.outputPort);
   }
 }

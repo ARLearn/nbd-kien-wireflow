@@ -1,136 +1,147 @@
-#svg {
-  position: fixed;
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-  font-family: Arial, sans-serif;
-}
 
-.connector-handle {
-  fill: #E88802;
-}
+.wireflow-component {
+  @import "~ngx-smart-modal/ngx-smart-modal";
 
-.connector-path {
-  stroke: #E88802;
-  stroke-width: 4;
-  fill: none;
-}
-
-.connector-path-outline {
-  stroke: #333;
-  stroke-width: 6;
-  fill: none;
-
-  &--selected {
-    stroke: red;
+  #svg {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    font-family: Arial, sans-serif;
   }
-}
 
-.middle-point,
-.middle-point-add {
-  cursor: pointer;
-}
-.middle-point-font {
-  font-size: 1.5rem;
-}
-
-$sidebar-background: #426D92;
-//#426D92 - dark blue
-// #3C3C3C
-.content {
-  display: flex;
-  min-height: 100vh;
-}
-.sidebar {
-  max-width: 300px;
-  padding: 2rem 3rem;
-  background-color: $sidebar-background;
-
-  &__title {
-    margin: 1rem 0;
-    font-size: 1.2rem;
-    color: #ffffff;
+  .connector-handle {
+    fill: #E88802;
   }
-}
-.main {
-  flex: 1;
-}
-.list-item {
-  padding: 0.5rem;
-  margin-bottom: 0.45rem;
-  background-color: #3C3C3C;
-  color: #ffffff;
-  border: 2px solid #1a1c1d;
-  border-radius: 6px;
 
-  &__heading {
-    display: block;
-    font-size: 1.1rem;
-    margin-bottom: 0.35rem;
+  .connector-path {
+    stroke: #E88802;
+    stroke-width: 4;
+    fill: none;
   }
-  &__meta {
-    font-size: 0.8rem;
+
+  .connector-path-outline {
+    stroke: #333;
+    stroke-width: 6;
+    fill: none;
+
+    &--selected {
+      stroke: red;
+    }
   }
-  &--orange {
-    background-color: #E88802;
+
+  .connector-toolbar {
+    z-index: 100;
+
+    &__btn {
+      cursor: pointer;
+
+      rect {
+        fill: #b4b4b4;
+      }
+
+      &:hover {
+        rect {
+          fill: #e88802;
+        }
+      }
+    }
   }
-}
 
-svg {
-  overflow: visible;
-}
+  .base-middle-point {
+    fill: #e88802;
+  }
 
-.node-container {
-  cursor: move;
-}
+  .base-middle-point,
+  .middle-point,
+  .connector-middle-point {
+    cursor: pointer;
+  }
+  .middle-point-font {
+    font-size: 1.5rem;
+  }
 
-.node-background {
-  fill: #1a1c1d;
-}
+  .content {
+    display: flex;
+    min-height: 100vh;
+  }
+  .main {
+    flex: 1;
+  }
+  svg {
+    overflow: visible;
+  }
 
-.node-header {
-  fill: #426D92;
+  .node-container {
+    cursor: move;
 
-  .header-title {
-    font-size: 20px;
+    &.border--danger {
+      .node-background {
+        stroke: var(--danger);
+      }
+    }
+    &.border--success {
+      .node-background {
+        stroke: var(--success);
+      }
+    }
+  }
+
+  .node-background {
+    fill: #1a1c1d;
+    stroke-width: 3px;
+  }
+
+  .node-header {
+    fill: #426D92;
+
+    .header-title {
+      font-size: 20px;
+      fill: #fff;
+      text-anchor: middle;
+    }
+  }
+
+  .node-content {
+    fill: #3C3C3C;
+  }
+
+  .port {
+    cursor: pointer;
+  }
+
+  .port-scrim {
+    fill: transparent;
+  }
+
+  .port-outer {
+    fill: #777777;
+  }
+
+  .port-inner {
+    fill: #202020;
+  }
+
+  .port-label {
+    font-size: 12px;
     fill: #fff;
-    text-anchor: middle;
   }
-}
 
-.node-content {
-  fill: #3C3C3C;
-}
-
-.port {
-  cursor: pointer;
-}
-
-.port-scrim {
-  fill: transparent;
-}
-
-.port-outer {
-  fill: #777777;
-}
-
-.port-inner {
-  fill: #202020;
-}
-
-.port-label {
-  font-size: 12px;
-  fill: #fff;
-}
-
-.input-field {
-  .port-label {
-    text-anchor: start;
+  .input-field {
+    .port-label {
+      text-anchor: start;
+    }
   }
-}
 
-.output-field {
-  .port-label {
-    text-anchor: end;
+  .output-field {
+    .port-label {
+      text-anchor: end;
+    }
+  }
+
+
+  .middle-connector--new,
+  .no-events {
+    pointer-events: none;
   }
 }

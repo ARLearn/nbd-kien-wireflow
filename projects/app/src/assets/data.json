@@ -7,20 +7,46 @@
     "id": 5645612305350656,
     "scope": "user",
     "name": "watch this video (if you have both the single and multiple choice correct)",
-    "authoringX": 757.4480206205844,
-    "authoringY": 390.07700747480976,
+    "authoringX": 1059.7049876363562,
+    "authoringY": 669.646992613285,
     "dependsOn": {
-      "type": "org.celstec.arlearn2.beans.dependencies.AndDependency",
+      "type": "org.celstec.arlearn2.beans.dependencies.OrDependency",
       "dependencies": [
         {
-          "type": "org.celstec.arlearn2.beans.dependencies.ActionDependency",
-          "action": "answer_correct",
-          "generalItemId": "5732934090752000"
+          "type": "org.celstec.arlearn2.beans.dependencies.TimeDependency",
+          "timeDelta": 30000,
+          "offset": {
+            "type": "org.celstec.arlearn2.beans.dependencies.ActionDependency",
+            "action": "answer_given",
+            "generalItemId": 5732934090752000
+          }
         },
         {
-          "type": "org.celstec.arlearn2.beans.dependencies.ActionDependency",
-          "action": "read",
-          "generalItemId": "5738284646924288"
+          "type": "org.celstec.arlearn2.beans.dependencies.AndDependency",
+          "dependencies": [
+            {
+              "type": "org.celstec.arlearn2.beans.dependencies.ActionDependency",
+              "action": "answer_correct",
+              "generalItemId": "5732934090752000"
+            },
+            {
+              "type": "org.celstec.arlearn2.beans.dependencies.ActionDependency",
+              "action": "read",
+              "generalItemId": "5738284646924288"
+            },
+            {
+              "type": "org.celstec.arlearn2.beans.dependencies.ProximityDependency",
+              "lng": 5.465985,
+              "lat": 50.781279,
+              "radius": 30
+            }
+          ]
+        },
+        {
+          "type": "org.celstec.arlearn2.beans.dependencies.ProximityDependency",
+          "lng": 5.465985,
+          "lat": 50.781279,
+          "radius": 30
         }
       ]
     },
@@ -86,8 +112,8 @@
     "authoringY": 278.4150168423357,
     "dependsOn": {
       "type": "org.celstec.arlearn2.beans.dependencies.ProximityDependency",
-      "lng": 4.60214213281256,
-      "lat": 52.00731869088851,
+      "lng": 5.465985,
+      "lat": 50.781279,
       "radius": 30
     },
     "gameId": 5634472569470976,
@@ -107,8 +133,8 @@
     "deleted": false,
     "lastModificationDate": 1580734280364,
     "id": 5732934090752000,
-    "authoringX": 420.3946999999999,
-    "authoringY": 244.72069999999997,
+    "authoringX": 535.3930213270487,
+    "authoringY": 195.31400118213878,
     "scope": "user",
     "name": "An apple is a",
     "description": "",
@@ -127,6 +153,13 @@
         "feedback": "Nope, try again.",
         "answer": "vegetable",
         "id": "J7CyL"
+      },
+      {
+        "type": "org.celstec.arlearn2.beans.generalItem.MultipleChoiceAnswerItem",
+        "isCorrect": false,
+        "feedback": "Nope, try again.",
+        "answer": "www",
+        "id": "given"
       }
     ],
     "showFeedback": true,
@@ -140,8 +173,8 @@
     "lastModificationDate": 1580734403892,
     "id": 5738284646924288,
     "scope": "user",
-    "authoringX": 420.33500398203705,
-    "authoringY": 481.7500143572688,
+    "authoringX": 231.2520057932138,
+    "authoringY": 499.75401269656413,
     "name": "What are mammals",
     "description": "",
     "label": "",
@@ -173,4 +206,3 @@
     "dependsOn": {}
   }
 ]
-

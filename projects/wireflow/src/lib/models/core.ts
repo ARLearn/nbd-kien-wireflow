@@ -24,8 +24,8 @@ export interface GameMessageCommon {
   authoringX?: number;
   authoringY?: number;
   label?: string;
-  dependsOn?: DependencyUnion;
-  disappearOn?: DependencyUnion;
+  dependsOn?: Dependency;
+  disappearOn?: Dependency;
   richText?: string;
   lastModificationDate?: number;
   lat?: number;
@@ -54,42 +54,41 @@ export interface ScanTagScreen extends GameMessageCommon {
 
 export type GameMessage = MultipleChoiceScreen | ScanTagScreen;
 
+export type DependencyTypeProximity = 'org.celstec.arlearn2.beans.dependencies.ProximityDependency';
 export type DependencyTypeAction = 'org.celstec.arlearn2.beans.dependencies.ActionDependency';
 export type DependencyTypeTime = 'org.celstec.arlearn2.beans.dependencies.TimeDependency';
 export type DependencyTypeAnd = 'org.celstec.arlearn2.beans.dependencies.AndDependency';
 export type DependencyTypeOr = 'org.celstec.arlearn2.beans.dependencies.OrDependency';
 
-export interface Dependency {
-  type: DependencyTypeAction | DependencyTypeAnd | DependencyTypeOr | DependencyTypeTime;
-}
-
-export interface ActionDependency extends Dependency {
+export interface ActionDependency {
   type: DependencyTypeAction;
   action: DependencyTypeAction;
   generalItemId: number;
   scope?: number;
+  subtype?: string;
 }
 
-export interface AndDependency extends Dependency {
+export interface AndDependency {
   type: DependencyTypeAnd;
   dependencies: Dependency[];
 }
 
-export interface OrDependency extends Dependency {
+export interface OrDependency {
   type: DependencyTypeOr;
   dependencies: Dependency[];
 }
 
-export interface TimeDependency extends Dependency {
+export interface TimeDependency {
   type: DependencyTypeTime;
   timeDelta: number;
   offset: Dependency;
 }
 
-export interface ProximityDependency extends Dependency {
+export interface ProximityDependency {
+  type: DependencyTypeProximity;
   lng: number;
   lat: number;
   radius: number;
 }
 
-export type DependencyUnion = ProximityDependency | AndDependency | OrDependency | TimeDependency | ActionDependency ;
+export type Dependency = AndDependency & OrDependency & TimeDependency & ActionDependency & ProximityDependency;

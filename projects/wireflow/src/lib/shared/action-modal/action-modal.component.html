@@ -1,0 +1,23 @@
+<form (keydown)="$event.stopPropagation();" (ngSubmit)="f.valid && submitForm.next(f.value)" #f="ngForm">
+  <div class="modal-header">
+    <h5 class="modal-title">Provide an QR label</h5>
+  </div>
+  <div class="modal-body">
+    <div>
+      <input
+        class="form-control"
+        #nameInput
+        type="text"
+        name="action"
+        placeholder="QR label"
+        [(ngModel)]="action"
+        required
+        autocomplete="off"
+      />
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button type="submit" class="btn btn-success">Confirm</button>
+    <button type="reset" class="btn btn-secondary" (click)="cancel.next()">Cancel</button>
+  </div>
+</form>

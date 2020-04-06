@@ -1,59 +1,82 @@
 import { NodePort } from './node-port';
-import { coordinatesOutput$, idCounter, portLookup, ports } from './base';
+import { State } from './state'; // TODO: Remove dependency
+import { getNumberFromPixels, Point } from '../utils';
+import { DraggableUiElement } from './draggable-ui-element';
+import { BaseModelUiElement } from './base-model-ui-element';
+import { NodeModel } from './models';
 
-export class NodeShape {
+export class NodeShape extends BaseModelUiElement<NodeModel> implements DraggableUiElement {
   id: string;
-  generalItemId: string;
-  dragType: string;
-  element: any;
-  dragElement: any;
-  inputs: NodePort[];
-  outputs: NodePort[];
+  inputs = [] as NodePort[];
+  outputs = [] as  NodePort[];
 
-  constructor(element, x, y) {
+  constructor(
+    private state: State,
+    nativeElement: HTMLElement,
+    opts: NodeModel,
+    point: Point,
+  ) {
+    super(
+      nativeElement,
+      opts
+    );
 
-    this.id = `shape_${idCounter()}`;
-    this.dragType = 'shape';
+    nativeElement.setAttribute('data-drag', `${this.model.id}:shape`);
 
-    element.setAttribute('data-drag', `${this.id}:shape`);
+    const inputElements  = Array.from<HTMLElement>(nativeElement.querySelectorAll('.input-field'));
+    const outputElements = Array.from<HTMLElement>(nativeElement.querySelectorAll('.output-field'));
 
-    this.generalItemId = element.getAttribute('general-item-id');
-
-    this.element = element;
-    this.dragElement = element;
-
-    // @ts-ignore
-    TweenLite.set(element, { x, y });
-
-    const inputElements = Array.from(element.querySelectorAll('.input-field'));
-    const outputElements = Array.from(element.querySelectorAll('.output-field'));
-
-    this.inputs = inputElements.map(el => {
-      const port = new NodePort(this, el, true);
-      portLookup[port.id] = port;
-      ports.push(port);
-      return port;
+    inputElements.forEach(el => {
+      const generalItemId = el.getAttribute('general-item-id');
+      this.state.createPort(null, generalItemId, this, true);
     });
 
-    this.outputs = outputElements.map(el => {
-      const port = new NodePort(this, el, false);
-      portLookup[port.id] = port;
-      ports.push(port);
-      return port;
+    outputElements.forEach(el => {
+      const generalItemId = el.getAttribute('general-item-id');
+      const action = el.getAttribute('action');
+      this.state.createPort(action, generalItemId, this, false);
     });
+
+    this.move(point);
+
+    this.nativeElement.onclick = this._onClick.bind(this);
   }
+
+  get dragElement() { return this.nativeElement; }
+  get dragType() { return 'shape'; }
 
   onDrag() {
-    for (const input of this.inputs) {
-      input.update();
-    }
+    this.nativeElement.classList.add('no-events');
 
-    for (const output of this.outputs) {
-      output.update();
-    }
+    this._updatePorts();
   }
 
-  onDragEnd(x = null, y = null) {
-    coordinatesOutput$.next({ x, y, messageId: this.generalItemId });
+  move(point: Point) {
+    super.move(point);
+
+    this._updatePorts();
+    return this;
+  }
+
+  private _updatePorts() {
+    this.inputs.forEach(p => p.update());
+    this.outputs.forEach(p => p.update());
+  }
+
+  onDragEnd() {
+    const x = getNumberFromPixels(this.nativeElement['_gsap'].x);
+    const y = getNumberFromPixels(this.nativeElement['_gsap'].y);
+
+    this.state.coordinatesOutput$.next({ x, y, messageId: this.model.generalItemId });
+    this.nativeElement.classList.remove('no-events');
+  }
+
+  remove() {
+    this.state.nodeShapeModels.splice(this.state.nodeShapeModels.indexOf(this.model), 1);
+    this.state.nodeShapeRemove$.next(this.model.id);
+  }
+
+  private _onClick() {
+    this.state.shapeClick$.next(this);
   }
 }
