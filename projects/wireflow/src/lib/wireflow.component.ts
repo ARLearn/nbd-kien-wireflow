@@ -59,7 +59,7 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private lastAddedNode: GameMessageCommon;
 
-  private heightPoint = 25.6;
+  private heightPoint = 44;
   private currentMiddleConnector: Connector;
 
   // private modalRef: BsModalRef;
@@ -351,7 +351,10 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
   onPortMouseEnter(event: MouseEvent, output: any) {
     if (this.currentMiddleConnector && this.lastDependency) {
       if (this.currentMiddleConnector.dependencyType.includes('ProximityDependency')) { return; }
-      if (!this.currentMiddleConnector.subType.includes('scantag')) {
+
+      console.log('port enter');
+
+      if (!this.currentMiddleConnector.subType || !this.currentMiddleConnector.subType.includes('scantag')) {
         this.lastDependency.action = output.action;
       }
 
@@ -363,7 +366,10 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
   onPortMouseLeave(event: MouseEvent, output: any) {
     if (this.currentMiddleConnector && !this.processing) {
       if (this.currentMiddleConnector.dependencyType.includes('ProximityDependency')) { return; }
-      if (!this.currentMiddleConnector.subType.includes('scantag')) {
+
+      console.log('port leave');
+
+      if (!this.currentMiddleConnector.subType || !this.currentMiddleConnector.subType.includes('scantag')) {
         this.lastDependency.action = 'read';
       }
 

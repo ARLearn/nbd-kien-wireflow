@@ -18,67 +18,120 @@
 
         <g id="diagram" data-drag="diagram:diagram" data-drag-type="diagram">
           <g id="node-layer">
-            <g
-              class="node-container" #nodes *ngFor="let node of populatedNodes"
-              [attr.general-item-id]="node.id"
-              [attr.dependency-type]="node.type"
-              (mouseenter)="onNodeMouseEnter($event)"
-              (mouseleave)="onNodeMouseLeave($event)"
-            >
-              <rect class="node-background" width="204" [attr.height]="getHeight(node) + 51" x="0" y="0" rx="6" ry="6" />
+<!--            <g-->
+<!--              class="node-container" #nodes *ngFor="let node of populatedNodes"-->
+<!--              [attr.general-item-id]="node.id"-->
+<!--              [attr.dependency-type]="node.type"-->
+<!--              (mouseenter)="onNodeMouseEnter($event)"-->
+<!--              (mouseleave)="onNodeMouseLeave($event)"-->
+<!--            >-->
+<!--&lt;!&ndash;              <rect class="node-background" width="204" [attr.height]="getHeight(node) + 51" x="0" y="0" rx="6" ry="6" />&ndash;&gt;-->
 
-              <g class="node-header">
-                <rect class="header-round-rect" width="200" height="40" x="2" y="2" rx="4" ry="4" />
-                <rect class="header-rect" width="200" height="36" x="2" y="6" />
-                <text class="header-title" x="102" y="30">{{ node.name }}</text>
-              </g>
+<!--              <g class="node-content">-->
 
+<!--                <rect class="content-round-rect" width="200" [attr.height]="getHeight(node) + 5" x="2" y="44" rx="4" ry="4" />-->
+<!--                <rect class="content-rect" width="200" [attr.height]="getHeight(node)" x="2" y="44" />-->
+
+<!--                <g class="inputs" *ngIf="!node.virtual">-->
+<!--                  <g class="input-field" *ngFor="let input of node.inputs; let i = index;"-->
+<!--                     [attr.transform]="'translate(-26, ' + 25 * (2 + i) + ')'"-->
+<!--                     [attr.general-item-id]="input.generalItemId"-->
+<!--                     [attr.input-node-type]="input.type"-->
+<!--                  >-->
+<!--                    <g class="port" style="display: none;">-->
+<!--                      <circle class="port-outer" cx="15" cy="10" r="7.5" />-->
+<!--                      <circle class="port-inner" cx="15" cy="10" r="5" [id]="node.id + '-' + input.generalItemId" />-->
+<!--                      <circle class="port-scrim" cx="15" cy="10" r="7.5" />-->
+<!--                    </g>-->
+<!--                    <text class="port-label" style="display: none;" x="28" y="14">{{ input.title }}</text>-->
+<!--                  </g>-->
+<!--                </g>-->
+
+<!--                <g class="outputs">-->
+<!--                  <g class="output-field" *ngFor="let output of node.outputs; let i = index;"-->
+<!--                     [attr.transform]="'translate(0, ' + 25 * (2 + i) + ')'"-->
+<!--                     [attr.general-item-id]="output.generalItemId"-->
+<!--                     [attr.action]="output.action"-->
+<!--                     [attr.node-type]="output.type"-->
+<!--                     (mouseenter)="onPortMouseEnter($event, output)"-->
+<!--                     (mouseleave)="onPortMouseLeave($event, output)"-->
+<!--                  >-->
+<!--&lt;!&ndash;                    <g class="port" data-clickable="false">&ndash;&gt;-->
+<!--&lt;!&ndash;                      <circle class="port-outer" cx="189" cy="10" r="7.5" />&ndash;&gt;-->
+<!--&lt;!&ndash;                      <circle class="port-inner" cx="189" cy="10" r="5" />&ndash;&gt;-->
+<!--&lt;!&ndash;                      <circle class="port-scrim" cx="189" cy="10" r="7.5" data-clickable="false" />&ndash;&gt;-->
+<!--&lt;!&ndash;                    </g>&ndash;&gt;-->
+<!--                    <g class="port port-scrim" data-clickable="false" transform="translate(204, 2)">-->
+<!--                      <path d="M0.149994 0H14.85C17.0591 0 18.85 1.79086 18.85 4V13C18.85 15.2091 17.0591 17 14.85 17H0.149994V0Z" fill="#3da8d9"/>-->
+<!--                      <path d="M6.94998 5.10001L12.05 8.50001L6.94998 11.9" stroke="white" stroke-linecap="round" stroke-linejoin="round"/>-->
+<!--                    </g>-->
+
+<!--                    <text class="port-label" x="176" y="14">{{ output.action }}</text>-->
+<!--                  </g>-->
+<!--                </g>-->
+
+<!--              </g>-->
+<!--              <g class="node-header">-->
+<!--                <rect class="header-round-rect" width="200" height="40" />-->
+<!--                <rect class="header-rect" width="200" height="36" />-->
+<!--                <text class="header-title" x="102" y="30">{{ node.name }}</text>-->
+<!--              </g>-->
+<!--            </g>-->
+
+            <g class="node-container" #nodes *ngFor="let node of populatedNodes"
+               [attr.general-item-id]="node.id"
+               [attr.dependency-type]="node.type"
+               (mouseenter)="onNodeMouseEnter($event)"
+               (mouseleave)="onNodeMouseLeave($event)">
               <g class="node-content">
-
-                <rect class="content-round-rect" width="200" [attr.height]="getHeight(node) + 5" x="2" y="44" rx="4" ry="4" />
-                <rect class="content-rect" width="200" [attr.height]="getHeight(node)" x="2" y="44" />
+                <rect width="200" [attr.height]="getHeight(node)" fill="#D2D6D8"/>
 
                 <g class="inputs" *ngIf="!node.virtual">
                   <g class="input-field" *ngFor="let input of node.inputs; let i = index;"
-                     [attr.transform]="'translate(0, ' + 25 * (2 + i) + ')'"
+                     [attr.transform]="'translate(-26, ' + ((getHeight(node) + 32) / 2 - 20) + ')'"
                      [attr.general-item-id]="input.generalItemId"
                      [attr.input-node-type]="input.type"
                   >
-                    <g class="port">
+                    <g class="port" style="display: none;">
                       <circle class="port-outer" cx="15" cy="10" r="7.5" />
                       <circle class="port-inner" cx="15" cy="10" r="5" [id]="node.id + '-' + input.generalItemId" />
                       <circle class="port-scrim" cx="15" cy="10" r="7.5" />
                     </g>
-                    <text class="port-label" x="28" y="14">{{ input.title }}</text>
+                    <text class="port-label" style="display: none;" x="28" y="14">{{ input.title }}</text>
                   </g>
                 </g>
 
                 <g class="outputs">
-                  <g class="output-field" *ngFor="let output of node.outputs; let i = index;"
-                     [attr.transform]="'translate(0, ' + 25 * (2 + i) + ')'"
+                  <g class="output-field"
+                     *ngFor="let output of node.outputs; let i = index;"
+                     [attr.transform]="'translate(4, ' + (40 * i + 8) + ')'"
                      [attr.general-item-id]="output.generalItemId"
                      [attr.action]="output.action"
                      [attr.node-type]="output.type"
                      (mouseenter)="onPortMouseEnter($event, output)"
                      (mouseleave)="onPortMouseLeave($event, output)"
                   >
-                    <g class="port" data-clickable="false">
-                      <circle class="port-outer" cx="189" cy="10" r="7.5" />
-                      <circle class="port-inner" cx="189" cy="10" r="5" />
-                      <circle class="port-scrim" cx="189" cy="10" r="7.5" data-clickable="false" />
+                    <rect width="190" height="32" fill="#EDEEEF" ry="4" />
+                    <g class="port port-scrim" data-clickable="false" transform="translate(195, 8)">
+                      <path d="M0.149994 0H14.85C17.0591 0 18.85 1.79086 18.85 4V13C18.85 15.2091 17.0591 17 14.85 17H0.149994V0Z" fill="#3da8d9"/>
+                      <path d="M6.94998 5.10001L12.05 8.50001L6.94998 11.9" stroke="white" stroke-linecap="round" stroke-linejoin="round"/>
                     </g>
-                    <text class="port-label" x="176" y="14">{{ output.action }}</text>
+                    <text class="port-label" x="10" y="20" fill="#000">{{ output.action }}</text>
                   </g>
                 </g>
 
               </g>
+
+              <rect [attr.y]="getHeight(node)" width="200" height="32" fill="#E2E2E2"/>
+              <text fill="#000" x="10" [attr.y]="getHeight(node) + 22">{{ node.name }}</text>
             </g>
+
+
           </g>
 
           <g id="connections-layer"></g>
 
           <g class="connector">
-
             <path class="connector-path-outline" />
             <path class="connector-path" />
 
@@ -95,8 +148,8 @@
 
           <g class="middle-point" style="display: none;">
             <circle class="connector-handle" cx="2" cy="2" r="16" />
-            <text x="-5" y="9" class="middle-point-font">+</text>
-            <svg class="middle-point-pencil" style="display: none;" x="-4" y="-4" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"><path d="M7.127 22.562l-7.127 1.438 1.438-7.128 5.689 5.69zm1.414-1.414l11.228-11.225-5.69-5.692-11.227 11.227 5.689 5.69zm9.768-21.148l-2.816 2.817 5.691 5.691 2.816-2.819-5.691-5.689z"/></svg>
+            <text x="-5" y="9" class="middle-point-font" fill="#ffffff">+</text>
+            <svg class="middle-point-pencil" style="display: none;" x="-4" y="-4" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"><path fill="#ffffff" d="M7.127 22.562l-7.127 1.438 1.438-7.128 5.689 5.69zm1.414-1.414l11.228-11.225-5.69-5.692-11.227 11.227 5.689 5.69zm9.768-21.148l-2.816 2.817 5.691 5.691 2.816-2.819-5.691-5.689z"/></svg>
           </g>
 
           <g class="connector-toolbar dependency-type-toolbar" style="display: none">
@@ -144,13 +197,20 @@
           </g>
 
           <g class="middle-connector middle-connector--new" style="display: none;">
+            <defs>
+              <marker id="connector-arrowhead" markerWidth="10" markerHeight="6"
+                      refX="2" refY="2" orient="auto">
+                <polygon points="3 0, 3 4, 0 2" fill="#3da8d9" />
+              </marker>
+            </defs>
 
             <path class="connector-path-outline" />
-            <path class="connector-path" />
+            <path class="connector-path" marker-start="url(#connector-arrowhead)" />s
 
             <circle class="base-middle-point" style="display: none" cx="2" cy="2" r="8" />
 
-            <circle class="connector-handle input-handle" cx="0" cy="0" r="4" />
+            <circle class="connector-handle input-handle" opacity="0" cx="0" cy="0" r="4" />
+
             <circle class="connector-handle output-handle" cx="0" cy="0" r="4" />
           </g>
 

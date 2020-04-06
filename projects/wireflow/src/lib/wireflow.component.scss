@@ -11,17 +11,22 @@
   }
 
   .connector-handle {
-    fill: #E88802;
+    fill: #3da8d9;
+
+    &.output-handle {
+      fill: transparent;
+    }
   }
 
   .connector-path {
-    stroke: #E88802;
+    stroke: #3da8d9;
     stroke-width: 4;
     fill: none;
+    transform: translate(3px, 0px);
   }
 
   .connector-path-outline {
-    stroke: #333;
+    stroke: transparent;
     stroke-width: 6;
     fill: none;
 
@@ -42,14 +47,14 @@
 
       &:hover {
         rect {
-          fill: #e88802;
+          fill: #3da8d9;
         }
       }
     }
   }
 
   .base-middle-point {
-    fill: #e88802;
+    fill: #3da8d9;
   }
 
   .base-middle-point,
@@ -88,16 +93,16 @@
   }
 
   .node-background {
-    fill: #1a1c1d;
-    stroke-width: 3px;
+    //fill: #d2d6d8;
+    stroke-width: 0;
   }
 
   .node-header {
-    fill: #426D92;
+    fill: #ffffff;
 
     .header-title {
       font-size: 20px;
-      fill: #fff;
+      fill: #000000;
       text-anchor: middle;
     }
   }
@@ -115,27 +120,20 @@
   }
 
   .port-outer {
-    fill: #777777;
+    //fill: #777777;
   }
 
   .port-inner {
-    fill: #202020;
+    //fill: #202020;
   }
 
   .port-label {
     font-size: 12px;
-    fill: #fff;
   }
 
   .input-field {
     .port-label {
       text-anchor: start;
-    }
-  }
-
-  .output-field {
-    .port-label {
-      text-anchor: end;
     }
   }
 
