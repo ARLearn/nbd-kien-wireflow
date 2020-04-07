@@ -576,17 +576,20 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
           {
             type: 'org.celstec.arlearn2.beans.dependencies.ActionDependency',
             generalItemId: x.id,
-            action: 'answer_correct'
+            action: 'answer_correct',
+            title: 'Correct'
           },
           {
             type: 'org.celstec.arlearn2.beans.dependencies.ActionDependency',
             generalItemId: x.id,
-            action: 'answer_incorrect'
+            action: 'answer_incorrect',
+            title: 'Wrong'
           },
           ...(x as MultipleChoiceScreen).answers.map(a => ({
             type: 'org.celstec.arlearn2.beans.dependencies.ActionDependency',
             generalItemId: x.id,
-            action: `answer_${a.id}`
+            action: `answer_${a.id}`,
+            title: 'Fruit'
           }))
         );
       }

@@ -78,7 +78,7 @@
 <!--              </g>-->
 <!--            </g>-->
 
-            <g class="node-container" #nodes *ngFor="let node of populatedNodes"
+            <g class="node-container" #nodes *ngFor="let node of populatedNodes; let c = index"
                [attr.general-item-id]="node.id"
                [attr.dependency-type]="node.type"
                (mouseenter)="onNodeMouseEnter($event)"
@@ -92,12 +92,11 @@
                      [attr.general-item-id]="input.generalItemId"
                      [attr.input-node-type]="input.type"
                   >
-                    <g class="port" style="display: none;">
+                    <g class="port" style="display: block;">
                       <circle class="port-outer" cx="15" cy="10" r="7.5" />
                       <circle class="port-inner" cx="15" cy="10" r="5" [id]="node.id + '-' + input.generalItemId" />
                       <circle class="port-scrim" cx="15" cy="10" r="7.5" />
                     </g>
-                    <text class="port-label" style="display: none;" x="28" y="14">{{ input.title }}</text>
                   </g>
                 </g>
 
@@ -116,17 +115,19 @@
                       <path d="M0.149994 0H14.85C17.0591 0 18.85 1.79086 18.85 4V13C18.85 15.2091 17.0591 17 14.85 17H0.149994V0Z" fill="#3da8d9"/>
                       <path d="M6.94998 5.10001L12.05 8.50001L6.94998 11.9" stroke="white" stroke-linecap="round" stroke-linejoin="round"/>
                     </g>
-                    <text class="port-label" x="10" y="20" fill="#000">{{ output.action }}</text>
+                    <text class="port-label" x="10" y="20" fill="#000">{{ output.title || output.action }}</text>
                   </g>
                 </g>
 
               </g>
 
+              <clipPath id="clip-text{{ c }}">
+                <rect x="0" [attr.y]="getHeight(node)" width="195" height="32"/>
+              </clipPath>
+
               <rect [attr.y]="getHeight(node)" width="200" height="32" fill="#E2E2E2"/>
-              <text fill="#000" x="10" [attr.y]="getHeight(node) + 22">{{ node.name }}</text>
+              <text fill="#000" x="10" [attr.y]="getHeight(node) + 22" [attr.clip-path]="'url(#clip-text' + c + ')'">{{ node.name }}</text>
             </g>
-
-
           </g>
 
           <g id="connections-layer"></g>
