@@ -148,6 +148,7 @@ export class Connector implements DraggableUiElement {
 
   onDrag() {
     this._updatePath();
+    this.state.connectorMove$.next({ connector: this });
   }
 
   onDragEnd(port: NodePort) {
@@ -178,6 +179,7 @@ export class Connector implements DraggableUiElement {
     this.updateHandle(port);
     this.state.addConnectorToOutput(this);
     this.state.changeDependencies$.next();
+    this.state.connectorMove$.next({ connector: this });
   }
 
   move(e: MouseEvent) {
@@ -196,6 +198,7 @@ export class Connector implements DraggableUiElement {
     TweenLite.set(this.outputHandle, point);
 
     this._updatePath(point.x, point.y);
+    this.state.connectorMove$.next({ connector: this });
   }
 
   remove(opts: ConnectorRemoveOptions = {}) {
@@ -316,9 +319,10 @@ export class Connector implements DraggableUiElement {
     });
 
     this._updatePath();
+    this.state.connectorMove$.next({ connector: this });
   }
 
-  updateHandle(port) { // TODO: Rename into update(isInput, point)
+  updateHandle(port, allowMoveEvent = true) { // TODO: Rename into update(isInput, point)
     if (port === this._inputPort) {
       TweenLite.set(this.inputHandle, {
         x: port.global.x,
@@ -337,12 +341,21 @@ export class Connector implements DraggableUiElement {
     this.connectorElement.classList.remove('middle-connector--new');
 
     this._updatePath();
+    allowMoveEvent && this.state.connectorMove$.next({ connector: this });
   }
 
   moveOutputHandle(point: Point) {
     TweenLite.set(this.outputHandle, point);
 
     this._updatePath();
+    // this.state.connectorMove$.next({ connector: this });
+  }
+
+  moveInputHandle(point: Point) {
+    TweenLite.set(this.inputHandle, point);
+
+    this._updatePath();
+    // this.state.connectorMove$.next({ connector: this });
   }
 
   private onHover(e: MouseEvent) {

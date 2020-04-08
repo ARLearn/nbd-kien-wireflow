@@ -17,7 +17,7 @@ import { NgxSmartModalService } from 'ngx-smart-modal';
 import { Diagram } from './core/diagram';
 import { GameMessageCommon, MultipleChoiceScreen } from './models/core';
 import { Connector } from './core/connector';
-import { clone, diff } from './utils';
+import {clone, diff, getDistance, getMiddleRectPoints, minBy, Point} from './utils';
 import { MiddlePoint } from './core/middle-point';
 import { NodeShape } from './core/node-shape';
 import { NodePort } from './core/node-port';
@@ -78,6 +78,7 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
   get connectorRemove() { return this.diagram && this.diagram.state.connectorRemove$.pipe(distinct()); }
   get connectorUpdate() { return this.diagram && this.diagram.state.connectorUpdate$; }
   get connectorDetach() { return this.diagram && this.diagram.state.connectorDetach$; }
+  get connectorMove() { return this.diagram && this.diagram.state.connectorMove$; }
   get nodePortNew() { return this.diagram && this.diagram.state.nodePortNew$; }
   get middlePointClick() { return this.diagram && this.diagram.state.middlePointClick$; }
   get shapeClick() { return this.diagram && this.diagram.state.shapeClick$; }
@@ -187,6 +188,38 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
         if (index !== -1) {
           port.model.connectors.splice(index, 1);
         }
+    }));
+
+    this.subscription.add(this.connectorMove.subscribe(({ connector }) => {
+      const inputPort = (connector.isInputConnector && connector.middlePoint) ? connector.outputPort : connector.inputPort;
+
+      if (connector.middlePoint && connector.middlePoint.parentMiddlePoint) { return; }
+
+      const point = connector.middlePoint ?
+          { x: connector.baseX, y: connector.baseY } :
+          connector.outputPort.portScrim.getBoundingClientRect() as Point;
+
+      const shape = inputPort && this.diagram.getShapeByGeneralItemId(inputPort.model.generalItemId);
+
+      if (shape && inputPort) {
+        const { height, width, x, y } = shape.nativeElement.querySelector('.node-content > rect').getBoundingClientRect() as any;
+
+        const localRectData = getMiddleRectPoints(-26, -20, height + 32 + 20, width + 26);
+        const generalRectData = getMiddleRectPoints(x, y, height, width);
+
+        const mp = minBy(
+          [
+            { general: generalRectData.middlePoints.top, local: localRectData.middlePoints.top },
+            { general: generalRectData.middlePoints.left, local: localRectData.middlePoints.left },
+            { general: generalRectData.middlePoints.right, local: localRectData.middlePoints.right },
+            { general: generalRectData.middlePoints.bottom, local: localRectData.middlePoints.bottom },
+          ],
+          item => getDistance(point, item.general)
+        );
+
+        inputPort.move(mp.local).updatePlacement();
+        connector.updateHandle(inputPort, false);
+      }
     }));
 
     this.subscription.add(this.connectorRemove.subscribe(({opts, connector}) => {
@@ -352,8 +385,6 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
     if (this.currentMiddleConnector && this.lastDependency) {
       if (this.currentMiddleConnector.dependencyType.includes('ProximityDependency')) { return; }
 
-      console.log('port enter');
-
       if (!this.currentMiddleConnector.subType || !this.currentMiddleConnector.subType.includes('scantag')) {
         this.lastDependency.action = output.action;
       }
@@ -366,8 +397,6 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
   onPortMouseLeave(event: MouseEvent, output: any) {
     if (this.currentMiddleConnector && !this.processing) {
       if (this.currentMiddleConnector.dependencyType.includes('ProximityDependency')) { return; }
-
-      console.log('port leave');
 
       if (!this.currentMiddleConnector.subType || !this.currentMiddleConnector.subType.includes('scantag')) {
         this.lastDependency.action = 'read';

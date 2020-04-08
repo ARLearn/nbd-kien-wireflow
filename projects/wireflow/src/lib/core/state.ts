@@ -44,6 +44,10 @@ export interface ConnectorPortArgs {
   port: NodePort;
 }
 
+export interface ConnectorMoveArgs {
+  connector: Connector;
+}
+
 export class State {
   nodeShapeModels: NodeModel[] = []; // TODO: Move to nodesService
   portModels: PortModel[] = []; // TODO: Move to nodesService
@@ -75,6 +79,7 @@ export class State {
   connectorRemove$ = new Subject<ConnectorRemoveArgs>(); // TODO: Move to connectorsService
   connectorUpdate$ = new Subject<ConnectorPortArgs>(); // TODO: Move to connectorsService
   connectorDetach$ = new Subject<ConnectorPortArgs>(); // TODO: Move to connectorsService
+  connectorMove$ = new Subject<ConnectorMoveArgs>(); // TODO: Move to connectorsService
   middlePointClick$ = new Subject<MiddlePoint>(); // TODO: Move to connectorsService
   shapeClick$ = new Subject<NodeShape>(); // TODO: Move to nodesService
 

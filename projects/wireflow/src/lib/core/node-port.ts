@@ -48,13 +48,17 @@ export class NodePort extends BaseModelUiElement<PortModel> implements Draggable
   get dragType() { return 'port'; }
 
   update() {
-    const transform = (this.portElement as any).getTransformToElement(this.state.diagramElement);
-    this.global = this.center.matrixTransform(transform);
+    this.updatePlacement();
 
     if (this.model.connectors) {
       this.model.connectors.forEach(connector => {
         this.state.connectorUpdate$.next({connector, port: this});
       });
     }
+  }
+
+  updatePlacement() {
+    const transform = (this.portElement as any).getTransformToElement(this.state.diagramElement);
+    this.global = this.center.matrixTransform(transform);
   }
 }
