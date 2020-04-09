@@ -1,6 +1,6 @@
 import { NodePort } from './node-port';
 import { State } from './state'; // TODO: Remove dependency
-import {getDistance, getMiddlePoint, getMiddleRectPoints, getNumberFromPixels, Point} from '../utils';
+import { getNumberFromPixels, Point } from '../utils';
 import { DraggableUiElement } from './draggable-ui-element';
 import { BaseModelUiElement } from './base-model-ui-element';
 import { NodeModel } from './models';

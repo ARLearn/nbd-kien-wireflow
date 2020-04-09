@@ -10,9 +10,13 @@ export interface Point {
   y: number;
 }
 
-export const getDistance = (p1: Point, p2: Point): number => Math.sqrt(Math.pow(p2.x - p1.x, 2) + Math.pow(p2.y - p1.y, 2));
+export function getDistance (p1: Point, p2: Point): number { 
+  return Math.sqrt(Math.pow(p2.x - p1.x, 2) + Math.pow(p2.y - p1.y, 2));
+}
 
-export const getMiddlePoint = (p1: Point, p2: Point): Point => ({x: (p1.x + p2.x) / 2, y: (p1.y + p2.y) / 2});
+export function getMiddlePoint (p1: Point, p2: Point): Point {
+  return ({x: (p1.x + p2.x) / 2, y: (p1.y + p2.y) / 2});
+}
 
 /*
   p1 ---- mTop ---- p2
@@ -23,29 +27,27 @@ mLeft             mRight
 
  */
 
-export const getMiddleRectPoints = (x: number, y: number, height: number, width: number) => {
-  const p1: Point = { x, y };
-  const p2: Point = { x: x + width, y };
-  const p3: Point = { x, y: y + height };
-  const p4: Point = { x: x + width, y: y + height };
+export class Rectangle {
+  private _topLeft: Point;
+  private _topRight: Point;
+  private _bottomLeft: Point;
+  private _bottomRight: Point;
+  
+  constructor(x: number, y: number, height: number, width: number) {
+    this._topLeft = { x, y };
+    this._topRight = { x: x + width, y };
+    this._bottomLeft = { x, y: y + height };
+    this._bottomRight = { x: x + width, y: y + height };
+  }
 
-  const mTop = getMiddlePoint(p1, p2);
-  const mRight = getMiddlePoint(p2, p4);
-  const mBottom = getMiddlePoint(p3, p4);
-  const mLeft = getMiddlePoint(p1, p3);
+  get topLeft() { return this._topLeft; }
+  get topRight() { return this._topRight; }
+  get bottomLeft() { return this._bottomLeft; }
+  get bottomRight() { return this._bottomRight; }
 
-  return {
-    points: {
-      topLeft: p1,
-      topRight: p2,
-      bottomLeft: p3,
-      bottomRight: p4,
-    },
-    middlePoints: {
-      top: mTop,
-      right: mRight,
-      bottom: mBottom,
-      left: mLeft,
-    }
-  };
-};
+  get topMiddlePoint() { return getMiddlePoint(this._topLeft, this._topRight); }
+  get rightMiddlePoint() { return getMiddlePoint(this._topRight, this._bottomRight); }
+  get bottomMiddlePoint() { return getMiddlePoint(this._bottomLeft, this._bottomRight); }
+  get leftMiddlePoint() { return getMiddlePoint(this._topLeft, this._bottomLeft); }
+
+}

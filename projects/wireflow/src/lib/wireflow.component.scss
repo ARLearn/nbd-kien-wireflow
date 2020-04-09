@@ -31,7 +31,7 @@
     fill: none;
 
     &--selected {
-      stroke: red;
+      stroke: #6cd2ff;
     }
   }
 
@@ -108,7 +108,7 @@
   }
 
   .node-content {
-    fill: #3C3C3C;
+    fill: transparent;
   }
 
   .port {
