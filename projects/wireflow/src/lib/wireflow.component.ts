@@ -17,7 +17,7 @@ import { NgxSmartModalService } from 'ngx-smart-modal';
 import { Diagram } from './core/diagram';
 import { GameMessageCommon, MultipleChoiceScreen } from './models/core';
 import { Connector } from './core/connector';
-import {clone, diff, getDistance, getMiddleRectPoints, minBy, Point} from './utils';
+import { clone, diff, getDistance, Rectangle, minBy, Point } from './utils';
 import { MiddlePoint } from './core/middle-point';
 import { NodeShape } from './core/node-shape';
 import { NodePort } from './core/node-port';
@@ -204,21 +204,26 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
       if (shape && inputPort) {
         const { height, width, x, y } = shape.nativeElement.querySelector('.node-content > rect').getBoundingClientRect() as any;
 
-        const localRectData = getMiddleRectPoints(-26, -20, height + 32 + 20, width + 26);
-        const generalRectData = getMiddleRectPoints(x, y, height, width);
+        const localRect = new Rectangle(-26, -20, height + 32 + 20, width + 26);
+        const generalRect = new Rectangle(x, y, height, width);
 
         const mp = minBy(
           [
-            { general: generalRectData.middlePoints.top, local: localRectData.middlePoints.top },
-            { general: generalRectData.middlePoints.left, local: localRectData.middlePoints.left },
-            { general: generalRectData.middlePoints.right, local: localRectData.middlePoints.right },
-            { general: generalRectData.middlePoints.bottom, local: localRectData.middlePoints.bottom },
+            { general: generalRect.topMiddlePoint, local: localRect.topMiddlePoint, side: 'top' },
+            { general: generalRect.leftMiddlePoint, local: localRect.leftMiddlePoint, side: 'left' },
+            // Exclude right
+            // { general: generalRect.rightMiddlePoint, local: localRect.rightMiddlePoint },
+            { general: generalRect.bottomMiddlePoint, local: localRect.bottomMiddlePoint, side: 'bottom' },
           ],
           item => getDistance(point, item.general)
         );
 
-        inputPort.move(mp.local).updatePlacement();
-        connector.updateHandle(inputPort, false);
+        inputPort
+          .move(mp.local)
+          .updatePlacement();
+        connector
+          .setConnectionSide(mp.side)
+          .updateHandle(inputPort, false);
       }
     }));
 
@@ -618,7 +623,7 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
             type: 'org.celstec.arlearn2.beans.dependencies.ActionDependency',
             generalItemId: x.id,
             action: `answer_${a.id}`,
-            title: 'Fruit'
+            title: a.answer
           }))
         );
       }

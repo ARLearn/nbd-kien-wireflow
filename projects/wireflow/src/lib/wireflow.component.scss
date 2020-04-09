@@ -31,7 +31,7 @@
     fill: none;
 
     &--selected {
-      stroke: red;
+      stroke: #6cd2ff;
     }
   }
 
@@ -41,13 +41,10 @@
     &__btn {
       cursor: pointer;
 
-      rect {
-        fill: #b4b4b4;
-      }
-
       &:hover {
+        & > path:first-child,
         rect {
-          fill: #3da8d9;
+          fill: #3a9bca;
         }
       }
     }
@@ -108,7 +105,7 @@
   }
 
   .node-content {
-    fill: #3C3C3C;
+    fill: transparent;
   }
 
   .port {

@@ -36,6 +36,7 @@ export class Connector implements DraggableUiElement {
   inputHandle: any;
   outputHandle: any;
 
+
   onClick: any;
 
   private path: any;
@@ -43,6 +44,7 @@ export class Connector implements DraggableUiElement {
   private _inputPort: NodePort;
   private _outputPort: NodePort;
   private _subscription = new Subscription();
+  private _connectionSide: string = 'left';
 
   constructor(private state: State, x = -1, y = -1, middlePoint = null, dependencyType = null, subtype = null) {
     this.id = `connector_${this.state.idCounter()}`;
@@ -114,8 +116,16 @@ export class Connector implements DraggableUiElement {
   get inputPort() { return this._inputPort; }
   get outputPort() { return this._outputPort; }
 
+  get connectionSide() { return this._connectionSide; }
+
   setIsInput(isInput: boolean) {
     this.isInputConnector = isInput;
+  }
+
+  setConnectionSide(side: string) {
+    this._connectionSide = side;
+
+    return this;
   }
 
   init(port: NodePort) {
@@ -322,7 +332,7 @@ export class Connector implements DraggableUiElement {
     this.state.connectorMove$.next({ connector: this });
   }
 
-  updateHandle(port, allowMoveEvent = true) { // TODO: Rename into update(isInput, point)
+  updateHandle(port, allowedMoveEvent = true) { // TODO: Rename into update(isInput, point)
     if (port === this._inputPort) {
       TweenLite.set(this.inputHandle, {
         x: port.global.x,
@@ -341,7 +351,7 @@ export class Connector implements DraggableUiElement {
     this.connectorElement.classList.remove('middle-connector--new');
 
     this._updatePath();
-    allowMoveEvent && this.state.connectorMove$.next({ connector: this });
+    allowedMoveEvent && this.state.connectorMove$.next({ connector: this });
   }
 
   moveOutputHandle(point: Point) {
@@ -426,8 +436,23 @@ export class Connector implements DraggableUiElement {
       p1x = x1;
       p1y = y1;
 
-      p2x = fixedStart ? x1 - dx : x1;
-      p2y = y1;
+      if (this.connectionSide === 'top') {
+        // top placement
+        p2x = x1;
+        p2y = y1 - 60;
+      }
+
+      if (this.connectionSide === 'left') {
+        // left placement
+        p2x = fixedStart ? x1 - dx : x1;
+        p2y = y1;
+      }
+
+      if (this.connectionSide === 'bottom') {
+        // bottom placement
+        p2x = x1;
+        p2y = y1 + 60;
+      }
 
       p3x = fixedEnd ? x4 + dx : x4;
       p3y = y4;
