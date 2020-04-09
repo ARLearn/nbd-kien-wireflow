@@ -623,7 +623,7 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
             type: 'org.celstec.arlearn2.beans.dependencies.ActionDependency',
             generalItemId: x.id,
             action: `answer_${a.id}`,
-            title: 'Fruit'
+            title: a.answer
           }))
         );
       }
