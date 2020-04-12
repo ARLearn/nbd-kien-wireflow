@@ -2,6 +2,10 @@
 .wireflow-component {
   @import "~ngx-smart-modal/ngx-smart-modal";
 
+  .cursor-pointer {
+    cursor: pointer;
+  }
+
   #svg {
     position: relative;
     width: 100%;
@@ -87,6 +91,26 @@
         stroke: var(--success);
       }
     }
+    &.border--selected .whole-rect {
+      stroke: #3da8d9;
+      stroke-width: 4;
+    }
+
+    &:hover {
+      .node-content-hover {
+        opacity: 1;
+      }
+    }
+
+    .details-btn {
+      text-transform: uppercase;
+    }
+
+    .font-awesome-pro {
+      text {
+        font-family: 'Font Awesome 5 Pro', serif;
+      }
+    }
   }
 
   .node-background {
@@ -105,7 +129,13 @@
   }
 
   .node-content {
+    $self: &;
     fill: transparent;
+
+    &-hover {
+      opacity: 0;
+      transition: opacity 0.15s linear;
+    }
   }
 
   .port {
@@ -125,7 +155,7 @@
   }
 
   .port-label {
-    font-size: 12px;
+    font-size: 16px;
   }
 
   .input-field {

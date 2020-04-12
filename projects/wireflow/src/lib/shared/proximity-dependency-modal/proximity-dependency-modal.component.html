@@ -1,6 +1,6 @@
 <form (keydown)="onFormKeyDown($event)" (ngSubmit)="f.valid && submitForm.next(f.value)" #f="ngForm">
   <div class="modal-header">
-    <h5 class="modal-title">Proximity</h5>
+    <h5 class="modal-title">{{ 'wireflow.proximity-modal.title' | translate }}</h5>
   </div>
   <div class="modal-body">
     <agm-map
@@ -39,14 +39,14 @@
 
     <div class="mt-2">
       <div class="form-group">
-        <label for="typeSelect">Select Type</label>
+        <label for="typeSelect">{{ 'wireflow.proximity-modal.selectType' | translate }}</label>
         <select class="form-control" id="typeSelect" name="selectedType" [(ngModel)]="selectedType" (ngModelChange)="onTypeChanged()">
           <option *ngFor="let item of types" [value]="item.value">{{ item.label }}</option>
         </select>
       </div>
 
       <div class="form-group">
-        <label for="searchInput">Search for location</label>
+        <label for="searchInput">{{ 'wireflow.proximity-modal.searchLocation' | translate }}</label>
         <input
           id="searchInput"
           placeholder="City"
@@ -60,10 +60,10 @@
       </div>
 
       <div class="form-group">
-        <label for="longitudeInput">Longitude</label>
+        <label for="longitudeInput">{{ 'wireflow.proximity-modal.longitude' | translate }}</label>
         <input
           id="longitudeInput"
-          placeholder="Enter longitude"
+          placeholder="{{ 'wireflow.proximity-modal.longitudePlaceholder' | translate }}"
           type="number"
           class="form-control"
           name="lng"
@@ -73,10 +73,10 @@
       </div>
 
       <div class="form-group">
-        <label for="latitudeInput">Latitude</label>
+        <label for="latitudeInput">{{ 'wireflow.proximity-modal.latitude' | translate }}</label>
         <input
           id="latitudeInput"
-          placeholder="Enter latitude"
+          placeholder="{{ 'wireflow.proximity-modal.latitudePlaceholder' | translate }}"
           type="number"
           class="form-control"
           name="lat"
@@ -86,10 +86,10 @@
       </div>
 
       <div class="form-group">
-        <label for="radiusInput">Radius</label>
+        <label for="radiusInput">{{ 'wireflow.proximity-modal.radius' | translate }}</label>
         <input
           id="radiusInput"
-          placeholder="Enter radius"
+          placeholder="{{ 'wireflow.proximity-modal.radiusPlaceholder' | translate }}"
           type="number"
           class="form-control"
           name="radius"
@@ -101,7 +101,7 @@
 
   </div>
   <div class="modal-footer">
-    <button type="submit" class="btn btn-success">Confirm</button>
-    <button type="reset" class="btn btn-secondary" (click)="cancel.next()">Cancel</button>
+    <button type="submit" class="btn btn-success">{{ 'wireflow.btns.confirm' | translate }}</button>
+    <button type="reset" class="btn btn-secondary" (click)="cancel.next()">{{ 'wireflow.btns.cancel' | translate }}</button>
   </div>
 </form>

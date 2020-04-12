@@ -28,7 +28,18 @@ export class AppComponent implements OnInit {
 
   private _updateMessages(changes: any[]) {
     setTimeout(() => {
-      this.messages = this.messages.map(m => changes.find(c => c.id == m.id) || m);
+      this.messages = this.messages
+        .map(m => {
+          const changedMessage = changes.find(c => c.id == m.id);
+
+          if (changedMessage) {
+            changedMessage.lastModificationDate = Date.now();
+
+            return changedMessage;
+          }
+
+          return m;
+        });
     }, 100);
   }
 }

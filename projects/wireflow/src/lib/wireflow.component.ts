@@ -12,8 +12,9 @@ import {
 } from '@angular/core';
 import { Observable, Subject, Subscription } from 'rxjs';
 import { distinct, filter, map, skip } from 'rxjs/operators';
-import { NgxSmartModalService } from 'ngx-smart-modal';
+import { TranslateService } from '@ngx-translate/core';
 
+import { NgxSmartModalService } from 'ngx-smart-modal';
 import { Diagram } from './core/diagram';
 import { GameMessageCommon, MultipleChoiceScreen } from './models/core';
 import { Connector } from './core/connector';
@@ -46,6 +47,19 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
     messagesOld: [],
   } as MessageEditorStateModel;
 
+  selectedMessageId: string;
+
+  private icons = {
+    'org.celstec.arlearn2.beans.generalItem.NarratorItem': '&#xf4a6;',
+    'org.celstec.arlearn2.beans.generalItem.ScanTag': '&#xf029;',
+    'org.celstec.arlearn2.beans.generalItem.ScanTagTest': '&#xf029;',
+    'org.celstec.arlearn2.beans.generalItem.VideoObject': '&#xf008;',
+    'org.celstec.arlearn2.beans.generalItem.MultipleChoiceImageTest': '&#xf059;',
+    'org.celstec.arlearn2.beans.generalItem.SingleChoiceImageTest': '&#xf059;',
+    'org.celstec.arlearn2.beans.generalItem.SingleChoiceTest': '&#xf737;',
+    'org.celstec.arlearn2.beans.generalItem.MultipleChoiceTest': '&#xf737;',
+  };
+
   private stateSubject = new Subject<MessageEditorStateModel>();
 
   private diagram: Diagram;
@@ -59,7 +73,10 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private lastAddedNode: GameMessageCommon;
 
-  private heightPoint = 44;
+  private heightPoint = 60;
+  private _heightTitle = 40;
+  private minHeightMainBlock = 120;
+
   private currentMiddleConnector: Connector;
 
   // private modalRef: BsModalRef;
@@ -67,6 +84,7 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
   private lastDependency: any;
   private lastGeneralItemId: string;
   private processing = false;
+  private lastAddedPort: any;
 
   get dependenciesOutput() { return this.diagram && this.diagram.state.changeDependencies$; }
   get coordinatesOutputSubject() { return this.diagram && this.diagram.state.coordinatesOutput$.pipe(distinct()); }
@@ -83,9 +101,15 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
   get middlePointClick() { return this.diagram && this.diagram.state.middlePointClick$; }
   get shapeClick() { return this.diagram && this.diagram.state.shapeClick$; }
 
+  get heightTitle() {
+    return this._heightTitle;
+  }
+
   constructor(
-    public ngxSmartModalService: NgxSmartModalService
+    public ngxSmartModalService: NgxSmartModalService,
+    private translate: TranslateService,
   ) {
+    translate.setDefaultLang('en');
     this.messagesChange = this.stateSubject
       .pipe(
         map(x => x.messages),
@@ -123,7 +147,14 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   getHeight(node) {
-    return this.heightPoint * Math.max(node.inputs.length, node.outputs.length);
+    return Math.max(
+      this.heightPoint * Math.max(node.inputs.length, node.outputs.length) + (node.type.includes('Scan') ? 40 : 0),
+      this.minHeightMainBlock + this._heightTitle
+    );
+  }
+
+  getIcon(type: string) {
+    return this.icons[type];
   }
 
   ngAfterViewInit() {
@@ -140,14 +171,19 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
     this.subscription.add(this
       .coordinatesOutputSubject
       .subscribe((coordindates: any) => {
-        this.messages = this._populateOutputMessages(this.messages);
-        const mess = this.messages.find(r => r.id.toString() === coordindates.messageId.toString());
-        if (mess) {
-          mess.authoringX = coordindates.x || 0;
-          mess.authoringY = coordindates.y || 0;
+        const messages = this._populateOutputMessages(this.messages);
+        const mess = messages.find(r => r.id.toString() === coordindates.messageId.toString());
+        const messPN = this.populatedNodes.find(r => r.id.toString() === coordindates.messageId.toString());
+
+        if (mess && messPN) {
+          mess.authoringX = Math.floor(coordindates.x || 0);
+          mess.authoringY = Math.floor(coordindates.y || 0);
+
+          messPN.authoringX = Math.floor(coordindates.x || 0);
+          messPN.authoringY = Math.floor(coordindates.y || 0);
         }
 
-        this._emitMessages(this.messages);
+        this._emitMessages(messages);
       }));
 
     this.subscription.add(this.singleDependenciesOutput.subscribe((x: any) => {
@@ -204,7 +240,7 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
       if (shape && inputPort) {
         const { height, width, x, y } = shape.nativeElement.querySelector('.node-content > rect').getBoundingClientRect() as any;
 
-        const localRect = new Rectangle(-26, -20, height + 32 + 20, width + 26);
+        const localRect = new Rectangle(-26, -18, height + 32 + 24, width + 26);
         const generalRect = new Rectangle(x, y, height, width);
 
         const mp = minBy(
@@ -267,6 +303,7 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
             ? `.input-field[general-item-id="${model.generalItemId}"]`
             : `.output-field[general-item-id="${model.generalItemId}"][action="${model.action}"]`
           );
+
       const port = new NodePort(this.diagram.state, parentNode, element, model);
       if (model.isInput) {
         parentNode.inputs.push(port);
@@ -305,9 +342,11 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
         }
       }
 
-      this.selectMessage.next(
-        this.messages.find(m => m.id.toString() === x.model.generalItemId)
-      );
+      const message = this.messages.find(m => m.id.toString() === x.model.generalItemId);
+
+      this.selectMessage.next(message);
+
+      this.toggleSelectedMessage(message.id.toString());
     }));
 
     this.subscription.add(this.nodesFor.changes.subscribe(() => this._handleNodesRender()));
@@ -413,6 +452,19 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
     draggableElement && draggableElement.classList.remove('no-events');
   }
 
+  onQrOutputSubmit(value) {
+    const { data } = this.ngxSmartModalService.getModalData('actionQrOutputScanTagModal');
+    const message = this.populatedNodes.find((x: any) => x.id && x.id.toString() === data.generalItemId.toString()) as any;
+
+    this.lastAddedPort = {
+      type: 'org.celstec.arlearn2.beans.dependencies.ActionDependency',
+      generalItemId: data.generalItemId,
+      action: value.action,
+    };
+
+    message.outputs.push({ ...this.lastAddedPort });
+  }
+
   private _emitMessages(messages: any[]) {
     this.stateSubject.next({
       ...this.state,
@@ -465,11 +517,11 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
         if (index === messages.length) { break; }
 
         if (!Number.isFinite(messages[index].authoringX)) {
-          messages[index].authoringX = startX + (j * fullWidth);
+          messages[index].authoringX = Math.floor(startX + (j * fullWidth));
         }
 
         if (!Number.isFinite(messages[index].authoringY)) {
-          messages[index].authoringY = startY + (i * fullHeight);
+          messages[index].authoringY = Math.floor(startY + (i * fullHeight));
         }
       }
     }
@@ -478,7 +530,7 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
   private _initMiddleConnector(x: any) {
     this.currentMiddleConnector = new Connector(
       this.diagram.state,
-      x.message.authoringX, x.message.authoringY,
+      Math.floor(x.message.authoringX), Math.floor(x.message.authoringY),
       x.middlePoint, x.dependency.type, x.dependency.subtype ? x.dependency.subtype : undefined
     );
 
@@ -542,8 +594,8 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
         oldNodes = [...this.populatedNodes];
       }
 
-      message.authoringX = event.offsetX;
-      message.authoringY = event.offsetY;
+      message.authoringX = Math.floor(event.offsetX);
+      message.authoringY = Math.floor(event.offsetY);
 
       this.lastAddedNode = message;
       this.populatedNodes = oldNodes;
@@ -562,6 +614,18 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
       this.processing = false;
       this.diagram.state.changeDependencies$.next();
     }
+
+    if (this.lastAddedPort) {
+      this.diagram.state.createPort(
+        this.lastAddedPort.action,
+        this.lastAddedPort.generalItemId,
+        this.diagram.getShapeByGeneralItemId(this.lastAddedPort.generalItemId),
+        false
+      );
+
+      this.lastAddedPort = undefined;
+    }
+
   }
 
   private _getDraggableElement(element: HTMLElement) {
@@ -604,8 +668,7 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
         );
       }
 
-      if (x.type === 'org.celstec.arlearn2.beans.generalItem.SingleChoiceTest'
-        || x.type === 'org.celstec.arlearn2.beans.generalItem.MultipleChoiceTest') {
+      if (x.type.includes('SingleChoice') || x.type.includes('MultipleChoice')) {
         outputs.push(
           {
             type: 'org.celstec.arlearn2.beans.dependencies.ActionDependency',
@@ -619,11 +682,11 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
             action: 'answer_incorrect',
             title: 'Wrong'
           },
-          ...(x as MultipleChoiceScreen).answers.map(a => ({
+          ...(x as MultipleChoiceScreen).answers.map((a, n) => ({
             type: 'org.celstec.arlearn2.beans.dependencies.ActionDependency',
             generalItemId: x.id,
             action: `answer_${a.id}`,
-            title: a.answer
+            title: a.answer || `option ${n + 1}`
           }))
         );
       }
@@ -649,8 +712,8 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
             id: nId,
             type: p.type,
             action: 'in range',
-            authoringX: x.authoringX - 250,
-            authoringY: x.authoringY
+            authoringX: Math.floor(x.authoringX - 350),
+            authoringY: Math.floor(x.authoringY)
           }));
         });
       }
@@ -1113,12 +1176,27 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
       ...input,
       inputs: undefined,
       outputs: undefined,
-      authoringX: parseInt(input.authoringX as any),
-      authoringY: parseInt(input.authoringY as any),
+      lastModificationDate: undefined,
+      authoringX: Math.floor(input.authoringX),
+      authoringY: Math.floor(input.authoringY),
     });
   }
 
   ngOnDestroy() {
     this.subscription.unsubscribe();
+  }
+
+  openQrOutputScanTagModal(node: GameMessageCommon) {
+    this.ngxSmartModalService.getModal('actionQrOutputScanTagModal')
+      .setData({data: { generalItemId: node.id } }, true)
+      .open();
+  }
+
+  private toggleSelectedMessage(id: string) {
+    if (this.selectedMessageId === id) {
+      return this.selectedMessageId = undefined;
+    }
+
+    return this.selectedMessageId = id;
   }
 }

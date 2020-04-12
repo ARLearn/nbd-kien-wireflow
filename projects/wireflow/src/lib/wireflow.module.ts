@@ -26,13 +26,7 @@ export function HttpLoaderFactory(http: HttpClient) {
   imports: [
     CommonModule,
     NgxSmartModalModule.forRoot(),
-    TranslateModule.forRoot({
-      loader: {
-        provide: TranslateLoader,
-        useFactory: HttpLoaderFactory,
-        deps: [HttpClient]
-      }
-    }),
+    TranslateModule.forRoot(),
     FormsModule,
     AgmCoreModule.forRoot({
       apiKey: '<API_KEY>',

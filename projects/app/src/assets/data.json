@@ -108,8 +108,8 @@
   },
   {
     "type": "org.celstec.arlearn2.beans.generalItem.NarratorItem",
-    "authoringX": 1075.563996898054,
-    "authoringY": 278.4150168423357,
+    "authoringX": 1134.563,
+    "authoringY": 276.415,
     "dependsOn": {
       "type": "org.celstec.arlearn2.beans.dependencies.ProximityDependency",
       "lng": 5.465985,

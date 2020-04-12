@@ -1,0 +1,32 @@
+{
+  "wireflow": {
+    "btns": {
+      "details": "Details",
+      "confirm": "Confirm",
+      "cancel": "Cancel",
+      "addQr": "+ Add QR label"
+    },
+    "action-modal": {
+      "title": "Provide an QR label",
+      "namePlaceholder": "QR label"
+    },
+    "proximity-modal": {
+      "title": "Proximity",
+      "selectType": "Select Type",
+      "searchLocation": "Search for location",
+      "longitude": "Longitude",
+      "longitudePlaceholder": "Enter longitude",
+      "latitude": "Latitude",
+      "latitudePlaceholder": "Enter latitude",
+      "radius": "Radius",
+      "radiusPlaceholder": "Enter radius"
+    },
+    "time-modal": {
+      "title": "Timer",
+      "secondsPlaceholder": "please enter number of seconds"
+    }
+  },
+  "read": "read",
+  "next": "next",
+  "in range": "in range"
+}

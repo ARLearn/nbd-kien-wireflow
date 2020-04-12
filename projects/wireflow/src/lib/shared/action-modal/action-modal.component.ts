@@ -1,5 +1,5 @@
-import {Component, OnDestroy, OnInit, Output} from '@angular/core';
-import { Subject, Subscription } from 'rxjs';
+import {AfterViewInit, Component, Input, OnDestroy, Output} from '@angular/core';
+import { merge, Subject, Subscription } from 'rxjs';
 import { NgxSmartModalService } from 'ngx-smart-modal';
 
 
@@ -8,7 +8,9 @@ import { NgxSmartModalService } from 'ngx-smart-modal';
   templateUrl: './action-modal.component.html',
   styleUrls: ['./action-modal.component.scss']
 })
-export class ActionModalComponent implements OnInit, OnDestroy {
+export class ActionModalComponent implements AfterViewInit, OnDestroy {
+  @Input() modalIdentifier: string;
+
   @Output() public submitForm: Subject<any>;
   @Output() public cancel: Subject<void>;
 
@@ -21,12 +23,13 @@ export class ActionModalComponent implements OnInit, OnDestroy {
     this.cancel = new Subject<void>();
   }
 
-  ngOnInit() {
-    const modal = this.ngxSmartModalService.getModal('actionQrModal');
+  ngAfterViewInit() {
+    const modal = this.ngxSmartModalService.getModal(this.modalIdentifier);
 
-    this.subscription = modal.onCloseFinished.subscribe(() => {
-      this.action = null;
-    });
+    this.subscription = merge(
+      modal.onOpen,
+      modal.onCloseFinished,
+    ).subscribe(() => this.action = null);
   }
 
   ngOnDestroy(): void {

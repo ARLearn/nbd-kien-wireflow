@@ -1,6 +1,6 @@
 <form (keydown)="$event.stopPropagation();" (ngSubmit)="f.valid && submitForm.next(f.value)" #f="ngForm">
   <div class="modal-header">
-    <h5 class="modal-title">Provide an QR label</h5>
+    <h5 class="modal-title">{{ 'wireflow.action-modal.title' | translate }}</h5>
   </div>
   <div class="modal-body">
     <div>
@@ -9,7 +9,7 @@
         #nameInput
         type="text"
         name="action"
-        placeholder="QR label"
+        placeholder="{{ 'wireflow.action-modal.namePlaceholder' | translate }}"
         [(ngModel)]="action"
         required
         autocomplete="off"
@@ -17,7 +17,7 @@
     </div>
   </div>
   <div class="modal-footer">
-    <button type="submit" class="btn btn-success">Confirm</button>
-    <button type="reset" class="btn btn-secondary" (click)="cancel.next()">Cancel</button>
+    <button type="submit" class="btn btn-success">{{ 'wireflow.btns.confirm' | translate }}</button>
+    <button type="reset" class="btn btn-secondary" (click)="cancel.next()">{{ 'wireflow.btns.cancel' | translate }}</button>
   </div>
 </form>
