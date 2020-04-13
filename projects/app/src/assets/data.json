@@ -159,7 +159,21 @@
         "isCorrect": false,
         "feedback": "Nope, try again.",
         "answer": "www",
-        "id": "given"
+        "id": "givend"
+      },
+      {
+        "type": "org.celstec.arlearn2.beans.generalItem.MultipleChoiceAnswerItem",
+        "isCorrect": false,
+        "feedback": "Nope, try again.",
+        "answer": "www",
+        "id": "givene"
+      },
+      {
+        "type": "org.celstec.arlearn2.beans.generalItem.MultipleChoiceAnswerItem",
+        "isCorrect": false,
+        "feedback": "Nope, try again.",
+        "answer": "www",
+        "id": "givengd"
       }
     ],
     "showFeedback": true,

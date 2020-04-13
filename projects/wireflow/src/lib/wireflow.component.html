@@ -31,10 +31,10 @@
                (mouseenter)="onNodeMouseEnter($event)"
                (mouseleave)="onNodeMouseLeave($event)">
               <filter id="dropshadow" height="130%">
-                <feGaussianBlur in="SourceAlpha" stdDeviation="3"/> <!-- stdDeviation is how much to blur -->
-                <feOffset dx="2" dy="2" result="offsetblur"/> <!-- how much to offset -->
+                <feGaussianBlur in="SourceAlpha" stdDeviation="2"/> <!-- stdDeviation is how much to blur -->
+                <feOffset dx="1" dy="2" result="offsetblur"/> <!-- how much to offset -->
                 <feComponentTransfer>
-                  <feFuncA type="linear" slope="0.5"/> <!-- slope is the opacity of the shadow -->
+                  <feFuncA type="linear" slope="0.25"/> <!-- slope is the opacity of the shadow -->
                 </feComponentTransfer>
                 <feMerge>
                   <feMergeNode/> <!-- this contains the offset blurred image -->
@@ -85,11 +85,11 @@
               <g class="node-content-hover">
                 <rect [attr.height]="getHeight(node)" opacity="0.4" fill="#000000" width="152"></rect>
 
-                <g class="font-awesome-pro" transform="translate(16, 38)">
-                  <text x="0" y="0" fill="white" font-size="26" [innerHTML]="getIcon(node.type)"></text>
+                <g class="font-awesome-pro" transform="translate(14, 29)">
+                  <text x="0" y="0" fill="white" font-size="16" [innerHTML]="getIcon(node.type)"></text>
                 </g>
 
-                <g class="font-awesome-pro cursor-pointer" transform="translate(124, 22)">
+                <g class="font-awesome-pro cursor-pointer" transform="translate(124, 25)">
                   <text x="0" y="0" fill="white" font-size="16">&#xf141;</text>
                 </g>
 
@@ -106,10 +106,15 @@
                 <g
                   class="cursor-pointer"
                   *ngIf="node.type.includes('Scan')"
-                  [attr.transform]="'translate(12, ' + (getHeight(node) / 2 + 10) + ')'"
+                  [attr.transform]="'translate(34, ' + (getHeight(node) / 2 + 10) + ')'"
                   (click)="openQrOutputScanTagModal(node)">
-                  <rect x="0" y="0" width="236" height="42" rx="1.5" stroke="white" fill="transparent"/>
-                  <text class="port-label" x="56" y="25" font-size="16" fill="#ffffff">{{ 'wireflow.btns.addQr' | translate }}</text>
+                  <rect x="0" y="0" width="84" height="33" rx="1.5" stroke="white" fill="transparent"/>
+                  <svg width="84px" height="33px">
+                    <text
+                      class="details-text"
+                      x="50%" y="50%" alignment-baseline="middle" text-anchor="middle">{{ 'wireflow.btns.addQr' | translate }}</text>
+                  </svg>
+<!--                  <text class="port-label" x="56" y="25" font-size="16" fill="#ffffff">{{ 'wireflow.btns.addQr' | translate }}</text>-->
                 </g>
               </g>
               <clipPath id="clip-text{{ c }}">
