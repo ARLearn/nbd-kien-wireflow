@@ -17,7 +17,7 @@
 
   <div class="content">
     <div class="main svg-drag">
-      <div class="port-label">test</div>
+
       <svg id="svg">
 
         <g id="diagram" data-drag="diagram:diagram" data-drag-type="diagram">
@@ -30,7 +30,20 @@
                [attr.dependency-type]="node.type"
                (mouseenter)="onNodeMouseEnter($event)"
                (mouseleave)="onNodeMouseLeave($event)">
-              <rect class="whole-rect" fill="transparent" width="152" [attr.height]="getHeight(node) + heightTitle"></rect>
+              <filter id="dropshadow" height="130%">
+                <feGaussianBlur in="SourceAlpha" stdDeviation="3"/> <!-- stdDeviation is how much to blur -->
+                <feOffset dx="2" dy="2" result="offsetblur"/> <!-- how much to offset -->
+                <feComponentTransfer>
+                  <feFuncA type="linear" slope="0.5"/> <!-- slope is the opacity of the shadow -->
+                </feComponentTransfer>
+                <feMerge>
+                  <feMergeNode/> <!-- this contains the offset blurred image -->
+                  <feMergeNode in="SourceGraphic"/> <!-- this contains the element that the filter is applied to -->
+                </feMerge>
+              </filter>
+
+
+              <rect  fill="#ffffff" width="152" [attr.height]="getHeight(node) + heightTitle" filter="url(#dropshadow)"></rect>
               <g class="node-content">
                 <rect width="152" [attr.height]="getHeight(node)" fill="#D2D6D8"/>
 
@@ -59,7 +72,7 @@
                      (mouseleave)="onPortMouseLeave($event, output)"
                   >
                     <rect width="124" height="19" fill="#EDEEEF" ry="4" />
-                    <g class="port port-scrim" transform="translate(248, 13)">
+                    <g class="port port-scrim" transform="translate(140, 4)">
                       <path d="M0 0H7C8.5913 0 10.1174 0.632141 11.2426 1.75736C12.3679 2.88258 13 4.4087 13 6V8C13 9.5913 12.3679 11.1174 11.2426 12.2426C10.1174 13.3679 8.5913 14 7 14H0V0Z" fill="#3EA3DC"/>
                       <path d="M5.47403 10.118C5.44189 10.1503 5.4037 10.1758 5.36166 10.1933C5.31961 10.2107 5.27455 10.2197 5.22903 10.2197C5.18351 10.2197 5.13844 10.2107 5.0964 10.1933C5.05436 10.1758 5.01617 10.1503 4.98402 10.118L4.65703 9.79105C4.59224 9.72617 4.55585 9.63823 4.55585 9.54654C4.55585 9.45485 4.59224 9.36694 4.65703 9.30206L6.88003 7.06805L4.65703 4.83405C4.59224 4.76917 4.55585 4.68123 4.55585 4.58954C4.55585 4.49785 4.59224 4.40994 4.65703 4.34506L4.98402 4.01804C5.01617 3.9858 5.05436 3.96026 5.0964 3.94281C5.13844 3.92536 5.18351 3.91638 5.22903 3.91638C5.27455 3.91638 5.31961 3.92536 5.36166 3.94281C5.4037 3.96026 5.44189 3.9858 5.47403 4.01804L8.27903 6.82306C8.31126 6.8552 8.33683 6.89338 8.35428 6.93542C8.37173 6.97747 8.38071 7.02254 8.38071 7.06805C8.38071 7.11357 8.37173 7.15864 8.35428 7.20068C8.33683 7.24273 8.31126 7.28091 8.27903 7.31305L5.47403 10.118Z" fill="white"/>
                     </g>
@@ -76,13 +89,18 @@
                   <text x="0" y="0" fill="white" font-size="26" [innerHTML]="getIcon(node.type)"></text>
                 </g>
 
-                <g class="font-awesome-pro cursor-pointer" transform="translate(210, 36)">
-                  <text x="0" y="0" fill="white" font-size="24">&#xf141;</text>
+                <g class="font-awesome-pro cursor-pointer" transform="translate(124, 22)">
+                  <text x="0" y="0" fill="white" font-size="16">&#xf141;</text>
                 </g>
 
-                <g class="details-btn cursor-pointer" [attr.transform]="'translate(84, '+ (getHeight(node) / 2 - 20 - (node.type.includes('Scan') ? 30 : 0)) +')'">
-                  <rect x="0" y="0" width="90" height="40" rx="1.5" stroke="white" fill="transparent"/>
-                  <text x="12" y="25" fill="white">{{ 'wireflow.btns.details' | translate }}</text>
+                <g class="details-btn cursor-pointer" [attr.transform]="'translate(34, '+ (getHeight(node) / 2 - 20 - (node.type.includes('Scan') ? 30 : 0)) +')'">
+                  <rect x="0" y="0" width="84" height="33" rx="1.5" stroke="white" fill="transparent"/>
+                  <svg width="84px" height="33px">
+                    <text
+                      class="details-text"
+                      x="50%" y="50%" alignment-baseline="middle" text-anchor="middle">{{ 'wireflow.btns.details' | translate }}</text>
+                  </svg>
+
                 </g>
 
                 <g
@@ -98,8 +116,8 @@
                 <rect x="0" [attr.y]="getHeight(node)" width="255" [attr.height]="heightTitle" />
               </clipPath>
 
-              <rect class="title-rect" [attr.y]="getHeight(node)" width="152" [attr.height]="heightTitle" fill="#E2E2E2"/>
-              <text fill="#000" x="10" [attr.y]="getHeight(node) + 24" font-size="18" [attr.clip-path]="'url(#clip-text' + c + ')'">{{ node.name }}</text>
+              <rect class="title-rect" [attr.y]="getHeight(node)" width="152" [attr.height]="heightTitle" fill="#ffffff"/>
+              <text class="title-label" x="10" [attr.y]="getHeight(node) + 24" font-size="18" [attr.clip-path]="'url(#clip-text' + c + ')'">{{ node.name }}</text>
             </g>
           </g>
 
