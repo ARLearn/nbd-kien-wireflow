@@ -9,6 +9,7 @@ import { AppService } from './app.service';
 export class AppComponent implements OnInit {
   title = 'Wireflow Demo';
   messages: any[];
+  lang = 'en';
 
   constructor(private service: AppService) { }
 

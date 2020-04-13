@@ -4,9 +4,11 @@ import {
   Component,
   HostListener,
   Input,
+  OnChanges,
   OnDestroy,
   OnInit,
   Output,
+  SimpleChanges,
   ViewChildren,
   ViewEncapsulation,
 } from '@angular/core';
@@ -34,10 +36,11 @@ interface MessageEditorStateModel {
   styleUrls: ['./wireflow.component.scss'],
   encapsulation: ViewEncapsulation.None
 })
-export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
+export class WireflowComponent implements OnInit, AfterViewInit, OnChanges, OnDestroy {
   @ViewChildren('nodes') nodesFor: any;
 
   @Input() messages: GameMessageCommon[];
+  @Input() lang: string = 'en';
   @Output() messagesChange: Observable<GameMessageCommon[]>;
   @Output() selectMessage: Subject<GameMessageCommon>;
 
@@ -73,7 +76,7 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
 
   private lastAddedNode: GameMessageCommon;
 
-  private heightPoint = 60;
+  private heightPoint = 30;
   private _heightTitle = 40;
   private minHeightMainBlock = 120;
 
@@ -109,7 +112,7 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
     public ngxSmartModalService: NgxSmartModalService,
     private translate: TranslateService,
   ) {
-    translate.setDefaultLang('en');
+    translate.setDefaultLang(this.lang);
     this.messagesChange = this.stateSubject
       .pipe(
         map(x => x.messages),
@@ -146,9 +149,15 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
     this.populatedNodes = this.messages.slice();
   }
 
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes.lang) {
+      this.translate.setDefaultLang(changes.lang.currentValue);
+    }
+  }
+
   getHeight(node) {
     return Math.max(
-      this.heightPoint * Math.max(node.inputs.length, node.outputs.length) + (node.type.includes('Scan') ? 40 : 0),
+      this.heightPoint * Math.max(node.inputs.length, node.outputs.length),
       this.minHeightMainBlock + this._heightTitle
     );
   }

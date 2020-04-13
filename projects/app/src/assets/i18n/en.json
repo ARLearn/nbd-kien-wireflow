@@ -3,8 +3,7 @@
     "btns": {
       "details": "Details",
       "confirm": "Confirm",
-      "cancel": "Cancel",
-      "addQr": "+ Add QR label"
+      "cancel": "Cancel"
     },
     "action-modal": {
       "title": "Provide an QR label",

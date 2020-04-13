@@ -43,7 +43,7 @@
               </filter>
 
 
-              <rect  fill="#ffffff" width="152" [attr.height]="getHeight(node) + heightTitle" filter="url(#dropshadow)"></rect>
+              <rect class="whole-rect" fill="#ffffff" width="152" [attr.height]="getHeight(node) + heightTitle" filter="url(#dropshadow)"></rect>
               <g class="node-content">
                 <rect width="152" [attr.height]="getHeight(node)" fill="#D2D6D8"/>
 
@@ -85,39 +85,38 @@
               <g class="node-content-hover">
                 <rect [attr.height]="getHeight(node)" opacity="0.4" fill="#000000" width="152"></rect>
 
-                <g class="font-awesome-pro" transform="translate(16, 38)">
-                  <text x="0" y="0" fill="white" font-size="26" [innerHTML]="getIcon(node.type)"></text>
+                <g class="font-awesome-pro" transform="translate(10, 26)">
+                  <text x="0" y="0" fill="white" font-size="18" [innerHTML]="getIcon(node.type)"></text>
                 </g>
 
                 <g class="font-awesome-pro cursor-pointer" transform="translate(124, 22)">
                   <text x="0" y="0" fill="white" font-size="16">&#xf141;</text>
                 </g>
 
-                <g class="details-btn cursor-pointer" [attr.transform]="'translate(34, '+ (getHeight(node) / 2 - 20 - (node.type.includes('Scan') ? 30 : 0)) +')'">
-                  <rect x="0" y="0" width="84" height="33" rx="1.5" stroke="white" fill="transparent"/>
-                  <svg width="84px" height="33px">
+                <g class="details-btn cursor-pointer" [attr.transform]="'translate(34, '+ (getHeight(node) / 2 - 10) +')'">
+                  <rect x="0" y="0" width="84px" height="26px" rx="1.5" stroke="white" fill="transparent"/>
+                  <svg width="84px" height="26px">
                     <text
                       class="details-text"
                       x="50%" y="50%" alignment-baseline="middle" text-anchor="middle">{{ 'wireflow.btns.details' | translate }}</text>
                   </svg>
 
                 </g>
-
-                <g
-                  class="cursor-pointer"
-                  *ngIf="node.type.includes('Scan')"
-                  [attr.transform]="'translate(12, ' + (getHeight(node) / 2 + 10) + ')'"
-                  (click)="openQrOutputScanTagModal(node)">
-                  <rect x="0" y="0" width="236" height="42" rx="1.5" stroke="white" fill="transparent"/>
-                  <text class="port-label" x="56" y="25" font-size="16" fill="#ffffff">{{ 'wireflow.btns.addQr' | translate }}</text>
-                </g>
               </g>
               <clipPath id="clip-text{{ c }}">
-                <rect x="0" [attr.y]="getHeight(node)" width="255" [attr.height]="heightTitle" />
+                <rect x="0" [attr.y]="getHeight(node)" [attr.width]="152 - (node.type.includes('Scan') ? 40 : 0)" [attr.height]="heightTitle" />
               </clipPath>
 
               <rect class="title-rect" [attr.y]="getHeight(node)" width="152" [attr.height]="heightTitle" fill="#ffffff"/>
               <text class="title-label" x="10" [attr.y]="getHeight(node) + 24" font-size="18" [attr.clip-path]="'url(#clip-text' + c + ')'">{{ node.name }}</text>
+
+              <g
+                class="cursor-pointer"
+                *ngIf="node.type.includes('Scan')"
+                [attr.transform]="'translate(128, ' + (getHeight(node) + 29) + ')'"
+                (click)="openQrOutputScanTagModal(node)">
+                <text x="0" y="0" font-size="26" fill="#3da8d9">+</text>
+              </g>
             </g>
           </g>
 
