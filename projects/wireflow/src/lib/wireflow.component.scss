@@ -96,7 +96,7 @@
       stroke-width: 4;
     }
 
-    &:hover {
+    &.node-container--hover:hover {
       .node-content-hover {
         opacity: 1;
       }

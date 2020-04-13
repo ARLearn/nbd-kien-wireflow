@@ -21,7 +21,9 @@
 
         <g id="diagram" data-drag="diagram:diagram" data-drag-type="diagram">
           <g id="node-layer">
-            <g class="node-container" #nodes *ngFor="let node of populatedNodes; let c = index"
+            <g class="node-container"
+               #nodes
+               *ngFor="let node of populatedNodes; let c = index"
                [class.border--selected]="node.id.toString() === selectedMessageId"
                [attr.general-item-id]="node.id"
                [attr.dependency-type]="node.type"

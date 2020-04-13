@@ -271,6 +271,7 @@ export class MiddlePoint extends BaseUiElement implements DraggableUiElement {
       },
       middlePoint: this,
       dependency,
+      name: subtype === 'scantag' ? 'scan tag' : 'message'
     });
   }
 

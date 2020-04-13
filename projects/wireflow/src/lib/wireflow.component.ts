@@ -392,6 +392,10 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   onNodeMouseEnter(event: any) {
+    if (!this.diagram.isDragging) {
+      event.target.classList.add('node-container--hover');
+    }
+
     if (this.currentMiddleConnector) {
       if (this.currentMiddleConnector.dependencyType.includes('ProximityDependency')) {
         return;
@@ -418,6 +422,7 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   onNodeMouseLeave(event: any) {
+    event.target.classList.remove('node-container--hover');
     event.target.classList.remove('border--success');
     event.target.classList.remove('border--danger');
     if (this.currentMiddleConnector && !this.processing) {
@@ -556,7 +561,7 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
         message = this._populateNode({
           ...x.message,
           id: x.dependency.generalItemId,
-          name: 'proximity',
+          name: x.dependency.type.includes('ProximityDependency') ? 'proximity' : x.name,
           type: x.dependency.type,
           action: x.dependency.type.includes('ProximityDependency') ? 'in range' : x.dependency.action,
           dependsOn: {},

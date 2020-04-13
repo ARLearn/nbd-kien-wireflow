@@ -15,6 +15,7 @@ export interface MiddlePointAddChildArgs {
   };
   dependency?: Dependency;
   middlePoint?: MiddlePoint;
+  name?: string;
 }
 
 export interface NodeShapeNewArgs {

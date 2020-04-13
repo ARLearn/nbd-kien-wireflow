@@ -4,7 +4,6 @@ import { State } from './state';
 import { DraggableUiElement } from './draggable-ui-element';
 import { NodePort } from './node-port';
 import { MiddlePoint } from './middle-point';
-import {Point} from "../utils";
 
 declare const TweenLite;
 declare const Draggable;
@@ -17,6 +16,7 @@ export class Diagram implements DraggableUiElement {
   target: DraggableUiElement;
   dragType: any;
   draggable: any;
+  private dragging: boolean;
 
   mpAllowedTypes: string[] = [
     'org.celstec.arlearn2.beans.dependencies.AndDependency',
@@ -28,6 +28,10 @@ export class Diagram implements DraggableUiElement {
 
   state = new State();
 
+  get isDragging() {
+    return this.dragging;
+  }
+
   constructor(diagramEl, shapeEls, svgEl, dragProxyEl, fragEl, connectorEl, connectorLayerEl) {
     this.state.init(diagramEl, shapeEls, svgEl, dragProxyEl, fragEl, connectorEl, connectorLayerEl);
 
@@ -35,6 +39,7 @@ export class Diagram implements DraggableUiElement {
 
     this.target = null;
     this.dragType = null;
+    this.dragging = false;
 
     this.draggable = new Draggable(this.state.dragProxy, {
       allowContextMenu: true,
@@ -147,7 +152,7 @@ export class Diagram implements DraggableUiElement {
   private _getDragArgs({target}: any) {
     let drag = target.getAttribute('data-drag');
 
-    while (!drag && target !== this.state.svg) {
+    while (!drag && target !== this.state.svg && 'getAttribute' in target.parentNode) {
       target = target.parentNode;
       drag = target.getAttribute('data-drag');
     }
@@ -160,6 +165,8 @@ export class Diagram implements DraggableUiElement {
   }
 
   private _onDragStart({id, dragType}) {
+    this.dragging = true;
+
     switch (dragType) {
       case 'diagram':
         this.target = this;
@@ -223,6 +230,7 @@ export class Diagram implements DraggableUiElement {
         break;
       }
     }
+    this.dragging = false;
   }
 
   private _getHitShape({ dragElement }: Connector, shapes: NodeShape[]) {
