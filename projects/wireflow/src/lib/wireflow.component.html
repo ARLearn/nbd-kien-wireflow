@@ -17,6 +17,7 @@
 
   <div class="content">
     <div class="main svg-drag">
+      <div class="port-label">test</div>
       <svg id="svg">
 
         <g id="diagram" data-drag="diagram:diagram" data-drag-type="diagram">
@@ -29,9 +30,9 @@
                [attr.dependency-type]="node.type"
                (mouseenter)="onNodeMouseEnter($event)"
                (mouseleave)="onNodeMouseLeave($event)">
-              <rect class="whole-rect" fill="transparent" width="260" [attr.height]="getHeight(node) + heightTitle"></rect>
+              <rect class="whole-rect" fill="transparent" width="152" [attr.height]="getHeight(node) + heightTitle"></rect>
               <g class="node-content">
-                <rect width="260" [attr.height]="getHeight(node)" fill="#D2D6D8"/>
+                <rect width="152" [attr.height]="getHeight(node)" fill="#D2D6D8"/>
 
                 <g class="inputs" *ngIf="!node.virtual">
                   <g class="input-field" *ngFor="let input of node.inputs; let i = index;"
@@ -50,26 +51,26 @@
                 <g class="outputs">
                   <g class="output-field"
                      *ngFor="let output of node.outputs; let i = index;"
-                     [attr.transform]="'translate(12, ' + (45 * i + 16) + ')'"
+                     [attr.transform]="'translate(12, ' + (25 * i + 16) + ')'"
                      [attr.general-item-id]="output.generalItemId"
                      [attr.action]="output.action"
                      [attr.node-type]="output.type"
                      (mouseenter)="onPortMouseEnter($event, output)"
                      (mouseleave)="onPortMouseLeave($event, output)"
                   >
-                    <rect width="236" height="42" fill="#EDEEEF" ry="4" />
+                    <rect width="124" height="19" fill="#EDEEEF" ry="4" />
                     <g class="port port-scrim" transform="translate(248, 13)">
                       <path d="M0 0H7C8.5913 0 10.1174 0.632141 11.2426 1.75736C12.3679 2.88258 13 4.4087 13 6V8C13 9.5913 12.3679 11.1174 11.2426 12.2426C10.1174 13.3679 8.5913 14 7 14H0V0Z" fill="#3EA3DC"/>
                       <path d="M5.47403 10.118C5.44189 10.1503 5.4037 10.1758 5.36166 10.1933C5.31961 10.2107 5.27455 10.2197 5.22903 10.2197C5.18351 10.2197 5.13844 10.2107 5.0964 10.1933C5.05436 10.1758 5.01617 10.1503 4.98402 10.118L4.65703 9.79105C4.59224 9.72617 4.55585 9.63823 4.55585 9.54654C4.55585 9.45485 4.59224 9.36694 4.65703 9.30206L6.88003 7.06805L4.65703 4.83405C4.59224 4.76917 4.55585 4.68123 4.55585 4.58954C4.55585 4.49785 4.59224 4.40994 4.65703 4.34506L4.98402 4.01804C5.01617 3.9858 5.05436 3.96026 5.0964 3.94281C5.13844 3.92536 5.18351 3.91638 5.22903 3.91638C5.27455 3.91638 5.31961 3.92536 5.36166 3.94281C5.4037 3.96026 5.44189 3.9858 5.47403 4.01804L8.27903 6.82306C8.31126 6.8552 8.33683 6.89338 8.35428 6.93542C8.37173 6.97747 8.38071 7.02254 8.38071 7.06805C8.38071 7.11357 8.37173 7.15864 8.35428 7.20068C8.33683 7.24273 8.31126 7.28091 8.27903 7.31305L5.47403 10.118Z" fill="white"/>
                     </g>
 
-                    <text class="port-label" x="10" y="25" fill="#000">{{ output.title || output.action | translate }}</text>
+                    <text class="port-label" x="10" y="12" fill="#000">{{ output.title || output.action | translate }}</text>
                   </g>
                 </g>
               </g>
 
               <g class="node-content-hover">
-                <rect [attr.height]="getHeight(node)" opacity="0.4" fill="#000000" width="260"></rect>
+                <rect [attr.height]="getHeight(node)" opacity="0.4" fill="#000000" width="152"></rect>
 
                 <g class="font-awesome-pro" transform="translate(16, 38)">
                   <text x="0" y="0" fill="white" font-size="26" [innerHTML]="getIcon(node.type)"></text>
@@ -97,7 +98,7 @@
                 <rect x="0" [attr.y]="getHeight(node)" width="255" [attr.height]="heightTitle" />
               </clipPath>
 
-              <rect class="title-rect" [attr.y]="getHeight(node)" width="260" [attr.height]="heightTitle" fill="#E2E2E2"/>
+              <rect class="title-rect" [attr.y]="getHeight(node)" width="152" [attr.height]="heightTitle" fill="#E2E2E2"/>
               <text fill="#000" x="10" [attr.y]="getHeight(node) + 24" font-size="18" [attr.clip-path]="'url(#clip-text' + c + ')'">{{ node.name }}</text>
             </g>
           </g>

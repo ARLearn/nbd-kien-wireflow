@@ -155,7 +155,14 @@
   }
 
   .port-label {
-    font-size: 16px;
+    letter-spacing: 0px;
+    font-weight: 400;
+    font-size: 9px;
+    line-height: 11px;
+    font-family: Roboto;
+
+    color: #000000DE;
+    opacity: 1;
   }
 
   .input-field {
