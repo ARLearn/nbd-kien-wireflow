@@ -342,10 +342,9 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnDestroy {
         }
       }
 
-      const message = this.messages.find(m => m.id.toString() === x.model.generalItemId);
+      const message = this.populatedNodes.find(m => m.id.toString() === x.model.generalItemId);
 
       this.selectMessage.next(message);
-
       this.toggleSelectedMessage(message.id.toString());
     }));
 
