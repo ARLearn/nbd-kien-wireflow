@@ -76,7 +76,7 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnChanges, OnDe
 
   private lastAddedNode: GameMessageCommon;
 
-  private heightPoint = 30;
+  private heightPoint = 28;
   private _heightTitle = 40;
   private minHeightMainBlock = 120;
 
