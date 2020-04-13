@@ -108,8 +108,8 @@
   },
   {
     "type": "org.celstec.arlearn2.beans.generalItem.NarratorItem",
-    "authoringX": 1134.563,
-    "authoringY": 276.415,
+    "authoringX": 1075.563996898054,
+    "authoringY": 278.4150168423357,
     "dependsOn": {
       "type": "org.celstec.arlearn2.beans.dependencies.ProximityDependency",
       "lng": 5.465985,
@@ -159,21 +159,7 @@
         "isCorrect": false,
         "feedback": "Nope, try again.",
         "answer": "www",
-        "id": "givend"
-      },
-      {
-        "type": "org.celstec.arlearn2.beans.generalItem.MultipleChoiceAnswerItem",
-        "isCorrect": false,
-        "feedback": "Nope, try again.",
-        "answer": "www",
-        "id": "givene"
-      },
-      {
-        "type": "org.celstec.arlearn2.beans.generalItem.MultipleChoiceAnswerItem",
-        "isCorrect": false,
-        "feedback": "Nope, try again.",
-        "answer": "www",
-        "id": "givengd"
+        "id": "given"
       }
     ],
     "showFeedback": true,
