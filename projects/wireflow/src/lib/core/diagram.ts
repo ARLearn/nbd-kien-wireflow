@@ -206,6 +206,7 @@ export class Diagram implements DraggableUiElement {
   }
 
   private _stopDragging({id, dragType}) {
+    this.dragging = false;
     switch (dragType) {
       case 'shape':
         this.target = this.getShapeById(id);
@@ -230,7 +231,6 @@ export class Diagram implements DraggableUiElement {
         break;
       }
     }
-    this.dragging = false;
   }
 
   private _getHitShape({ dragElement }: Connector, shapes: NodeShape[]) {

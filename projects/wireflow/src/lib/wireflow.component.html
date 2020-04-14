@@ -72,6 +72,7 @@
                      (mouseleave)="onPortMouseLeave($event, output)"
                   >
                     <rect width="124" height="19" fill="#EDEEEF" ry="4" />
+                    <rect width="158" height="23" fill="transparent" />
                     <g class="port port-scrim" transform="translate(140, 4)">
                       <path d="M0 0H7C8.5913 0 10.1174 0.632141 11.2426 1.75736C12.3679 2.88258 13 4.4087 13 6V8C13 9.5913 12.3679 11.1174 11.2426 12.2426C10.1174 13.3679 8.5913 14 7 14H0V0Z" fill="#3EA3DC"/>
                       <path d="M5.47403 10.118C5.44189 10.1503 5.4037 10.1758 5.36166 10.1933C5.31961 10.2107 5.27455 10.2197 5.22903 10.2197C5.18351 10.2197 5.13844 10.2107 5.0964 10.1933C5.05436 10.1758 5.01617 10.1503 4.98402 10.118L4.65703 9.79105C4.59224 9.72617 4.55585 9.63823 4.55585 9.54654C4.55585 9.45485 4.59224 9.36694 4.65703 9.30206L6.88003 7.06805L4.65703 4.83405C4.59224 4.76917 4.55585 4.68123 4.55585 4.58954C4.55585 4.49785 4.59224 4.40994 4.65703 4.34506L4.98402 4.01804C5.01617 3.9858 5.05436 3.96026 5.0964 3.94281C5.13844 3.92536 5.18351 3.91638 5.22903 3.91638C5.27455 3.91638 5.31961 3.92536 5.36166 3.94281C5.4037 3.96026 5.44189 3.9858 5.47403 4.01804L8.27903 6.82306C8.31126 6.8552 8.33683 6.89338 8.35428 6.93542C8.37173 6.97747 8.38071 7.02254 8.38071 7.06805C8.38071 7.11357 8.37173 7.15864 8.35428 7.20068C8.33683 7.24273 8.31126 7.28091 8.27903 7.31305L5.47403 10.118Z" fill="white"/>
@@ -126,7 +127,7 @@
             <path class="connector-path-outline" />
             <path class="connector-path" />
 
-            <circle class="base-middle-point" style="display: none" cx="2" cy="2" r="8" />
+            <circle class="base-middle-point" style="display: none" cx="2" cy="2" r="4" />
 
             <circle class="connector-handle input-handle" cx="0" cy="0" r="4" />
             <g class="connector-middle-point" style="display: none">
@@ -138,7 +139,7 @@
           </g>
 
           <g class="middle-point" style="display: none;">
-            <circle class="connector-handle" cx="2" cy="2" r="16" />
+            <circle class="connector-handle" cx="2" cy="2" r="12" />
             <text x="-5" y="10" class="middle-point-font" fill="#ffffff">+</text>
             <svg class="middle-point-pencil" style="display: none;" x="-4" y="-5" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"><path fill="#ffffff" d="M7.127 22.562l-7.127 1.438 1.438-7.128 5.689 5.69zm1.414-1.414l11.228-11.225-5.69-5.692-11.227 11.227 5.689 5.69zm9.768-21.148l-2.816 2.817 5.691 5.691 2.816-2.819-5.691-5.689z"/></svg>
           </g>
@@ -193,36 +194,38 @@
 
           <g class="middle-connector middle-connector--new" style="display: none;">
             <defs>
-              <marker id="connector-arrowhead" markerWidth="10" markerHeight="6"
-                      refX="2" refY="2" orient="auto">
-                <polygon points="3 0, 3 4, 0 2" fill="#3da8d9" />
+              <marker id="connector-arrowhead" markerWidth="3" markerHeight="3"
+                      refX="2" refY="1.5" orient="auto">
+                <svg width="3" height="3" viewBox="0 0 2 3" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M2 0V3L0 1.5L2 0Z" fill="#3DA8D9"/>
+                </svg>
               </marker>
             </defs>
 
             <path class="connector-path-outline" />
             <path class="connector-path" marker-start="url(#connector-arrowhead)" />s
 
-            <circle class="base-middle-point" style="display: none" cx="2" cy="2" r="8" />
+            <circle class="base-middle-point" style="display: none" cx="2" cy="2" r="6" />
 
             <circle class="connector-handle input-handle" opacity="0" cx="0" cy="0" r="4" />
 
             <circle class="connector-handle output-handle" cx="0" cy="0" r="4" />
           </g>
 
-          <g class="connector-middle-point-and" style="display: none;">
-            <circle cx="12" cy="-12" r="9" fill="black" />
-            <circle cx="12" cy="-12" r="8" fill="white" />
-            <svg version="1.1" x="6" y="-17" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 512.008 512.008" width="12" height="12"><g><path d="M507.331,100.68l-96-96c-6.24-6.24-16.384-6.24-22.624,0l-96,96c-4.576,4.608-5.952,11.456-3.488,17.44 s8.32,9.888,14.784,9.888h48v44.48c0,16.288-7.968,31.264-21.344,40.128l-58.464,38.976c-5.472,3.584-10.848,7.744-16.192,12.576 c-5.344-4.832-10.688-8.96-16.096-12.512l-58.624-39.072c-13.312-8.832-21.28-23.808-21.28-40.096v-44.48h48 c6.464,0,12.32-3.904,14.784-9.888s1.088-12.832-3.456-17.44l-96-96c-6.24-6.24-16.384-6.24-22.624,0l-96,96c-4.576,4.608-5.952,11.456-3.488,17.44s8.32,9.888,14.784,9.888h48v44.48c0,48.32,23.968,93.12,64.096,119.872l58.624,39.072c13.312,8.832,21.28,23.808,21.28,40.096v124.48c0,8.832,7.168,16,16,16h64c8.832,0,16-7.168,16-16v-124.48 c0-16.288,7.968-31.264,21.344-40.128l58.56-39.04c40.128-26.752,64.096-71.552,64.096-119.872v-44.48h48 c6.464,0,12.32-3.904,14.784-9.888S511.875,105.288,507.331,100.68z"/></g></svg>
+          <g class="connector-middle-point-and" style="display: none;" transform="translate(0, 4)">
+            <circle cx="12" cy="-12" r="7" fill="black" />
+            <circle cx="12" cy="-12" r="6" fill="white" />
+            <svg version="1.1" x="7" y="-17" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 512.008 512.008" width="10" height="10"><g><path d="M507.331,100.68l-96-96c-6.24-6.24-16.384-6.24-22.624,0l-96,96c-4.576,4.608-5.952,11.456-3.488,17.44 s8.32,9.888,14.784,9.888h48v44.48c0,16.288-7.968,31.264-21.344,40.128l-58.464,38.976c-5.472,3.584-10.848,7.744-16.192,12.576 c-5.344-4.832-10.688-8.96-16.096-12.512l-58.624-39.072c-13.312-8.832-21.28-23.808-21.28-40.096v-44.48h48 c6.464,0,12.32-3.904,14.784-9.888s1.088-12.832-3.456-17.44l-96-96c-6.24-6.24-16.384-6.24-22.624,0l-96,96c-4.576,4.608-5.952,11.456-3.488,17.44s8.32,9.888,14.784,9.888h48v44.48c0,48.32,23.968,93.12,64.096,119.872l58.624,39.072c13.312,8.832,21.28,23.808,21.28,40.096v124.48c0,8.832,7.168,16,16,16h64c8.832,0,16-7.168,16-16v-124.48 c0-16.288,7.968-31.264,21.344-40.128l58.56-39.04c40.128-26.752,64.096-71.552,64.096-119.872v-44.48h48 c6.464,0,12.32-3.904,14.784-9.888S511.875,105.288,507.331,100.68z"/></g></svg>
           </g>
-          <g class="connector-middle-point-or" style="display: none;">
-            <circle cx="12" cy="-12" r="9" fill="black" />
-            <circle cx="12" cy="-12" r="8" fill="white" />
-            <svg x="6" y="-17" xmlns="http://www.w3.org/2000/svg" version="1" viewBox="0 0 24 24" width="12" height="12" enable-background="new 0 0 24 24"><path d="M 2 2 L 3.3125 10.3125 L 5.65625 7.96875 L 7.8125 10.09375 C 8.4125 10.69375 8.8875 11.3 9.1875 12 C 9.5875 10.8 10.1125 9.59375 10.8125 8.59375 C 10.6125 8.29375 10.29375 8.0125 10.09375 7.8125 L 7.96875 5.65625 L 10.3125 3.3125 L 2 2 z M 22 2 L 13.6875 3.3125 L 15.75 5.375 L 14.15625 7 L 13.6875 7.5 C 11.333947 9.8535534 10 12.98869 10 16.3125 L 10 22 L 14 22 L 14 16.3125 C 14 14.03631 14.853553 11.958947 16.5 10.3125 L 18.59375 8.21875 L 20.6875 10.3125 L 22 2 z"/></svg>
+          <g class="connector-middle-point-or" style="display: none;" transform="translate(0, 4)">
+            <circle cx="12" cy="-12" r="7" fill="black" />
+            <circle cx="12" cy="-12" r="6" fill="white" />
+            <svg x="7" y="-17" xmlns="http://www.w3.org/2000/svg" version="1" viewBox="0 0 24 24" width="10" height="10" enable-background="new 0 0 24 24"><path d="M 2 2 L 3.3125 10.3125 L 5.65625 7.96875 L 7.8125 10.09375 C 8.4125 10.69375 8.8875 11.3 9.1875 12 C 9.5875 10.8 10.1125 9.59375 10.8125 8.59375 C 10.6125 8.29375 10.29375 8.0125 10.09375 7.8125 L 7.96875 5.65625 L 10.3125 3.3125 L 2 2 z M 22 2 L 13.6875 3.3125 L 15.75 5.375 L 14.15625 7 L 13.6875 7.5 C 11.333947 9.8535534 10 12.98869 10 16.3125 L 10 22 L 14 22 L 14 16.3125 C 14 14.03631 14.853553 11.958947 16.5 10.3125 L 18.59375 8.21875 L 20.6875 10.3125 L 22 2 z"/></svg>
           </g>
-          <g class="connector-middle-point-time" style="display: none;">
-            <circle cx="12" cy="-12" r="9" fill="black" />
-            <circle cx="12" cy="-12" r="8" fill="white" />
-            <svg x="6" y="-18" xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24"><path d="M12 2c5.514 0 10 4.486 10 10s-4.486 10-10 10-10-4.486-10-10 4.486-10 10-10zm0-2c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm1 12v-6h-2v8h7v-2h-5z"/></svg>
+          <g class="connector-middle-point-time" style="display: none;" transform="translate(0, 4)">
+            <circle cx="12" cy="-12" r="7" fill="black" />
+            <circle cx="12" cy="-12" r="6" fill="white" />
+            <svg x="7" y="-17" xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24"><path d="M12 2c5.514 0 10 4.486 10 10s-4.486 10-10 10-10-4.486-10-10 4.486-10 10-10zm0-2c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm1 12v-6h-2v8h7v-2h-5z"/></svg>
           </g>
 
           <circle id="drag-proxy" cx="0" cy="0" r="1" fill="none" />

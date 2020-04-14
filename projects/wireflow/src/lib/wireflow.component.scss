@@ -24,14 +24,14 @@
 
   .connector-path {
     stroke: #3da8d9;
-    stroke-width: 4;
+    stroke-width: 3;
     fill: none;
     transform: translate(3px, 0px);
   }
 
   .connector-path-outline {
     stroke: transparent;
-    stroke-width: 6;
+    stroke-width: 3;
     fill: none;
 
     &--selected {

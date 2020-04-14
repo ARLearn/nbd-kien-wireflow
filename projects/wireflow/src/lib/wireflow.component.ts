@@ -249,7 +249,7 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnChanges, OnDe
       if (shape && inputPort) {
         const { height, width, x, y } = shape.nativeElement.querySelector('.node-content > rect').getBoundingClientRect() as any;
 
-        const localRect = new Rectangle(-26, -18, height + 32 + 24, width + 26);
+        const localRect = new Rectangle(-23, -18, height + 32 + 24, width + 14);
         const generalRect = new Rectangle(x, y, height, width);
 
         const mp = minBy(
@@ -563,9 +563,7 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnChanges, OnDe
         depend.subtype = 'scantag';
       }
 
-      this.currentMiddleConnector.middlePoint.dependency.dependencies.push(depend);
-
-      if (!this.currentMiddleConnector.shape) {
+      if (!this.currentMiddleConnector.shape && depend.subtype) {
         message = this._populateNode({
           ...x.message,
           id: x.dependency.generalItemId,
@@ -577,7 +575,13 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnChanges, OnDe
         });
 
         oldNodes = [...this.populatedNodes, message];
+
+        this.currentMiddleConnector.middlePoint.dependency.dependencies.push(depend);
       } else {
+        if (!this.currentMiddleConnector.shape) {
+          return;
+        }
+
         message = this.populatedNodes.find(pn => pn.id.toString() === this.currentMiddleConnector.shape.model.generalItemId.toString());
 
         const output = message.outputs
@@ -594,21 +598,22 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnChanges, OnDe
           });
         } else {
           depend.generalItemId = output.generalItemId;
+          this.currentMiddleConnector.middlePoint.dependency.dependencies.push(depend);
           this._createConnector(message, this.currentMiddleConnector, this.currentMiddleConnector.shape, depend);
           this.currentMiddleConnector = null;
           this.lastGeneralItemId = null;
-
           this.diagram.state.changeDependencies$.next();
-
           this.processing = false;
           return;
         }
 
+        this.currentMiddleConnector.middlePoint.dependency.dependencies.push(depend);
         oldNodes = [...this.populatedNodes];
       }
 
       message.authoringX = Math.floor(event.offsetX);
       message.authoringY = Math.floor(event.offsetY);
+
 
       this.lastAddedNode = message;
       this.populatedNodes = oldNodes;
