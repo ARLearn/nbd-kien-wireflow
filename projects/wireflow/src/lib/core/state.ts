@@ -4,7 +4,7 @@ import { NodePort } from './node-port'; // TODO: Remove dependency, use model in
 import { Connector } from './connector'; // TODO: Remove dependency, use model instead
 import { MiddlePoint } from './middle-point'; // TODO: Remove dependency, use model instead
 import { counter, getNumberFromPixels, Point } from '../utils';
-import { NodeModel, PortModel } from './models';
+import {ConnectorModel, NodeModel, PortModel} from './models';
 import { GameMessageCommon, Dependency } from '../models/core';
 
 export interface MiddlePointAddChildArgs {
@@ -49,7 +49,12 @@ export interface ConnectorMoveArgs {
   connector: Connector;
 }
 
+export interface NodePortUpdateArgs {
+  port: PortModel;
+}
+
 export class State {
+  connectorModels: ConnectorModel[] = [];
   nodeShapeModels: NodeModel[] = []; // TODO: Move to nodesService
   portModels: PortModel[] = []; // TODO: Move to nodesService
 
@@ -62,7 +67,7 @@ export class State {
   connectorLayer; // TODO: Move to connectorsService
 
   connectorsOutput: Connector[] = []; // TODO: Remove array, use array of models instead
-  connectorModels; // TODO: Move to connectorsService
+  // connectorModels; // TODO: Move to connectorsService
 
   middlePointsOutput: MiddlePoint[] = []; // TODO: Remove array, use array of models instead
   middlePointModels; // TODO: Move to middlePointsService
@@ -75,10 +80,11 @@ export class State {
   singleDependenciesOutput$ = new Subject(); // TODO: Move to some service
   singleDependencyWithNewDependencyOutput$ = new Subject(); // TODO: Move to some service
   nodePortNew$ = new Subject<NodePortNewArgs>(); // TODO: Move to nodesService
+  nodePortUpdate$ = new Subject<NodePortUpdateArgs>(); // TODO: Move to connectorsService
   nodeShapeNew$ = new Subject<NodeShapeNewArgs>(); // TODO: Move to nodesService
   nodeShapeRemove$ = new Subject<string>(); // TODO: Move to nodesService
   connectorRemove$ = new Subject<ConnectorRemoveArgs>(); // TODO: Move to connectorsService
-  connectorUpdate$ = new Subject<ConnectorPortArgs>(); // TODO: Move to connectorsService
+  connectorAttach$ = new Subject<ConnectorPortArgs>(); // TODO: Move to connectorsService
   connectorDetach$ = new Subject<ConnectorPortArgs>(); // TODO: Move to connectorsService
   connectorMove$ = new Subject<ConnectorMoveArgs>(); // TODO: Move to connectorsService
   middlePointClick$ = new Subject<MiddlePoint>(); // TODO: Move to connectorsService
@@ -115,6 +121,18 @@ export class State {
     this.nodePortNew$.next({ model, parentNode });
   }
 
+  createConnectorModel(dependencyType, subType = null, proximity = null): ConnectorModel {
+    const model = {
+      id: `connector_${this.idCounter()}`,
+      dependencyType,
+      subType,
+      proximity
+    };
+
+    this.connectorModels.push(model);
+    return model;
+  }
+
   init(diagramEl, shapeEls, svgEl, dragProxyEl, fragEl, connectorEl, connectorLayerEl) {
     this.diagramElement = diagramEl;
     this.shapeElements = shapeEls;
@@ -125,12 +143,13 @@ export class State {
     this.connectorLayer = connectorLayerEl;
   }
 
-  addConnectorToOutput(mc) { // TODO: Move to connectorsService
-    this.connectorsOutput = [ ...this.connectorsOutput, mc ];
+  addConnectorToOutput(connector: Connector) { // TODO: Move to connectorsService
+    this.connectorsOutput = [ ...this.connectorsOutput, connector ];
   }
 
-  removeConnectorFromOutput(mc) {  // TODO: Move to connectorsService
-    this.connectorsOutput = this.connectorsOutput.filter(connector => connector.id !== mc.id);
+  removeConnectorFromOutput(connector: Connector) {  // TODO: Move to connectorsService
+    this.connectorModels = this.connectorModels.filter(c => c.id !== connector.model.id);
+    this.connectorsOutput = this.connectorsOutput.filter(c => c.model.id !== connector.model.id);
   }
 
   getDiagramCoords() { // TODO: Move to Diagram

@@ -43,4 +43,12 @@ export class AppComponent implements OnInit {
         });
     }, 100);
   }
+
+  deselectMessage(message: any) {
+    console.log('FROM DESELECT', message);
+  }
+
+  noneSelected() {
+    console.log('FROM NONE_SELECTED');
+  }
 }

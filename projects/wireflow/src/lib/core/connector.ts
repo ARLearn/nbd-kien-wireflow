@@ -1,64 +1,69 @@
+import { Subscription } from 'rxjs';
 import { NodeShape } from './node-shape';
 import { MiddlePoint } from './middle-point'; // TODO: remove dependency
 import { NodePort } from './node-port';
-import {ChangeSingleDependencyWithDependencyAction, ConnectorToolbar} from './toolbars/connector-toolbar';
+import { ChangeSingleDependencyWithDependencyAction, ConnectorToolbar } from './toolbars/connector-toolbar';
 import { ConnectorMiddlePoint, ConnectorMiddlePointAction } from './connector-middle-point';
 import { BezierPath } from './bezier-path';
 import { State, ConnectorRemoveOptions } from './state'; // TODO: remove dependency
 import { getNumberFromPixels, Point } from '../utils';
-import { Subscription } from 'rxjs';
 import { DraggableUiElement } from './draggable-ui-element';
+import { ConnectorModel, PortModel } from './models';
 
 export const bezierWeight = 0.675;
 
 declare const TweenLite;
 
 export class Connector implements DraggableUiElement {
-  id: string;
   baseX: number; // TODO: Use "point" object
   baseY: number;
   isInputConnector = false;
   isSelected: boolean;
-  dependencyType: any;
-  subType: any;
-  proximity?: { lat?: number, lng?: number; radius?: number };
-
   bezierPath: BezierPath;
+
   baseMiddlePoint: ConnectorMiddlePoint;
   middlePoint: MiddlePoint; // TODO: Replace with coordinates
   shape: NodeShape;
   connectorToolbar: ConnectorToolbar;
+  nativeElement: HTMLElement; // TODO: Rename into "element"
 
-  connectorElement: any; // TODO: Rename into "element"
   staticElement: any;
   staticPort: any;
   dragElement: any;
   inputHandle: any;
   outputHandle: any;
-
-
   onClick: any;
-
   private path: any;
-  private pathOutline: any;
-  private _inputPort: NodePort;
-  private _outputPort: NodePort;
-  private _subscription = new Subscription();
-  private _connectionSide: string = 'left';
 
-  constructor(private state: State, x = -1, y = -1, middlePoint = null, dependencyType = null, subtype = null) {
-    this.id = `connector_${this.state.idCounter()}`;
+  // tslint:disable-next-line:variable-name
+  private _model: ConnectorModel;
+  private pathOutline: any;
+  // tslint:disable-next-line:variable-name
+  private _inputPort: NodePort;
+  // tslint:disable-next-line:variable-name
+  private _outputPort: NodePort;
+  // tslint:disable-next-line:variable-name
+  private _subscription = new Subscription();
+  // tslint:disable-next-line:variable-name
+  private _connectionSide = 'left';
+
+  get model() {
+    return this._model;
+  }
+
+  constructor(private state: State, model: ConnectorModel, x = -1, y = -1, middlePoint = null) {
+    this._model = model;
 
     // TODO: Move to client code
-    this.connectorElement = document.querySelector('.middle-connector').cloneNode(true);
+    this.nativeElement = document.querySelector('.middle-connector').cloneNode(true) as HTMLElement;
 
-    this.connectorElement.style.display = 'block';
-    this.connectorElement.classList.add('middle-connector--new');
+    this.nativeElement.style.display = 'block';
+    this.nativeElement.classList.add('middle-connector--new');
 
-    this.inputHandle = this.connectorElement.querySelector('.input-handle');
-    this.outputHandle = this.connectorElement.querySelector('.output-handle');
-    this.path = this.connectorElement.querySelector('.connector-path');
-    this.pathOutline = this.connectorElement.querySelector('.connector-path-outline');
+    this.inputHandle = this.nativeElement.querySelector('.input-handle');
+    this.outputHandle = this.nativeElement.querySelector('.output-handle');
+    this.path = this.nativeElement.querySelector('.connector-path');
+    this.pathOutline = this.nativeElement.querySelector('.connector-path-outline');
 
     this.bezierPath = new BezierPath();
 
@@ -70,9 +75,6 @@ export class Connector implements DraggableUiElement {
       this.baseX = this.middlePoint.coordinates.x;
       this.baseY = this.middlePoint.coordinates.y;
     }
-
-    this.dependencyType = dependencyType;
-    this.subType = subtype;
 
     this.isSelected = false;
 
@@ -87,10 +89,10 @@ export class Connector implements DraggableUiElement {
     this.state.svg.onmousemove = (e) => this.move(e);
     this.state.svg.onclick = (e) => this._onClick(e);
 
-    this.connectorElement.onclick = (e) => this._onClick(e);
+    this.nativeElement.onclick = (e) => this._onClick(e);
 
     this.baseMiddlePoint =
-      new ConnectorMiddlePoint(this.state, this.connectorElement.querySelector('.base-middle-point'))
+      new ConnectorMiddlePoint(this.state, this.nativeElement.querySelector('.base-middle-point'))
         .hide();
     this._subscription.add(this.baseMiddlePoint.action.subscribe(action => this._onMiddlePointAction(action)));
 
@@ -104,11 +106,11 @@ export class Connector implements DraggableUiElement {
         .subscribe(data => this._changeSingleDependencyTypeWithDependency(data))
     );
 
-    this.connectorElement.onmouseenter = (e) => this.onHover(e);
-    this.connectorElement.onmouseleave = (e) => this.onHoverLeave(e);
+    this.nativeElement.onmouseenter = (e) => this.onHover(e);
+    this.nativeElement.onmouseleave = (e) => this.onHoverLeave(e);
 
     // TODO: replace with this.connectorsService.prependToConnectorLayer()
-    this.state.connectorLayer.prepend(this.connectorElement);
+    this.state.connectorLayer.prepend(this.nativeElement);
   }
 
   get dragType() { return 'connector'; }
@@ -142,7 +144,7 @@ export class Connector implements DraggableUiElement {
     }
 
     this.staticPort = port;
-    this.dragElement.setAttribute('data-drag', `${this.id}:connector`);
+    this.dragElement.setAttribute('data-drag', `${this.model.id}:connector`);
     this.staticElement.setAttribute('data-drag', `${port.model.id}:port`);
 
     this.baseX = port.global.x;
@@ -175,19 +177,14 @@ export class Connector implements DraggableUiElement {
       this.setInputPort(port);
     }
 
-    // TODO: Emit "connectorAttach" event
-
-    // TODO: Move to "connectorAttach" handler
-    const inputPort = port.model.isInput ? port : this._inputPort;
-
-    inputPort.model.connectors
-      .filter(c => c !== this)
-      .forEach(c => {
-        c.remove({ onlyConnector: false });
-      });
-
-    this.updateHandle(port);
     this.state.addConnectorToOutput(this);
+
+    this.state.connectorAttach$.next({
+      connector: this,
+      port: port.model.isInput ? port : this._inputPort
+    });
+
+    this.updateHandle(port.model);
     this.state.changeDependencies$.next();
     this.state.connectorMove$.next({ connector: this });
   }
@@ -224,7 +221,7 @@ export class Connector implements DraggableUiElement {
     this.pathOutline = null;
 
     this.connectorToolbar && this.connectorToolbar.remove();
-    this.connectorElement && this.connectorElement.remove();
+    this.nativeElement && this.nativeElement.remove();
 
     this.state.connectorRemove$.next({ connector: this, opts });
   }
@@ -280,9 +277,15 @@ export class Connector implements DraggableUiElement {
     return this;
   }
 
+  setModel(model: ConnectorModel) {
+    this._model = model;
+
+    return this;
+  }
+
   setOutputPort(port: NodePort) {
     this._outputPort = port;
-    port.model.connectors.push(this);
+    port.model.connectors.push(this.model);
     return this;
   }
 
@@ -292,7 +295,7 @@ export class Connector implements DraggableUiElement {
 
   setInputPort(port: NodePort) {
     this._inputPort = port;
-    port.model.connectors.push(this);
+    port.model.connectors.push(this.model);
     return this;
   }
 
@@ -302,7 +305,7 @@ export class Connector implements DraggableUiElement {
 
   detachPort(port: NodePort) {
     const {connectors} = port.model;
-    const index = connectors.indexOf(this);
+    const index = connectors.indexOf(this.model);
     if (index !== -1) {
       connectors.splice(index, 1);
     }
@@ -317,7 +320,7 @@ export class Connector implements DraggableUiElement {
   }
 
   setProximity(lat, lng, radius) {
-    this.proximity = { lat, lng, radius };
+    this._model.proximity = { lat, lng, radius };
   }
 
   updateMiddlePoint(x, y) { // TODO: Add middlePoint argument
@@ -332,26 +335,25 @@ export class Connector implements DraggableUiElement {
     this.state.connectorMove$.next({ connector: this });
   }
 
-  updateHandle(port, allowedMoveEvent = true) { // TODO: Rename into update(isInput, point)
-    if (port === this._inputPort) {
+  updateHandle(port: PortModel, allowedMoveEvent = true) { // TODO: Rename into update(isInput, point)
+    if (this._inputPort && port.id === this._inputPort.model.id) {
       TweenLite.set(this.inputHandle, {
-        x: port.global.x,
-        y: port.global.y
+        x: this._inputPort.global.x,
+        y: this._inputPort.global.y
       });
-    } else if (port === this._outputPort) {
+    } else if (this._outputPort && port.id === this._outputPort.model.id) {
       TweenLite.set(this.outputHandle, {
-        x: port.global.x,
-        y: port.global.y
+        x: this._outputPort.global.x,
+        y: this._outputPort.global.y
       });
     }
 
-    this.baseX = port.global.x;
-    this.baseY = port.global.y;
-
-    this.connectorElement.classList.remove('middle-connector--new');
+    this.nativeElement.classList.remove('middle-connector--new');
 
     this._updatePath();
-    allowedMoveEvent && this.state.connectorMove$.next({ connector: this });
+    if (allowedMoveEvent) {
+      this.state.connectorMove$.next({ connector: this });
+    }
   }
 
   moveOutputHandle(point: Point) {

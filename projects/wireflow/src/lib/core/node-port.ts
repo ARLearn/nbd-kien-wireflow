@@ -50,11 +50,7 @@ export class NodePort extends BaseModelUiElement<PortModel> implements Draggable
   update() {
     this.updatePlacement();
 
-    if (this.model.connectors) {
-      this.model.connectors.forEach(connector => {
-        this.state.connectorUpdate$.next({connector, port: this});
-      });
-    }
+    this.state.nodePortUpdate$.next({ port: this.model });
   }
 
   updatePlacement() {

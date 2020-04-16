@@ -55,7 +55,7 @@ export class MiddlePoint extends BaseUiElement implements DraggableUiElement {
     this.outputConnectors.forEach(x => {
       x.updateMiddlePoint(this.coordinates.x, this.coordinates.y);
 
-      if (x.dependencyType.includes('ProximityDependency')) {
+      if (x.model.dependencyType.includes('ProximityDependency')) {
         const shape = x.outputPort.parentNode as NodeShape;
         shape.move({ x: this.coordinates.x - 250, y: this.coordinates.y });
       }
@@ -134,10 +134,10 @@ export class MiddlePoint extends BaseUiElement implements DraggableUiElement {
 
     if (removeDependency && this.dependency.dependencies && connector.outputPort) {
       const depToFind = {
-        type: connector.dependencyType,
+        type: connector.model.dependencyType,
         generalItemId: connector.outputPort.model.generalItemId,
         action: connector.outputPort.model.action,
-        subtype: connector.subType,
+        subtype: connector.model.subType,
       };
 
       this.dependency.dependencies.splice(this.getDependencyIdx(depToFind), 1);
@@ -257,7 +257,7 @@ export class MiddlePoint extends BaseUiElement implements DraggableUiElement {
   addChild({ targetType, subtype }: { targetType: string, subtype?: string }) {
     const dependency = {
       type: targetType,
-      subtype: subtype,
+      subtype,
       action: 'read' as any,
       generalItemId: Math.floor(Math.random() * 1000000000).toString() as any,
       scope: undefined,

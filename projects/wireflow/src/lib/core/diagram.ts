@@ -97,24 +97,38 @@ export class Diagram implements DraggableUiElement {
     })[0];
   }
 
+  getConnectorById(id): Connector {
+    return this.state.connectorsOutput.find(c => c.model.id === id);
+  }
+
+  getConnectorsByPortId(id): Connector[] {
+    const port = this.getPortById(id);
+    if (!port) { return []; }
+
+    return port.model.connectors.map<Connector>(c => {
+      return this.getConnectorById(c.id);
+    });
+  }
+
   // TODO: Move to connectorsService
   createInputConnector(message: any, coords: { x: number; y: number }, inputMiddlePoint: MiddlePoint): Connector {
 
     // TODO: Create ConnectorModel, and emit from connectorNew$
-
-    const connector = new Connector(this.state, coords.x, coords.y, null); // TODO: Move to subscription
+    const model = this.state.createConnectorModel(null);
+    const connector = new Connector(this.state, model, coords.x, coords.y, null); // TODO: Move to subscription
+    this.state.addConnectorToOutput(connector);
     connector.setMiddlePoint(inputMiddlePoint);
     connector.setIsInput(true);
 
     if (!inputMiddlePoint.parentMiddlePoint) {
       const input = this.getInputPortByGeneralItemId(message.id);
       connector.setOutputPort(input);
-      connector.updateHandle(input);
+      connector.updateHandle(input.model);
     } else {
       connector.moveOutputHandle(inputMiddlePoint.parentMiddlePoint.coordinates);
     }
 
-    connector.connectorElement.classList.remove('middle-connector--new');
+    connector.nativeElement.classList.remove('middle-connector--new');
     connector.removeHandlers();
     return connector;
   }
@@ -133,18 +147,20 @@ export class Diagram implements DraggableUiElement {
     }
 
     if (inputPort && outputPort) {
-      const con = new Connector(this.state)
+      const model = this.state.createConnectorModel(null);
+      const con = new Connector(this.state, model)
         .removeHandlers()
         .init(inputPort)
         .setOutputPort(outputPort);
+
+      this.state.addConnectorToOutput(con);
 
       if (dependency.type.includes('ProximityDependency')) {
         con.setProximity(dependency.lat, dependency.lng, dependency.radius);
       }
 
-      con.updateHandle(outputPort);
+      con.updateHandle(outputPort.model);
 
-      this.state.addConnectorToOutput(con);
       return con;
     }
   }
@@ -165,8 +181,6 @@ export class Diagram implements DraggableUiElement {
   }
 
   private _onDragStart({id, dragType}) {
-    this.dragging = true;
-
     switch (dragType) {
       case 'diagram':
         this.target = this;
@@ -178,10 +192,12 @@ export class Diagram implements DraggableUiElement {
 
       case 'port':
         const port = this.getPortById(id);
-        const con = new Connector(this.state);
-        con.removeHandlers();
-        con.init(port);
-        con.updateHandle(port);
+        const con = new Connector(this.state, this.state.createConnectorModel(null))
+          .removeHandlers()
+          .init(port);
+        con.updateHandle(port.model);
+        // con.init(port);
+        // con.updateHandle(port);
 
         this.target = con;
         this.openedConnector = con;
@@ -200,6 +216,8 @@ export class Diagram implements DraggableUiElement {
         x: `+=${this.draggable.deltaX}`,
         y: `+=${this.draggable.deltaY}`,
       });
+
+      this.dragging = true;
 
       this.target.onDrag && this.target.onDrag();
     }
@@ -254,6 +272,7 @@ export class Diagram implements DraggableUiElement {
   }
 
   private _onDragClick() {
+    this.dragging = false;
     this._cleanupOpenedConnector();
   }
 

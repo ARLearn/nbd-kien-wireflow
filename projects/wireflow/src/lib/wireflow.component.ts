@@ -43,6 +43,8 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnChanges, OnDe
   @Input() lang: string = 'en';
   @Output() messagesChange: Observable<GameMessageCommon[]>;
   @Output() selectMessage: Subject<GameMessageCommon>;
+  @Output() deselectMessage: Subject<GameMessageCommon>;
+  @Output() noneSelected: Subject<void>;
 
   populatedNodes: GameMessageCommon[];
   state = {
@@ -97,10 +99,11 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnChanges, OnDe
   get nodeShapeNew() { return this.diagram && this.diagram.state.nodeShapeNew$.pipe(distinct()); }
   get nodeShapeRemove() { return this.diagram && this.diagram.state.nodeShapeRemove$.pipe(distinct()); }
   get connectorRemove() { return this.diagram && this.diagram.state.connectorRemove$.pipe(distinct()); }
-  get connectorUpdate() { return this.diagram && this.diagram.state.connectorUpdate$; }
+  get connectorAttach() { return this.diagram && this.diagram.state.connectorAttach$; }
   get connectorDetach() { return this.diagram && this.diagram.state.connectorDetach$; }
   get connectorMove() { return this.diagram && this.diagram.state.connectorMove$; }
   get nodePortNew() { return this.diagram && this.diagram.state.nodePortNew$; }
+  get nodePortUpdate() { return this.diagram && this.diagram.state.nodePortUpdate$; }
   get middlePointClick() { return this.diagram && this.diagram.state.middlePointClick$; }
   get shapeClick() { return this.diagram && this.diagram.state.shapeClick$; }
 
@@ -138,6 +141,8 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnChanges, OnDe
       );
 
     this.selectMessage = new Subject<GameMessageCommon>();
+    this.deselectMessage = new Subject<GameMessageCommon>();
+    this.noneSelected = new Subject<void>();
 
     this.subscription.add(this.stateSubject.subscribe(x => {
       this.state = { ...x, messages: clone(x.messages), messagesOld: this.state.messages };
@@ -221,18 +226,29 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnChanges, OnDe
       }
     }));
 
-    this.subscription.add(this.connectorUpdate.subscribe(({connector, port}) => {
-      connector.updateHandle(port);
-      if (connector.isInputConnector && connector.middlePoint) {
-        connector.middlePoint.move(connector.middlePoint.coordinates);
+    this.subscription.add(this.nodePortUpdate.subscribe(({ port }) => {
+      for (const connector of this.diagram.getConnectorsByPortId(port.id)) {
+        connector.updateHandle(port);
+
+        if (connector.isInputConnector && connector.middlePoint) {
+          connector.middlePoint.move(connector.middlePoint.coordinates);
+        }
       }
     }));
 
+    this.subscription.add(this.connectorAttach.subscribe(({connector, port}) => {
+      this.diagram.getConnectorsByPortId(port.model.id)
+        .filter(c => c !== connector)
+        .forEach(c => {
+          c.remove({ onlyConnector: false });
+        });
+    }));
+
     this.subscription.add(this.connectorDetach.subscribe(({connector, port}) => {
-      const index = port.model.connectors.indexOf(connector);
-        if (index !== -1) {
-          port.model.connectors.splice(index, 1);
-        }
+      const index = port.model.connectors.indexOf(connector.model);
+      if (index !== -1) {
+        port.model.connectors.splice(index, 1);
+      }
     }));
 
     this.subscription.add(this.connectorMove.subscribe(({ connector }) => {
@@ -241,7 +257,8 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnChanges, OnDe
       if (connector.middlePoint && connector.middlePoint.parentMiddlePoint) { return; }
 
       const point = connector.middlePoint ?
-          { x: connector.baseX, y: connector.baseY } :
+          { x: connector.middlePoint.coordinates.x, y: connector.middlePoint.coordinates.y } :
+          // { x: connector.baseX, y: connector.baseY } :
           connector.outputPort.portScrim.getBoundingClientRect() as Point;
 
       const shape = inputPort && this.diagram.getShapeByGeneralItemId(inputPort.model.generalItemId);
@@ -268,13 +285,13 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnChanges, OnDe
           .updatePlacement();
         connector
           .setConnectionSide(mp.side)
-          .updateHandle(inputPort, false);
+          .updateHandle(inputPort.model, false);
       }
     }));
 
     this.subscription.add(this.connectorRemove.subscribe(({opts, connector}) => {
 
-      const usedPorts = this.diagram.getPortsBy(x => x.model.connectors.includes(connector));
+      const usedPorts = this.diagram.getPortsBy(x => x.model.connectors.includes(connector.model));
       usedPorts.forEach(port => {
         this.diagram.state.connectorDetach$.next({ connector, port });
       });
@@ -342,18 +359,18 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnChanges, OnDe
 
     this.subscription.add(this.shapeClick.subscribe(x => {
       if (x.model.dependencyType && x.model.dependencyType.includes('ProximityDependency')) {
-        const connector = x.outputs[0].model.connectors[0];
+        const connectorModel = x.outputs[0].model.connectors[0];
+        const connector = this.diagram.getConnectorById(connectorModel.id);
 
-        if (connector) {
+        if (connectorModel) {
           this.ngxSmartModalService.getModal('proximityModal').setData({
-            initialData: connector.proximity, connector
+            initialData: connectorModel.proximity, connector
           }, true).open();
         }
       }
 
       const message = this.populatedNodes.find(m => m.id.toString() === x.model.generalItemId);
 
-      this.selectMessage.next(message);
       this.toggleSelectedMessage(message.id.toString());
     }));
 
@@ -379,8 +396,9 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnChanges, OnDe
         });
         this.diagram.state.middlePointsOutput.filter(mp => mp.inputConnector.isSelected).forEach(x => x.remove());
         this.diagram.state.changeDependencies$.next();
+
+        break;
       }
-      // tslint:disable-next-line:no-switch-case-fall-through
       case 'Escape':
         this.diagram.state.connectorsOutput.forEach(x => x.deselect());
         this.diagram.state.middlePointsOutput
@@ -405,14 +423,14 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnChanges, OnDe
     }
 
     if (this.currentMiddleConnector) {
-      if (this.currentMiddleConnector.dependencyType.includes('ProximityDependency')) {
+      if (this.currentMiddleConnector.model.dependencyType.includes('ProximityDependency')) {
         return;
       }
 
       const generalItemId = event.target.getAttribute('general-item-id');
       const shape = this.diagram.getShapeByGeneralItemId(generalItemId);
 
-      if (this.currentMiddleConnector.subType === 'scantag') {
+      if (this.currentMiddleConnector.model.subType === 'scantag') {
         if (shape.model.dependencyType.includes('ScanTag')) {
           event.target.classList.add('border--success');
 
@@ -440,9 +458,9 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnChanges, OnDe
 
   onPortMouseEnter(event: MouseEvent, output: any) {
     if (this.currentMiddleConnector && this.lastDependency) {
-      if (this.currentMiddleConnector.dependencyType.includes('ProximityDependency')) { return; }
+      if (this.currentMiddleConnector.model.dependencyType.includes('ProximityDependency')) { return; }
 
-      if (!this.currentMiddleConnector.subType || !this.currentMiddleConnector.subType.includes('scantag')) {
+      if (!this.currentMiddleConnector.model.subType || !this.currentMiddleConnector.model.subType.includes('scantag')) {
         this.lastDependency.action = output.action;
       }
 
@@ -453,9 +471,9 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnChanges, OnDe
 
   onPortMouseLeave(event: MouseEvent, output: any) {
     if (this.currentMiddleConnector && !this.processing) {
-      if (this.currentMiddleConnector.dependencyType.includes('ProximityDependency')) { return; }
+      if (this.currentMiddleConnector.model.dependencyType.includes('ProximityDependency')) { return; }
 
-      if (!this.currentMiddleConnector.subType || !this.currentMiddleConnector.subType.includes('scantag')) {
+      if (!this.currentMiddleConnector.model.subType || !this.currentMiddleConnector.model.subType.includes('scantag')) {
         this.lastDependency.action = 'read';
       }
 
@@ -476,6 +494,20 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnChanges, OnDe
     };
 
     message.outputs.push({ ...this.lastAddedPort });
+  }
+
+  selectNode(id: string) {
+    this.selectedMessageId = id;
+    const selectedMessage = this.populatedNodes.find(m => m.id.toString() === this.selectedMessageId.toString());
+    this.selectMessage.next(selectedMessage);
+  }
+
+  deselectNode() {
+    if (!this.selectedMessageId) { return; }
+    const selectedMessage = this.populatedNodes.find(m => m.id.toString() === this.selectedMessageId.toString());
+
+    this.deselectMessage.next(selectedMessage);
+    this.selectedMessageId = null;
   }
 
   private _emitMessages(messages: any[]) {
@@ -541,10 +573,10 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnChanges, OnDe
   }
 
   private _initMiddleConnector(x: any) {
+    const model = this.diagram.state.createConnectorModel(x.dependency.type, x.dependency.subtype ? x.dependency.subtype : undefined);
     this.currentMiddleConnector = new Connector(
       this.diagram.state,
-      Math.floor(x.message.authoringX), Math.floor(x.message.authoringY),
-      x.middlePoint, x.dependency.type, x.dependency.subtype ? x.dependency.subtype : undefined
+      model, Math.floor(x.message.authoringX), Math.floor(x.message.authoringY), x.middlePoint
     );
 
     this.lastDependency = x.dependency;
@@ -643,7 +675,6 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnChanges, OnDe
 
       this.lastAddedPort = undefined;
     }
-
   }
 
   private _getDraggableElement(element: HTMLElement) {
@@ -862,10 +893,10 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnChanges, OnDe
 
         if (singleConnector) {
           if (singleConnector.outputPort && singleConnector.outputPort.nodeType &&
-            singleConnector.outputPort.nodeType.includes('ProximityDependency') && singleConnector.proximity) {
+            singleConnector.outputPort.nodeType.includes('ProximityDependency') && singleConnector.model.proximity) {
             message.dependsOn = {
               type: singleConnector.outputPort.nodeType,
-              ...singleConnector.proximity,
+              ...singleConnector.model.proximity,
               generalItemId: x.dependsOn.generalItemId
             };
           } else {
@@ -974,10 +1005,10 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnChanges, OnDe
           .dependencies
           .find(x =>
             (x.action === connector.outputPort.model.action ||
-              (connector.proximity &&
-                connector.proximity.lat === x.lat &&
-                connector.proximity.lng === x.lng &&
-                connector.proximity.radius === x.radius))
+              (connector.model.proximity &&
+                connector.model.proximity.lat === x.lat &&
+                connector.model.proximity.lng === x.lng &&
+                connector.model.proximity.radius === x.radius))
           );
       }
 
@@ -1059,9 +1090,11 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnChanges, OnDe
       output = nodeShape.outputs[0];
     }
 
+    this.diagram.state.addConnectorToOutput(currentConnector);
+
     if (currentConnector) {
       currentConnector.setOutputPort(output);
-      currentConnector.updateHandle(output);
+      currentConnector.updateHandle(output.model);
 
       if (dependency && dependency.type && dependency.type.includes('ProximityDependency')) {
         currentConnector.setProximity(dependency.lat, dependency.lng, dependency.radius);
@@ -1070,7 +1103,6 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnChanges, OnDe
       currentConnector.removeHandlers();
     }
 
-    this.diagram.state.addConnectorToOutput(currentConnector);
 
     return currentConnector;
   }
@@ -1104,16 +1136,18 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnChanges, OnDe
 
       if (!dep.type.includes('Proximity') && !portExists) { return; }
 
+      const model = this.diagram.state.createConnectorModel(dep.type, dep.subtype);
+      const connector = new Connector(
+        this.diagram.state,
+        model,
+        undefined,
+        undefined,
+        input
+      );
+
       return this._createConnector(
         message,
-        new Connector(
-          this.diagram.state,
-          undefined,
-          undefined,
-          input,
-          dep.type,
-          dep.subtype
-        ),
+        connector,
         shape, dep
       );
     }).filter(x => !!x);
@@ -1175,7 +1209,7 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnChanges, OnDe
 
       if (shapeOutputPort) {
         port = shapeOutputPort;
-        port.model.connectors.push(currentMiddleConnector); // TODO: Replace with con.setOutputPort(port)?
+        port.model.connectors.push(currentMiddleConnector.model); // TODO: Replace with con.setOutputPort(port)?
       } else {
         const { action, generalItemId } = lastOutput;
         this.diagram.state.createPort(action, generalItemId, currentMiddleConnector.shape, false);
@@ -1211,10 +1245,24 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnChanges, OnDe
   }
 
   private toggleSelectedMessage(id: string) {
-    if (this.selectedMessageId === id) {
-      return this.selectedMessageId = undefined;
+    const prevId = this.selectedMessageId;
+    prevId && this.deselectNode();
+
+    if (prevId !== id) {
+      return this.selectNode(id);
     }
 
-    return this.selectedMessageId = id;
+    this.emitNoneSelectEvent();
+  }
+
+  private emitNoneSelectEvent() {
+    if (!this.selectedMessageId) {
+      this.noneSelected.next();
+    }
+  }
+
+  onDiagramBackdropClick() {
+    this.deselectNode();
+    this.emitNoneSelectEvent();
   }
 }

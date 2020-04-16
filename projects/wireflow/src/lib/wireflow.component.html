@@ -22,6 +22,7 @@
 
         <g id="diagram" data-drag="diagram:diagram" data-drag-type="diagram">
           <g id="node-layer">
+            <rect x="0" y="0" height="100%" width="100%" fill="transparent" (click)="selectedMessageId && onDiagramBackdropClick()" />
             <g class="node-container"
                #nodes
                *ngFor="let node of populatedNodes; let c = index"
@@ -78,7 +79,11 @@
                       <path d="M5.47403 10.118C5.44189 10.1503 5.4037 10.1758 5.36166 10.1933C5.31961 10.2107 5.27455 10.2197 5.22903 10.2197C5.18351 10.2197 5.13844 10.2107 5.0964 10.1933C5.05436 10.1758 5.01617 10.1503 4.98402 10.118L4.65703 9.79105C4.59224 9.72617 4.55585 9.63823 4.55585 9.54654C4.55585 9.45485 4.59224 9.36694 4.65703 9.30206L6.88003 7.06805L4.65703 4.83405C4.59224 4.76917 4.55585 4.68123 4.55585 4.58954C4.55585 4.49785 4.59224 4.40994 4.65703 4.34506L4.98402 4.01804C5.01617 3.9858 5.05436 3.96026 5.0964 3.94281C5.13844 3.92536 5.18351 3.91638 5.22903 3.91638C5.27455 3.91638 5.31961 3.92536 5.36166 3.94281C5.4037 3.96026 5.44189 3.9858 5.47403 4.01804L8.27903 6.82306C8.31126 6.8552 8.33683 6.89338 8.35428 6.93542C8.37173 6.97747 8.38071 7.02254 8.38071 7.06805C8.38071 7.11357 8.37173 7.15864 8.35428 7.20068C8.33683 7.24273 8.31126 7.28091 8.27903 7.31305L5.47403 10.118Z" fill="white"/>
                     </g>
 
-                    <text class="port-label" x="10" y="12" fill="#000">{{ output.title || output.action | translate }}</text>
+                    <clipPath id="clip-port-text{{ c }}{{ i }}">
+                      <rect x="10" y="0" [attr.width]="102" [attr.height]="19" />
+                    </clipPath>
+
+                    <text class="port-label" x="10" y="12" fill="#000" [attr.clip-path]="'url(#clip-port-text' + c + '' + i + ')'">{{ output.title || output.action | translate }}</text>
                   </g>
                 </g>
               </g>

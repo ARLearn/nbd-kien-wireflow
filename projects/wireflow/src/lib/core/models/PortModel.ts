@@ -1,9 +1,9 @@
-import { Connector } from '../connector';
+import { ConnectorModel } from './ConnectorModel';
 
 export interface PortModel {
   id: string;
   action: string;
-  generalItemId;
+  generalItemId: string;
   isInput: boolean;
-  connectors: Connector[]; // TODO: Replace with connectorModels
+  connectors: ConnectorModel[];
 }
