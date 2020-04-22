@@ -4,7 +4,7 @@ import { NodePort } from './node-port'; // TODO: Remove dependency, use model in
 import { Connector } from './connector'; // TODO: Remove dependency, use model instead
 import { MiddlePoint } from './middle-point'; // TODO: Remove dependency, use model instead
 import { counter, getNumberFromPixels, Point } from '../utils';
-import {ConnectorModel, NodeModel, PortModel} from './models';
+import { ConnectorModel, NodeModel, PortModel } from './models';
 import { GameMessageCommon, Dependency } from '../models/core';
 
 export interface MiddlePointAddChildArgs {
@@ -29,6 +29,18 @@ export interface NodePortNewArgs {
   parentNode: NodeShape;
 }
 
+export interface ConnectorCreateArgs {
+  connector: Connector;
+}
+
+export interface ConnectorHoverArgs {
+  connector: Connector;
+}
+
+export interface ConnectorLeaveArgs {
+  connector: Connector;
+}
+
 export interface ConnectorRemoveArgs {
   connector: Connector;
   opts: ConnectorRemoveOptions;
@@ -47,10 +59,29 @@ export interface ConnectorPortArgs {
 
 export interface ConnectorMoveArgs {
   connector: Connector;
+  point?: Point;
 }
 
 export interface NodePortUpdateArgs {
   port: PortModel;
+}
+
+export interface MiddlePointInitArgs {
+  middlePoint: MiddlePoint;
+}
+
+export interface MiddlePointMoveArgs {
+  middlePoint: MiddlePoint;
+}
+
+export interface MiddlePointRemoveArgs {
+  middlePoint: MiddlePoint;
+}
+
+export interface MiddlePointRemoveOutputConnectorArgs {
+  middlePoint: MiddlePoint;
+  connector: ConnectorModel;
+  removeDependency: boolean;
 }
 
 export class State {
@@ -83,10 +114,17 @@ export class State {
   nodePortUpdate$ = new Subject<NodePortUpdateArgs>(); // TODO: Move to connectorsService
   nodeShapeNew$ = new Subject<NodeShapeNewArgs>(); // TODO: Move to nodesService
   nodeShapeRemove$ = new Subject<string>(); // TODO: Move to nodesService
+  connectorCreate$ = new Subject<ConnectorCreateArgs>(); // TODO: Move to connectorsService
+  connectorHover$ = new Subject<ConnectorHoverArgs>(); // TODO: Move to connectorsService
+  connectorLeave$ = new Subject<ConnectorLeaveArgs>(); // TODO: Move to connectorsService
   connectorRemove$ = new Subject<ConnectorRemoveArgs>(); // TODO: Move to connectorsService
   connectorAttach$ = new Subject<ConnectorPortArgs>(); // TODO: Move to connectorsService
   connectorDetach$ = new Subject<ConnectorPortArgs>(); // TODO: Move to connectorsService
   connectorMove$ = new Subject<ConnectorMoveArgs>(); // TODO: Move to connectorsService
+  middlePointInit$ = new Subject<MiddlePointInitArgs>(); // TODO: Move to connectorsService
+  middlePointMove$ = new Subject<MiddlePointMoveArgs>(); // TODO: Move to connectorsService
+  middlePointRemove$ = new Subject<MiddlePointRemoveArgs>(); // TODO: Move to connectorsService
+  middlePointRemoveOutputConnector$ = new Subject<MiddlePointRemoveOutputConnectorArgs>(); // TODO: Move to connectorsService
   middlePointClick$ = new Subject<MiddlePoint>(); // TODO: Move to connectorsService
   shapeClick$ = new Subject<NodeShape>(); // TODO: Move to nodesService
 
@@ -183,7 +221,15 @@ export class State {
   // TODO: Move to connectorsService
   unSelectAllConnectors() {
     this.connectorsOutput.forEach(x => x.deselect());
-    this.middlePointsOutput.forEach(m => m.inputConnector.deselect());
+    // this.middlePointsOutput.forEach(m => m.inputConnector.deselect());
+  }
+
+  getConnectorGeometry(model: ConnectorModel): { coords: any, length: any } {
+    const connector = this.connectorsOutput.find(c => c.model.id === model.id);
+
+    if (!connector) { return null; }
+
+    return { coords: connector.getCoords(), length: connector.getLength() };
   }
 
 }

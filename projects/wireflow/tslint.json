@@ -12,6 +12,10 @@
       "element",
       "lib",
       "kebab-case"
-    ]
+    ],
+    "variable-name": {
+      "options": "allow-leading-underscore"
+    },
+    "no-unused-expression": false
   }
 }

@@ -1,20 +1,19 @@
-import { Connector } from './connector';
 import { NodePort } from './node-port';
 import { ActionToolbar } from './toolbars/action-toolbar';
-import { NodeShape } from './node-shape'; // TODO: remove dependency
 import { State } from './state'; // TODO: remove dependency
 import { getNumberFromPixels, Point } from '../utils';
 import { BaseUiElement } from './base-ui-element';
 import { DraggableUiElement } from './draggable-ui-element';
 import { Dependency } from '../models/core';
+import { ConnectorModel } from './models';
 
 export class MiddlePoint extends BaseUiElement implements DraggableUiElement {
   id: string;
   inputPort: NodePort;
   actionToolbar: ActionToolbar;
 
-  inputConnector: Connector;
-  outputConnectors = [] as Connector[];
+  inputConnector: ConnectorModel;
+  outputConnectors = [] as ConnectorModel[];
   parentMiddlePoint: MiddlePoint;
   childrenMiddlePoints = [] as MiddlePoint[];
 
@@ -52,14 +51,7 @@ export class MiddlePoint extends BaseUiElement implements DraggableUiElement {
   init() {
     this.move(this.coordinates);
 
-    this.outputConnectors.forEach(x => {
-      x.updateMiddlePoint(this.coordinates.x, this.coordinates.y);
-
-      if (x.model.dependencyType.includes('ProximityDependency')) {
-        const shape = x.outputPort.parentNode as NodeShape;
-        shape.move({ x: this.coordinates.x - 250, y: this.coordinates.y });
-      }
-    });
+    this.state.middlePointInit$.next({ middlePoint: this });
     this._refreshTypeIcon();
     return this;
   }
@@ -84,12 +76,12 @@ export class MiddlePoint extends BaseUiElement implements DraggableUiElement {
     return this;
   }
 
-  setInputConnector(inputConnector: Connector) {
+  setInputConnector(inputConnector: ConnectorModel) {
     this.inputConnector = inputConnector;
     return this;
   }
 
-  setOutputConnectors(outputConnectors: Connector[]) {
+  setOutputConnectors(outputConnectors: ConnectorModel[]) {
     this.outputConnectors = outputConnectors;
     return this;
   }
@@ -97,24 +89,12 @@ export class MiddlePoint extends BaseUiElement implements DraggableUiElement {
   move(point: Point) {
     super.move(point);
 
-    if (this.inputConnector) {
-      this.inputConnector.updateMiddlePoint(this.coordinates.x, this.coordinates.y);
-    }
-
-    if (this.outputConnectors && this.outputConnectors.length > 0) {
-      this.outputConnectors.forEach(oc => oc.updateMiddlePoint(this.coordinates.x, this.coordinates.y));
-    }
-
     if (this.actionToolbar) {
       this.actionToolbar.move(this.coordinates);
     }
 
-    if (this.childrenMiddlePoints) {
-      this.childrenMiddlePoints.forEach(cmp => {
-        cmp.inputConnector.moveOutputHandle(this.coordinates);
-        cmp.move(cmp.coordinates);
-      });
-    }
+    this.state.middlePointMove$.next({ middlePoint: this });
+
     return this;
   }
 
@@ -125,26 +105,12 @@ export class MiddlePoint extends BaseUiElement implements DraggableUiElement {
     });
   }
 
-  addOutputConnector(connector: Connector) {
+  addOutputConnector(connector: ConnectorModel) {
     this.outputConnectors.push(connector);
   }
 
-  removeOutputConnector(connector: Connector, removeDependency = true) {
-    this.outputConnectors.splice(this.outputConnectors.indexOf(connector), 1);
-
-    if (removeDependency && this.dependency.dependencies && connector.outputPort) {
-      const depToFind = {
-        type: connector.model.dependencyType,
-        generalItemId: connector.outputPort.model.generalItemId,
-        action: connector.outputPort.model.action,
-        subtype: connector.model.subType,
-      };
-
-      this.dependency.dependencies.splice(this.getDependencyIdx(depToFind), 1);
-
-    } else if (removeDependency && this.dependency.offset) {
-      this.dependency.offset = {} as any;
-    }
+  removeOutputConnector(connector: ConnectorModel, removeDependency = true) {
+    this.state.middlePointRemoveOutputConnector$.next({ middlePoint: this, connector, removeDependency });
   }
   // returns index of dependency.dependencies array
   getDependencyIdx(dependency: any): number {
@@ -167,8 +133,6 @@ export class MiddlePoint extends BaseUiElement implements DraggableUiElement {
 
     if (fromParent === undefined) { fromParent = false; }
 
-    this.outputConnectors.forEach(oc => oc.remove({ onlyConnector: false }));
-
     this.actionToolbar && this.actionToolbar.remove();
 
     if (this.childrenMiddlePoints.length > 0) {
@@ -188,15 +152,9 @@ export class MiddlePoint extends BaseUiElement implements DraggableUiElement {
       }
     }
 
-    if (this.inputConnector) {
-      this.inputConnector.remove();
-      this.inputConnector = null;
-    }
-
+    this.state.middlePointRemove$.next({ middlePoint: this });
     // TODO: Move to Diagram
     this.nativeElement && this.nativeElement.remove();
-
-    this.state.middlePointsOutput.splice(this.state.middlePointsOutput.indexOf(this), 1);
   }
 
   private _showTypeIcon() {

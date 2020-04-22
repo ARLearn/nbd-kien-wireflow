@@ -1,8 +1,8 @@
 export interface BezierCoordinates { // Move to "Bezier path" file, separate file is not necessary
-  p1x: number; p1y: number; // TODO: Use "point" {x,y} object
-  p2x: number; p2y: number;
-  p3x: number; p3y: number;
-  p4x: number; p4y: number;
+  p1: Point;
+  p2: Point;
+  p3: Point;
+  p4: Point;
 }
 
 export interface Point {
@@ -28,10 +28,10 @@ mLeft             mRight
  */
 
 export class Rectangle {
-  private _topLeft: Point;
-  private _topRight: Point;
-  private _bottomLeft: Point;
-  private _bottomRight: Point;
+  private readonly _topLeft: Point;
+  private readonly _topRight: Point;
+  private readonly _bottomLeft: Point;
+  private readonly _bottomRight: Point;
 
   constructor(x: number, y: number, height: number, width: number) {
     this._topLeft = { x, y };

@@ -19,26 +19,26 @@ interface Marker {
   styleUrls: ['./proximity-dependency-modal.component.scss']
 })
 export class ProximityDependencyModalComponent implements OnInit, OnDestroy {
-  @Output() public submitForm: Subject<any>;
-  @Output() public cancel: Subject<void>;
+  @Output() submitForm: Subject<any>;
+  @Output() cancel: Subject<void>;
 
   // google maps zoom level
-  public zoom = 8;
-  public defLat = 51.673858;
-  public defLng = 7.815982;
-  public marker: Marker = { lat: this.defLat, lng: this.defLng, draggable: true, radius: 4 };
+  zoom = 8;
+  defLat = 51.673858;
+  defLng = 7.815982;
+  marker: Marker = { lat: this.defLat, lng: this.defLng, draggable: true, radius: 4 };
 
-  public types: { label: string, value: string }[] = [
+  types: { label: string, value: string }[] = [
     { label: 'regions', value: '(regions)' },
     { label: 'cities', value: '(cities)' },
     { label: 'address', value: 'address' },
     { label: 'establishment', value: 'establishment' },
   ];
 
-  public selectedType = '(regions)';
+  selectedType = '(regions)';
 
   @ViewChild('search', { static: true })
-  public searchElementRef: ElementRef;
+  searchElementRef: ElementRef;
 
   private autocomplete: any;
   private subscription: Subscription;
@@ -53,7 +53,7 @@ export class ProximityDependencyModalComponent implements OnInit, OnDestroy {
     this.cancel = new Subject<void>();
   }
 
-  public ngOnInit() {
+  ngOnInit() {
     // set current position
     this.setCurrentPosition();
 
@@ -92,30 +92,30 @@ export class ProximityDependencyModalComponent implements OnInit, OnDestroy {
     });
   }
 
-  public clickedMarker(label: string) {
+  clickedMarker(label: string) {
     console.log(`clicked the marker: ${label}`);
   }
 
-  public mapClicked($event: any) {
+  mapClicked($event: any) {
     this.marker.lat = $event.coords.lat;
     this.marker.lng = $event.coords.lng;
   }
 
-  public markerDragEnd(m: Marker, $event: any) {
+  markerDragEnd(m: Marker, $event: any) {
     this.marker.lat = $event.coords.lat;
     this.marker.lng = $event.coords.lng;
   }
 
-  public circleDragEnd($event) {
+  circleDragEnd($event) {
     this.marker.lat = $event.coords.lat;
     this.marker.lng = $event.coords.lng;
   }
 
-  public radiusChange($event) {
+  radiusChange($event) {
     this.marker.radius = $event / 1000;
   }
 
-  public onFormKeyDown($event: KeyboardEvent) {
+  onFormKeyDown($event: KeyboardEvent) {
     $event.stopPropagation();
 
     if ($event.code.includes('Enter')) {
@@ -123,7 +123,7 @@ export class ProximityDependencyModalComponent implements OnInit, OnDestroy {
     }
   }
 
-  public onTypeChanged() {
+  onTypeChanged() {
     if (this.autocomplete) {
       this.autocomplete.setTypes([ this.selectedType ]);
     }

@@ -11,10 +11,10 @@ import { NgxSmartModalService } from 'ngx-smart-modal';
 export class ActionModalComponent implements AfterViewInit, OnDestroy {
   @Input() modalIdentifier: string;
 
-  @Output() public submitForm: Subject<any>;
-  @Output() public cancel: Subject<void>;
+  @Output() submitForm: Subject<any>;
+  @Output() cancel: Subject<void>;
 
-  public action: string;
+  action: string;
 
   private subscription: Subscription;
 

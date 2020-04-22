@@ -1,9 +1,11 @@
 import { NodeShape } from './node-shape';
-import { Connector } from './connector';
+import {Connector, ConnectorPathOptions} from './connector';
 import { State } from './state';
 import { DraggableUiElement } from './draggable-ui-element';
 import { NodePort } from './node-port';
 import { MiddlePoint } from './middle-point';
+import {ConnectorModel} from "./models";
+import {Point} from "../utils";
 
 declare const TweenLite;
 declare const Draggable;
@@ -110,14 +112,23 @@ export class Diagram implements DraggableUiElement {
     });
   }
 
+  isConnectorSelected(model: ConnectorModel) {
+    return this.getConnectorById(model.id).isSelected;
+  }
+
+  deselectConnector(model: ConnectorModel) {
+    const connector = this.getConnectorById(model.id);
+
+    connector && connector.deselect();
+  }
+
   // TODO: Move to connectorsService
-  createInputConnector(message: any, coords: { x: number; y: number }, inputMiddlePoint: MiddlePoint): Connector {
+  createInputConnector(message: any, coords: Point, inputMiddlePoint: MiddlePoint): Connector {
 
     // TODO: Create ConnectorModel, and emit from connectorNew$
     const model = this.state.createConnectorModel(null);
-    const connector = new Connector(this.state, model, coords.x, coords.y, null); // TODO: Move to subscription
+    const connector = new Connector(this.state, model, coords); // TODO: Move to subscription
     this.state.addConnectorToOutput(connector);
-    connector.setMiddlePoint(inputMiddlePoint);
     connector.setIsInput(true);
 
     if (!inputMiddlePoint.parentMiddlePoint) {
@@ -134,7 +145,6 @@ export class Diagram implements DraggableUiElement {
   }
 
   initConnector(dependency, message) {
-
     const inputPort = this.getInputPortByGeneralItemId(message.id);
 
     let outputPort: NodePort;
@@ -163,6 +173,28 @@ export class Diagram implements DraggableUiElement {
 
       return con;
     }
+  }
+
+  getMiddlePoint(id: string): MiddlePoint {
+    return this.state.middlePointsOutput.find(mp => mp.id === id);
+  }
+
+  getMiddlePointByConnector(connector: ConnectorModel): MiddlePoint {
+    return this.state.middlePointsOutput.find(({ inputConnector, outputConnectors }) => {
+      return [inputConnector, ...outputConnectors].some(c => c.id === connector.id);
+    });
+  }
+
+  getConnectorPathOptions(conn: Connector) {
+    const middlePoint = this.getMiddlePointByConnector(conn.model); // get middle point from diagram's array
+    const fixedEnd = !conn.isInputConnector || !middlePoint;
+    const fixedStart = conn.hasOutputPort || conn.hasInputPort;
+    const swapCoords = ((conn.hasOutputPort && conn.outputPort.model.isInput) || conn.isInputConnector) && !conn.inputPort;
+    let prevInputConnector = middlePoint && middlePoint.inputConnector;
+    if (prevInputConnector === conn.model) {
+      prevInputConnector = middlePoint && middlePoint.parentMiddlePoint && middlePoint.parentMiddlePoint.inputConnector;
+    }
+    return {x: null, y: null, fixedStart, fixedEnd, swapCoords, prevInputConnector} as ConnectorPathOptions;
   }
 
   private _getDragArgs({target}: any) {
@@ -264,7 +296,6 @@ export class Diagram implements DraggableUiElement {
 
     for (const port of shapePorts) {
 
-      // @ts-ignore
       if (Draggable.hitTest(dragElement, port.portElement)) {
         return port;
       }

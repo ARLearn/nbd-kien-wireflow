@@ -10,8 +10,8 @@ import { NgxSmartModalService } from 'ngx-smart-modal';
 })
 export class TimeDependencyModalComponent implements OnInit, OnDestroy {
   @Output() cancel: Subject<void>;
+  seconds: number;
 
-  public seconds: number;
   private subscription: Subscription;
 
 

@@ -4,7 +4,6 @@ import { Point } from '../utils';
 declare const TweenLite;
 
 export class BaseUiElement {
-  
   protected _unsubscriber = new Subscription();
   private _point: Point;
   private _isVisible = false;

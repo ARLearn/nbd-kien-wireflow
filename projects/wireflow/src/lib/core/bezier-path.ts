@@ -1,47 +1,31 @@
-import { BezierCoordinates } from '../utils';
+import { BezierCoordinates, Point } from '../utils';
 
-export class BezierPath implements BezierCoordinates { // TODO: Replace inheritance with composition
-  public p1x: number; // TODO: Use "point" {x,y} object
-  public p1y: number;
-
-  public p2x: number;
-  public p2y: number;
-
-  public p3x: number;
-  public p3y: number;
-
-  public p4x: number;
-  public p4y: number;
+export class BezierPath {
+  coords: BezierCoordinates;
 
   constructor() {}
 
-  public setCoords(p1x, p1y, p2x, p2y, p3x, p3y, p4x, p4y) { // TODO: accept coordinates as single object
-    this.p1x = p1x; // TODO: Use "point" {x,y} object
-    this.p1y = p1y;
-
-    this.p2x = p2x;
-    this.p2y = p2y;
-
-    this.p3x = p3x;
-    this.p3y = p3y;
-
-    this.p4x = p4x;
-    this.p4y = p4y;
+  setCoords(p1, p2, p3, p4) {
+    this.coords = { p1, p2, p3, p4 };
   }
 
-  public getPoint(t: number): { x: number, y: number } {
-    const x = this._calculate(this.p1x, this.p2x, this.p3x, this.p4x, t);
-    const y = this._calculate(this.p1y, this.p2y, this.p3y, this.p4y, t);
+  getPoint(t: number): Point {
+    const { p1, p2, p3, p4 } = this.coords;
 
-    return { x, y };
+    const x = this._calculate(p1.x, p2.x, p3.x, p4.x, t);
+    const y = this._calculate(p1.y, p2.y, p3.y, p4.y, t);
+
+    return { x, y } as Point;
   }
 
-  public getMiddlePoint(): { x: number, y: number } {
+  getMiddlePoint(): { x: number, y: number } {
     return this.getPoint(0.5);
   }
 
-  public toString() {
-    return `M${this.p1x} ${this.p1y} C ${this.p2x} ${this.p2y} ${this.p3x} ${this.p3y} ${this.p4x} ${this.p4y}`;
+  toString() {
+    const { p1, p2, p3, p4 } = this.coords;
+
+    return `M${p1.x} ${p1.y} C ${p2.x} ${p2.y} ${p3.x} ${p3.y} ${p4.x} ${p4.y}`;
   }
 
   // P = (1−t)^3*P1 + 3(1−t)^2*t*P2 +3*(1−t)*t^2*P3 + t^3*P4

@@ -61,38 +61,6 @@ export class NodeShape extends BaseModelUiElement<NodeModel> implements Draggabl
   private _updatePorts() {
     this.inputs.forEach(p => p.update());
     this.outputs.forEach(p => p.update());
-
-    // const { height, width, x, y } = this.nativeElement.querySelector('.node-content > rect').getBoundingClientRect() as any;
-    //
-    // const localRectData = getMiddleRectPoints(-26, -20, height + 32 + 20, width + 26);
-    // const generalRectData = getMiddleRectPoints(x, y, height, width);
-    //
-    // const inputPort = this.inputs[0];
-    //
-    // if (inputPort) {
-    //   const connector = inputPort.model.connectors[0];
-    //   if (connector) {
-    //     const point = connector.middlePoint ?
-    //       { x: connector.baseX, y: connector.baseY } :
-    //       connector.outputPort.portScrim.getBoundingClientRect() as Point;
-    //
-    //     const distanceTop    = getDistance(point, generalRectData.middlePoints.top);
-    //     const distanceLeft   = getDistance(point, generalRectData.middlePoints.left);
-    //     const distanceBottom = getDistance(point, generalRectData.middlePoints.bottom);
-    //     const distanceRight  = getDistance(point, generalRectData.middlePoints.right);
-    //
-    //     const mapDistances = {
-    //       [distanceTop]:    localRectData.middlePoints.top,
-    //       [distanceLeft]:   localRectData.middlePoints.left,
-    //       [distanceBottom]: localRectData.middlePoints.bottom,
-    //       [distanceRight]:  localRectData.middlePoints.right,
-    //     };
-    //     const distances = [ distanceTop, distanceLeft, distanceBottom, distanceRight ];
-    //     const minDistance = Math.min( ...distances );
-    //
-    //     inputPort.move(mapDistances[minDistance]);
-    //   }
-    // }
   }
 
   onDragEnd() {
