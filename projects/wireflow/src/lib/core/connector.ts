@@ -21,6 +21,8 @@ export interface ConnectorPathOptions {
   fixedEnd?;
   swapCoords?;
   prevInputConnector?;
+  coords?;
+  length?;
 }
 
 export class Connector extends BaseModelUiElement<ConnectorModel> implements DraggableUiElement {
@@ -164,8 +166,6 @@ export class Connector extends BaseModelUiElement<ConnectorModel> implements Dra
     } else {
       this.setInputPort(port);
     }
-
-    this.state.addConnectorToOutput(this);
 
     this.state.connectorAttach$.next({
       connector: this,
@@ -347,7 +347,7 @@ export class Connector extends BaseModelUiElement<ConnectorModel> implements Dra
     this.state.connectorLeave$.next({ connector: this });
   }
 
-  updatePath(x = null, y = null, { fixedStart, fixedEnd, swapCoords, prevInputConnector }: ConnectorPathOptions) {
+  updatePath(x = null, y = null, { fixedStart, fixedEnd, swapCoords, prevInputConnector, coords, length }: ConnectorPathOptions) {
     const p1: Point = { x: null, y: null };
     const p2: Point = { x: null, y: null };
     const p3: Point = { x: null, y: null };
@@ -364,8 +364,6 @@ export class Connector extends BaseModelUiElement<ConnectorModel> implements Dra
     }
 
     if (prevInputConnector) {
-      const { coords, length } = this.state.getConnectorGeometry(prevInputConnector);
-
       const prevCoords = coords;
       const prevLength = length;
       const prevDX = prevCoords.x4 - prevCoords.x1;
@@ -434,9 +432,7 @@ export class Connector extends BaseModelUiElement<ConnectorModel> implements Dra
       return this.onClick(e);
     }
 
-    if (!this.isSelected) {
-      this.state.unSelectAllConnectors();
-    }
+    this.state.connectorClick$.next({ connector: this });
 
     this.isSelected = !this.isSelected;
     this.initViewState();

@@ -62,6 +62,10 @@ export interface ConnectorMoveArgs {
   point?: Point;
 }
 
+export interface ConnectorClickArgs {
+  connector: Connector;
+}
+
 export interface NodePortUpdateArgs {
   port: PortModel;
 }
@@ -97,10 +101,6 @@ export class State {
   connectorElement;
   connectorLayer; // TODO: Move to connectorsService
 
-  connectorsOutput: Connector[] = []; // TODO: Remove array, use array of models instead
-  // connectorModels; // TODO: Move to connectorsService
-
-  middlePointsOutput: MiddlePoint[] = []; // TODO: Remove array, use array of models instead
   middlePointModels; // TODO: Move to middlePointsService
   middlePointAddChild$ = new Subject<MiddlePointAddChildArgs>(); // TODO: Move to middlePointsService
 
@@ -121,6 +121,7 @@ export class State {
   connectorAttach$ = new Subject<ConnectorPortArgs>(); // TODO: Move to connectorsService
   connectorDetach$ = new Subject<ConnectorPortArgs>(); // TODO: Move to connectorsService
   connectorMove$ = new Subject<ConnectorMoveArgs>(); // TODO: Move to connectorsService
+  connectorClick$ = new Subject<ConnectorClickArgs>(); // TODO: Move to connectorsService
   middlePointInit$ = new Subject<MiddlePointInitArgs>(); // TODO: Move to connectorsService
   middlePointMove$ = new Subject<MiddlePointMoveArgs>(); // TODO: Move to connectorsService
   middlePointRemove$ = new Subject<MiddlePointRemoveArgs>(); // TODO: Move to connectorsService
@@ -181,15 +182,6 @@ export class State {
     this.connectorLayer = connectorLayerEl;
   }
 
-  addConnectorToOutput(connector: Connector) { // TODO: Move to connectorsService
-    this.connectorsOutput = [ ...this.connectorsOutput, connector ];
-  }
-
-  removeConnectorFromOutput(connector: Connector) {  // TODO: Move to connectorsService
-    this.connectorModels = this.connectorModels.filter(c => c.id !== connector.model.id);
-    this.connectorsOutput = this.connectorsOutput.filter(c => c.model.id !== connector.model.id);
-  }
-
   getDiagramCoords() { // TODO: Move to Diagram
     let x = 0;
     let y = 0;
@@ -211,25 +203,6 @@ export class State {
     y = parent.offsetTop;
 
     return { x, y } as Point;
-  }
-
-  // TODO: Move to connectorsService
-  getMiddlePointById(id) {
-    return this.middlePointsOutput.find(mp => mp.id === id);
-  }
-
-  // TODO: Move to connectorsService
-  unSelectAllConnectors() {
-    this.connectorsOutput.forEach(x => x.deselect());
-    // this.middlePointsOutput.forEach(m => m.inputConnector.deselect());
-  }
-
-  getConnectorGeometry(model: ConnectorModel): { coords: any, length: any } {
-    const connector = this.connectorsOutput.find(c => c.model.id === model.id);
-
-    if (!connector) { return null; }
-
-    return { coords: connector.getCoords(), length: connector.getLength() };
   }
 
 }
