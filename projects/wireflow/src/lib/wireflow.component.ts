@@ -324,7 +324,7 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnChanges, OnDe
             // { general: generalRect.rightMiddlePoint, local: localRect.rightMiddlePoint },
             { general: generalRect.bottomMiddlePoint, local: localRect.bottomMiddlePoint, side: 'bottom' },
           ],
-          item => getDistance(dot, item.general)
+          item => dot && item.general && getDistance(dot, item.general)
         );
 
         inputPort

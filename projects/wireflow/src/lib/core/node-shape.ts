@@ -66,9 +66,8 @@ export class NodeShape extends BaseModelUiElement<NodeModel> implements Draggabl
   onDragEnd() {
     const x = getNumberFromPixels(this.nativeElement['_gsap'].x);
     const y = getNumberFromPixels(this.nativeElement['_gsap'].y);
-
-    this.state.coordinatesOutput$.next({ x, y, messageId: this.model.generalItemId });
     this.nativeElement.classList.remove('no-events');
+    this.state.coordinatesOutput$.next({ x, y, messageId: this.model.generalItemId });
   }
 
   remove() {

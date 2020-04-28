@@ -286,10 +286,10 @@ export class Diagram implements DraggableUiElement {
     switch (dragType) {
       case 'shape':
         this.target = this.getShapeById(id);
-        const {e, f} = this.target.dragElement.getCTM();
-        if (!this._cleanupOpenedConnector()) {
-          this.target.onDragEnd(e, f);
+        if (this.openedConnector) {
+          this.openedConnector.onDragEnd((this.target as NodeShape).inputs[0]);
         }
+        this.target.onDragEnd();
 
         this.cleanDraggableShapes();
         break;
@@ -299,7 +299,7 @@ export class Diagram implements DraggableUiElement {
             this.target as Connector,
             this.shapes
           );
-          delete this.openedConnector;
+          // delete this.openedConnector;
           const hitPort = this.target instanceof Connector && hitShape && ( this._getHitPort(
             this.target as Connector,
             hitShape,
