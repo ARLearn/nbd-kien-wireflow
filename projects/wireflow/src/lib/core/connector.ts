@@ -209,7 +209,7 @@ export class Connector extends BaseModelUiElement<ConnectorModel> implements Dra
     this.connectorToolbar && this.connectorToolbar.remove();
     this.nativeElement && this.nativeElement.remove();
 
-    this.state.connectorRemove$.next({ connector: this, opts });
+    this.state.connectorRemove$.next({ connectorModel: this.model, opts });
   }
 
   initViewState() { // TODO: Rename to update()
@@ -340,11 +340,11 @@ export class Connector extends BaseModelUiElement<ConnectorModel> implements Dra
   private onHover(e: MouseEvent) {
     if (this._inputPort && this._inputPort.inputNodeType.includes('ProximityDependency')) { return; }
 
-    this.state.connectorHover$.next({ connector: this });
+    this.state.connectorHover$.next({ connectorModel: this.model });
   }
 
   private onHoverLeave(e: MouseEvent) {
-    this.state.connectorLeave$.next({ connector: this });
+    this.state.connectorLeave$.next({ connectorModel: this.model });
   }
 
   updatePath(x = null, y = null, { fixedStart, fixedEnd, swapCoords, prevInputConnector, coords, length }: ConnectorPathOptions) {
@@ -432,7 +432,7 @@ export class Connector extends BaseModelUiElement<ConnectorModel> implements Dra
       return this.onClick(e);
     }
 
-    this.state.connectorClick$.next({ connector: this });
+    this.state.connectorClick$.next({ isSelected: this.isSelected });
 
     this.isSelected = !this.isSelected;
     this.initViewState();

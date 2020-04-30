@@ -246,14 +246,18 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnChanges, OnDe
     }));
 
     this.subscription.add(this.connectorCreate.subscribe(({ connector }) => {
+      const conn = this.diagram.getConnectorById(connector.model.id);
       const middlePoint = this.diagram.getMiddlePointByConnector(connector.model);
       if (middlePoint && middlePoint.coordinates) { // TODO: Replace with coordiantes
         connector.basePoint = middlePoint.coordinates;
       }
     }));
 
-    this.subscription.add(this.connectorHover.subscribe(({ connector }) => {
-      const middlePoint = this.diagram.getMiddlePointByConnector(connector.model);
+    this.subscription.add(this.connectorHover.subscribe(({ connectorModel }) => {
+      const connector = this.diagram.getConnectorById(connectorModel.id);
+      const middlePoint = this.diagram.getMiddlePointByConnector(connectorModel);
+
+      if (!connector) { return; }
 
       if (!middlePoint || !connector.isInputConnector || (middlePoint && middlePoint.parentMiddlePoint)) {
         connector.actionsCircle.show();
@@ -261,8 +265,10 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnChanges, OnDe
       }
     }));
 
-    this.subscription.add(this.connectorLeave.subscribe(({ connector }) => {
-      const middlePoint = this.diagram.getMiddlePointByConnector(connector.model);
+    this.subscription.add(this.connectorLeave.subscribe(({ connectorModel }) => {
+      const connector = this.diagram.getConnectorById(connectorModel.id);
+      if (!connector) { return; }
+      const middlePoint = this.diagram.getMiddlePointByConnector(connectorModel);
 
       if (!middlePoint || !connector.isInputConnector || (middlePoint && middlePoint.parentMiddlePoint)) {
         if (connector.connectorToolbar.isHidden()) {
@@ -288,8 +294,8 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnChanges, OnDe
       }
     }));
 
-    this.subscription.add(this.connectorClick.subscribe(({ connector }) => {
-      if (!connector.isSelected) {
+    this.subscription.add(this.connectorClick.subscribe(({ isSelected }) => {
+      if (!isSelected) {
         this.diagram.unSelectAllConnectors();
       }
     }));
@@ -336,8 +342,9 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnChanges, OnDe
       }
     }));
 
-    this.subscription.add(this.middlePointInit.subscribe(({ middlePoint }) => {
-      middlePoint.outputConnectors.forEach(x => {
+    this.subscription.add(this.middlePointInit.subscribe(({ middlePointId }) => {
+      const middlePoint = this.diagram.getMiddlePoint(middlePointId);
+      middlePoint && middlePoint.outputConnectors.forEach(x => {
         const connector = this.diagram.getConnectorById(x.id);
         if (!connector) { return; }
         connector.setBasePoint(middlePoint.coordinates);
@@ -349,7 +356,9 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnChanges, OnDe
       });
     }));
 
-    this.subscription.add(this.middlePointMove.subscribe(({ middlePoint }) => {
+    this.subscription.add(this.middlePointMove.subscribe(({ middlePointId }) => {
+      const middlePoint = this.diagram.getMiddlePoint(middlePointId);
+      if (!middlePoint) { return; }
       if (middlePoint.inputConnector) {
         const inputConnector = this.diagram.getConnectorById(middlePoint.inputConnector.id);
         inputConnector.setBasePoint(middlePoint.coordinates);
@@ -373,7 +382,8 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnChanges, OnDe
       }
     }));
 
-    this.subscription.add(this.middlePointRemove.subscribe(({ middlePoint }) => {
+    this.subscription.add(this.middlePointRemove.subscribe(({ middlePointId }) => {
+      const middlePoint = this.diagram.getMiddlePoint(middlePointId);
       if (middlePoint.inputConnector) {
         const inputConnector = this.diagram.getConnectorById(middlePoint.inputConnector.id);
         inputConnector.remove();
@@ -387,7 +397,9 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnChanges, OnDe
       this.diagram.middlePointsOutput.splice(this.diagram.middlePointsOutput.indexOf(middlePoint), 1);
     }));
 
-    this.subscription.add(this.middlePointRemoveOutputConnector.subscribe(({ middlePoint, connector, removeDependency }) => {
+    this.subscription.add(this.middlePointRemoveOutputConnector.subscribe(({ middlePointId, connector, removeDependency }) => {
+      const middlePoint = this.diagram.getMiddlePoint(middlePointId);
+      if (!middlePoint) { return; }
       const outputConnector = this.diagram.getConnectorById(connector.id);
 
       if (removeDependency && middlePoint.dependency.dependencies && outputConnector && outputConnector.outputPort) {
@@ -405,25 +417,27 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnChanges, OnDe
       }
     }));
 
-    this.subscription.add(this.connectorRemove.subscribe(({opts, connector}) => {
-      const usedPorts = this.diagram.getPortsBy(x => x.model.connectors.includes(connector.model));
+    this.subscription.add(this.connectorRemove.subscribe(({ opts, connectorModel }) => {
+      const connector = this.diagram.getConnectorById(connectorModel.id);
+      const usedPorts = this.diagram.getPortsBy(x => x.model.connectors.includes(connectorModel));
       usedPorts.forEach(port => {
         this.diagram.state.connectorDetach$.next({ connector, port });
       });
 
-      const isInput = (connector.outputPort && connector.outputPort.model.isInput) || connector.isInputConnector;
-      const middlePoint = this.diagram.getMiddlePointByConnector(connector.model);
+      const isInput = connector && ((connector.outputPort && connector.outputPort.model.isInput) || connector.isInputConnector);
+      const middlePoint = this.diagram.getMiddlePointByConnector(connectorModel);
 
       if (isInput && !opts.onlyConnector) {
         middlePoint && middlePoint.remove(); // TODO: Inverse dependency
       } else {
         if (middlePoint && opts.onlyConnector) { // TODO: Inverse dependency
-          middlePoint.removeOutputConnector(connector.model, opts.removeDependency);
+          middlePoint.removeOutputConnector(connectorModel, opts.removeDependency);
         }
       }
 
       if (
            opts.removeVirtualNode
+        && connector
         && connector.outputPort
         && connector.outputPort.nodeType
         && connector.outputPort.nodeType.includes('ProximityDependency')
@@ -435,7 +449,7 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnChanges, OnDe
         this.populatedNodes.splice(this.populatedNodes.findIndex(m => m['virtual'] && m.id.toString() === outputGeneralItemId.toString()), 1);
       }
 
-      this.diagram.removeConnectorFromOutput(connector);
+      connector && this.diagram.removeConnectorFromOutput(connector);
     }));
 
     this.subscription.add(this.nodePortNew.subscribe(({model, parentNode}) => {
@@ -703,7 +717,9 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnChanges, OnDe
 
     this.lastDependency = x.dependency;
     this.lastGeneralItemId = x.dependency.generalItemId;
-    x.middlePoint.addOutputConnector(this.currentMiddleConnector.model);
+
+    const baseMp = this.diagram.getMiddlePoint(x.middlePointId);
+    baseMp.addOutputConnector(this.currentMiddleConnector.model);
 
     this.currentMiddleConnector.onClick = (event: MouseEvent) => {
       event.stopPropagation();

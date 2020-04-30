@@ -14,7 +14,7 @@ export interface MiddlePointAddChildArgs {
     authoringY: number,
   };
   dependency?: Dependency;
-  middlePoint?: MiddlePoint;
+  middlePointId?: string;
   name?: string;
 }
 
@@ -34,15 +34,15 @@ export interface ConnectorCreateArgs {
 }
 
 export interface ConnectorHoverArgs {
-  connector: Connector;
+  connectorModel: ConnectorModel;
 }
 
 export interface ConnectorLeaveArgs {
-  connector: Connector;
+  connectorModel: ConnectorModel;
 }
 
 export interface ConnectorRemoveArgs {
-  connector: Connector;
+  connectorModel: ConnectorModel;
   opts: ConnectorRemoveOptions;
 }
 
@@ -63,7 +63,7 @@ export interface ConnectorMoveArgs {
 }
 
 export interface ConnectorClickArgs {
-  connector: Connector;
+  isSelected: boolean;
 }
 
 export interface NodePortUpdateArgs {
@@ -71,19 +71,19 @@ export interface NodePortUpdateArgs {
 }
 
 export interface MiddlePointInitArgs {
-  middlePoint: MiddlePoint;
+  middlePointId: string;
 }
 
 export interface MiddlePointMoveArgs {
-  middlePoint: MiddlePoint;
+  middlePointId: string;
 }
 
 export interface MiddlePointRemoveArgs {
-  middlePoint: MiddlePoint;
+  middlePointId: string;
 }
 
 export interface MiddlePointRemoveOutputConnectorArgs {
-  middlePoint: MiddlePoint;
+  middlePointId: string;
   connector: ConnectorModel;
   removeDependency: boolean;
 }

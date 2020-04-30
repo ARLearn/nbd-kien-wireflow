@@ -51,7 +51,7 @@ export class MiddlePoint extends BaseUiElement implements DraggableUiElement {
   init() {
     this.move(this.coordinates);
 
-    this.state.middlePointInit$.next({ middlePoint: this });
+    this.state.middlePointInit$.next({ middlePointId: this.id });
     this._refreshTypeIcon();
     return this;
   }
@@ -93,7 +93,7 @@ export class MiddlePoint extends BaseUiElement implements DraggableUiElement {
       this.actionToolbar.move(this.coordinates);
     }
 
-    this.state.middlePointMove$.next({ middlePoint: this });
+    this.state.middlePointMove$.next({ middlePointId: this.id });
 
     return this;
   }
@@ -110,7 +110,7 @@ export class MiddlePoint extends BaseUiElement implements DraggableUiElement {
   }
 
   removeOutputConnector(connector: ConnectorModel, removeDependency = true) {
-    this.state.middlePointRemoveOutputConnector$.next({ middlePoint: this, connector, removeDependency });
+    this.state.middlePointRemoveOutputConnector$.next({ middlePointId: this.id, connector, removeDependency });
   }
   // returns index of dependency.dependencies array
   getDependencyIdx(dependency: any): number {
@@ -152,7 +152,7 @@ export class MiddlePoint extends BaseUiElement implements DraggableUiElement {
       }
     }
 
-    this.state.middlePointRemove$.next({ middlePoint: this });
+    this.state.middlePointRemove$.next({ middlePointId: this.id });
     // TODO: Move to Diagram
     this.nativeElement && this.nativeElement.remove();
   }
@@ -227,7 +227,7 @@ export class MiddlePoint extends BaseUiElement implements DraggableUiElement {
         authoringX: this.coordinates.x,
         authoringY: this.coordinates.y,
       },
-      middlePoint: this,
+      middlePointId: this.id,
       dependency,
       name: subtype === 'scantag' ? 'scan tag' : 'message'
     });
