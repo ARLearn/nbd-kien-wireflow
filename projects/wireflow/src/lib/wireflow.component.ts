@@ -1381,8 +1381,10 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnChanges, OnDe
   }
 
   openQrOutputScanTagModal(node: GameMessageCommon) {
+    const duplicates = (node as any).outputs.map(output => output.action);
+
     this.ngxSmartModalService.getModal('actionQrOutputScanTagModal')
-      .setData({data: { generalItemId: node.id } }, true)
+      .setData({data: { generalItemId: node.id, duplicates } }, true)
       .open();
   }
 

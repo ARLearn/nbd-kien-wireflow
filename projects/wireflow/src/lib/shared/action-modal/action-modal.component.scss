@@ -22,6 +22,10 @@
   background-color: transparent;
   outline: none;
   box-sizing: border-box;
+
+  &--invalid {
+    border-color: #ff0a34;
+  }
 }
 
 .btn {
@@ -37,7 +41,16 @@
     background: #d4d4d4;
   }
   &-success {
-    background: #29cb0e;
+    background-color: #29cb0e;
     color: #ffffff;
+
+    &:disabled {
+      background-color: lighten(#29cb0e, 6%);
+      cursor: not-allowed;
+    }
   }
+}
+.error-text {
+  color: #ff0a34;
+  font-size: 12px;
 }

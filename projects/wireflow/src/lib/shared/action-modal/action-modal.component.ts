@@ -15,8 +15,10 @@ export class ActionModalComponent implements AfterViewInit, OnDestroy {
   @Output() cancel: Subject<void>;
 
   action: string;
+  isValidAction: boolean;
 
   private subscription: Subscription;
+  private duplicates: string[];
 
   constructor(public ngxSmartModalService: NgxSmartModalService) {
     this.submitForm = new Subject<any>();
@@ -30,6 +32,16 @@ export class ActionModalComponent implements AfterViewInit, OnDestroy {
       modal.onOpen,
       modal.onCloseFinished,
     ).subscribe(() => this.action = null);
+
+    this.subscription.add(modal.onOpen.subscribe(() => {
+      const { data: { duplicates } } = modal.getData();
+      this.duplicates = duplicates;
+      this.isValidAction = true;
+    }));
+  }
+
+  onActionChange() {
+    this.isValidAction = !this.duplicates || this.duplicates && !this.duplicates.includes(this.action);
   }
 
   ngOnDestroy(): void {

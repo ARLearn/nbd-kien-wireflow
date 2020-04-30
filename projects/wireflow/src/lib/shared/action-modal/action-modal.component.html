@@ -1,4 +1,4 @@
-<form (keydown)="$event.stopPropagation();" (ngSubmit)="f.valid && submitForm.next(f.value)" #f="ngForm">
+<form (keydown)="$event.stopPropagation();" (ngSubmit)="f.valid && isValidAction && submitForm.next(f.value)" #f="ngForm">
   <div class="modal-header">
     <h5 class="modal-title">{{ 'wireflow.action-modal.title' | translate }}</h5>
   </div>
@@ -6,18 +6,21 @@
     <div>
       <input
         class="form-control"
+        [class.form-control--invalid]="!isValidAction"
         #nameInput
         type="text"
         name="action"
         placeholder="{{ 'wireflow.action-modal.namePlaceholder' | translate }}"
         [(ngModel)]="action"
+        (ngModelChange)="onActionChange()"
         required
         autocomplete="off"
       />
+      <span class="error-text" *ngIf="!isValidAction">Such label already exists</span>
     </div>
   </div>
   <div class="modal-footer">
-    <button type="submit" class="btn btn-success">{{ 'wireflow.btns.confirm' | translate }}</button>
+    <button type="submit" class="btn btn-success" [disabled]="!f.valid || !isValidAction">{{ 'wireflow.btns.confirm' | translate }}</button>
     <button type="reset" class="btn btn-secondary" (click)="cancel.next()">{{ 'wireflow.btns.cancel' | translate }}</button>
   </div>
 </form>
