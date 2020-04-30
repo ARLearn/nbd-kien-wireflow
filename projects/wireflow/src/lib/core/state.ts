@@ -57,6 +57,11 @@ export interface ConnectorPortArgs {
   port: NodePort;
 }
 
+export interface ConnectorDetachPortArgs {
+  connector: ConnectorModel;
+  port: PortModel;
+}
+
 export interface ConnectorMoveArgs {
   connector: Connector;
   point?: Point;
@@ -119,7 +124,7 @@ export class State {
   connectorLeave$ = new Subject<ConnectorLeaveArgs>(); // TODO: Move to connectorsService
   connectorRemove$ = new Subject<ConnectorRemoveArgs>(); // TODO: Move to connectorsService
   connectorAttach$ = new Subject<ConnectorPortArgs>(); // TODO: Move to connectorsService
-  connectorDetach$ = new Subject<ConnectorPortArgs>(); // TODO: Move to connectorsService
+  connectorDetach$ = new Subject<ConnectorDetachPortArgs>(); // TODO: Move to connectorsService
   connectorMove$ = new Subject<ConnectorMoveArgs>(); // TODO: Move to connectorsService
   connectorClick$ = new Subject<ConnectorClickArgs>(); // TODO: Move to connectorsService
   middlePointInit$ = new Subject<MiddlePointInitArgs>(); // TODO: Move to connectorsService

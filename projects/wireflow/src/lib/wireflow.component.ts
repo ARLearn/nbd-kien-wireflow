@@ -288,9 +288,9 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnChanges, OnDe
     }));
 
     this.subscription.add(this.connectorDetach.subscribe(({ connector, port }) => {
-      const index = port.model.connectors.indexOf(connector.model);
+      const index = port.connectors.indexOf(connector);
       if (index !== -1) {
-        port.model.connectors.splice(index, 1);
+        port.connectors.splice(index, 1);
       }
     }));
 
@@ -421,7 +421,7 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnChanges, OnDe
       const connector = this.diagram.getConnectorById(connectorModel.id);
       const usedPorts = this.diagram.getPortsBy(x => x.model.connectors.includes(connectorModel));
       usedPorts.forEach(port => {
-        this.diagram.state.connectorDetach$.next({ connector, port });
+        this.diagram.state.connectorDetach$.next({ connector: connectorModel, port: port.model });
       });
 
       const isInput = connector && ((connector.outputPort && connector.outputPort.model.isInput) || connector.isInputConnector);
