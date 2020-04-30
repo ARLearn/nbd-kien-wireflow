@@ -885,9 +885,15 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnChanges, OnDe
     });
 
     const msgs = messages.filter((m: any) => m.dependsOn);
+    const DEFAULT_TYPE = { type: '' };
 
     msgs.forEach(x => {
-      const depends = this._getAllDependenciesByCondition(x.dependsOn, (d: any) => d.subtype && d.subtype.length > 0);
+      const depends = this._getAllDependenciesByCondition(
+        x.dependsOn,
+        (d: any) => d.subtype && d.subtype.length > 0 || (
+          (messages.find(m => m.id.toString() === d.generalItemId) || DEFAULT_TYPE).type.includes('ScanTag')
+        )
+      );
 
       const proximities = this._getAllDependenciesByCondition(x.dependsOn, (d: any) => d.type && d.type.includes('ProximityDependency'));
 
