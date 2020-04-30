@@ -1,0 +1,189 @@
+[
+  {
+    "type": "org.celstec.arlearn2.beans.generalItem.ScanTag",
+    "gameId": 5739463179239424,
+    "deleted": false,
+    "lastModificationDate": 1588249444762,
+    "id": 5176513225818112,
+    "scope": "user",
+    "name": "scan item",
+    "description": "",
+    "dependsOn": {
+      "type": "org.celstec.arlearn2.beans.dependencies.ActionDependency",
+      "action": "answer_i1FU7",
+      "generalItemId": 5720434527961088
+    },
+    "autoLaunch": false,
+    "authoringX": 564,
+    "authoringY": 357,
+    "message": true,
+    "fileReferences": {},
+    "showFeedback": false
+  },
+  {
+    "type": "org.celstec.arlearn2.beans.generalItem.NarratorItem",
+    "gameId": 5739463179239424,
+    "deleted": false,
+    "lastModificationDate": 1586417525590,
+    "id": 5710606233501696,
+    "scope": "user",
+    "name": "introductie",
+    "description": "",
+    "dependsOn": {
+      "type": "org.celstec.arlearn2.beans.dependencies.ActionDependency",
+      "action": "answer_qkceR",
+      "generalItemId": 5720434527961088
+    },
+    "autoLaunch": false,
+    "authoringX": 774.7499,
+    "authoringY": 119.9296,
+    "message": true,
+    "fileReferences": {},
+    "showFeedback": false
+  },
+  {
+    "type": "org.celstec.arlearn2.beans.generalItem.MultipleChoiceTest",
+    "gameId": 5739463179239424,
+    "deleted": false,
+    "lastModificationDate": 1588239764199,
+    "id": 5720434527961088,
+    "scope": "user",
+    "name": "meerkeuze",
+    "description": "",
+    "autoLaunch": false,
+    "authoringX": 167.4515,
+    "authoringY": 86.8048,
+    "fileReferences": {
+      "background": "/game/5739463179239424/einde.jpg"
+    },
+    "answers": [
+      {
+        "type": "org.celstec.arlearn2.beans.generalItem.MultipleChoiceAnswerItem",
+        "isCorrect": true,
+        "feedback": "",
+        "answer": "optie 1",
+        "id": "qkceR"
+      },
+      {
+        "type": "org.celstec.arlearn2.beans.generalItem.MultipleChoiceAnswerItem",
+        "isCorrect": false,
+        "feedback": "",
+        "answer": "optie 2",
+        "id": "i1FU7"
+      }
+    ],
+    "showFeedback": true,
+    "message": true
+  },
+  {
+    "type": "org.celstec.arlearn2.beans.generalItem.NarratorItem",
+    "gameId": 5739463179239424,
+    "deleted": false,
+    "lastModificationDate": 1588249444780,
+    "id": 5724554341122048,
+    "scope": "user",
+    "name": "olifant",
+    "description": "",
+    "dependsOn": {
+      "type": "org.celstec.arlearn2.beans.dependencies.AndDependency",
+      "dependencies": [
+        {
+          "type": "org.celstec.arlearn2.beans.dependencies.ActionDependency",
+          "action": "next",
+          "generalItemId": "5176513225818112"
+        },
+        {
+          "type": "org.celstec.arlearn2.beans.dependencies.ActionDependency",
+          "action": "testqr",
+          "generalItemId": "5176513225818112"
+        },
+        {
+          "type": "org.celstec.arlearn2.beans.dependencies.ActionDependency",
+          "action": "testqr",
+          "generalItemId": "5176513225818112"
+        },
+        {
+          "type": "org.celstec.arlearn2.beans.dependencies.ActionDependency",
+          "action": "qrlabel",
+          "generalItemId": "5176513225818112"
+        },
+        {
+          "type": "org.celstec.arlearn2.beans.dependencies.ActionDependency",
+          "action": "qrlabel",
+          "generalItemId": "5176513225818112"
+        },
+        {
+          "type": "org.celstec.arlearn2.beans.dependencies.ActionDependency",
+          "action": "qrlabel",
+          "generalItemId": "5176513225818112"
+        },
+        {
+          "type": "org.celstec.arlearn2.beans.dependencies.ActionDependency",
+          "action": "test",
+          "generalItemId": "5176513225818112"
+        },
+        {
+          "type": "org.celstec.arlearn2.beans.dependencies.ActionDependency",
+          "action": "test",
+          "generalItemId": "5176513225818112"
+        },
+        {
+          "type": "org.celstec.arlearn2.beans.dependencies.ActionDependency",
+          "action": "test",
+          "generalItemId": "5176513225818112"
+        },
+        {
+          "type": "org.celstec.arlearn2.beans.dependencies.ActionDependency",
+          "action": "test",
+          "generalItemId": "5176513225818112"
+        },
+        {
+          "type": "org.celstec.arlearn2.beans.dependencies.ActionDependency",
+          "action": "qr",
+          "generalItemId": "5176513225818112"
+        },
+        {
+          "type": "org.celstec.arlearn2.beans.dependencies.ActionDependency",
+          "action": "qr",
+          "generalItemId": "5176513225818112"
+        },
+        {
+          "type": "org.celstec.arlearn2.beans.dependencies.ActionDependency",
+          "action": "qr",
+          "generalItemId": "5176513225818112"
+        },
+        {
+          "type": "org.celstec.arlearn2.beans.dependencies.ActionDependency",
+          "action": "qr",
+          "generalItemId": "5176513225818112"
+        },
+        {
+          "type": "org.celstec.arlearn2.beans.dependencies.ActionDependency",
+          "action": "qr",
+          "generalItemId": "5176513225818112"
+        },
+        {
+          "type": "org.celstec.arlearn2.beans.dependencies.ActionDependency",
+          "action": "qr",
+          "generalItemId": "5176513225818112"
+        },
+        {
+          "type": "org.celstec.arlearn2.beans.dependencies.ActionDependency",
+          "action": "qr",
+          "generalItemId": "5176513225818112"
+        },
+        {
+          "type": "org.celstec.arlearn2.beans.dependencies.ActionDependency",
+          "action": "test",
+          "generalItemId": "438124277"
+        }
+      ]
+    },
+    "autoLaunch": false,
+    "authoringX": 1068,
+    "authoringY": 322,
+    "message": true,
+    "fileReferences": {},
+    "showFeedback": false
+  }
+]
