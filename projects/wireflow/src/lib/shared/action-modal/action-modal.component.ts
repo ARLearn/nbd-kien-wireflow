@@ -34,8 +34,12 @@ export class ActionModalComponent implements AfterViewInit, OnDestroy {
     ).subscribe(() => this.action = null);
 
     this.subscription.add(modal.onOpen.subscribe(() => {
-      const { data: { duplicates } } = modal.getData();
-      this.duplicates = duplicates;
+      const modalData = modal.getData();
+
+      if (modalData.data) {
+        this.duplicates = modalData.data.duplicates;
+      }
+
       this.isValidAction = true;
     }));
   }

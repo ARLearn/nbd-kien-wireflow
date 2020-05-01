@@ -709,7 +709,7 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnChanges, OnDe
   }
 
   private _initMiddleConnector(x: any) {
-    const model = this.diagram.state.createConnectorModel(x.dependency.type, x.dependency.subtype ? x.dependency.subtype : undefined);
+    const model = this.diagram.state.createConnectorModel(x.dependency.type, x.dependency.subtype);
     this.currentMiddleConnector = new Connector(
       this.diagram.state,
       model, { x: Math.floor(x.message.authoringX), y: Math.floor(x.message.authoringY) }
@@ -733,7 +733,7 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnChanges, OnDe
         depend.subtype = 'scantag';
       }
 
-      if (!this.currentMiddleConnector.shape && depend.subtype) {
+      if (!this.currentMiddleConnector.shape && (depend.subtype || x.dependency.type.includes('ProximityDependency'))) {
         message = this._populateNode({
           ...x.message,
           id: x.dependency.generalItemId,
@@ -743,6 +743,8 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnChanges, OnDe
           dependsOn: {},
           virtual: x.dependency.type.includes('ProximityDependency')
         });
+
+        console.log('dasdasd');
 
         oldNodes = [...this.populatedNodes, message];
 
