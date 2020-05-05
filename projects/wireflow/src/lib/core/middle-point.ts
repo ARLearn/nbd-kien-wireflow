@@ -1,14 +1,14 @@
 import { NodePort } from './node-port';
 import { ActionToolbar } from './toolbars/action-toolbar';
-import { State } from './state'; // TODO: remove dependency
 import { getNumberFromPixels, Point } from '../utils';
-import { BaseUiElement } from './base-ui-element';
 import { DraggableUiElement } from './draggable-ui-element';
 import { Dependency } from '../models/core';
 import { ConnectorModel } from './models';
+import { BaseModelUiElement } from './base-model-ui-element';
+import { MiddlePointModel } from './models/MiddlePointModel';
+import { MiddlePointsService } from './services/middle-points.service';
 
-export class MiddlePoint extends BaseUiElement implements DraggableUiElement {
-  id: string;
+export class MiddlePoint extends BaseModelUiElement<MiddlePointModel> implements DraggableUiElement {
   inputPort: NodePort;
   actionToolbar: ActionToolbar;
 
@@ -23,27 +23,26 @@ export class MiddlePoint extends BaseUiElement implements DraggableUiElement {
   private pencilIcon: any;
 
   constructor(
-    private state: State,
+    private service: MiddlePointsService,
+    opts: MiddlePointModel,
     public generalItemId: number,
     public dependency: Dependency,
   ) {
-    super(document.querySelector('svg .middle-point').cloneNode(true) as HTMLElement);
-
-    this.id = `middle-point_${this.state.idCounter()}`;
+    super(document.querySelector('svg .middle-point').cloneNode(true) as HTMLElement, opts);
 
     this.mainIcon = this.nativeElement.querySelector('.middle-point-font');
     this.pencilIcon = this.nativeElement.querySelector('.middle-point-pencil');
 
-    this.actionToolbar = new ActionToolbar(this.state);
+    this.actionToolbar = new ActionToolbar(this.service);
     this._unsubscriber.add(this.actionToolbar.addChild.subscribe(data => this.addChild(data)));
 
     this.show();
 
-    this.nativeElement.setAttribute('data-drag', `${this.id}:middle-point`);
+    this.nativeElement.setAttribute('data-drag', `${this.model.id}:middle-point`);
     this.nativeElement.onclick = () => this._onClick();
 
     // TODO: replace with this.connectorsService.appendToConnectorLayer()
-    this.state.connectorLayer.append(this.nativeElement);
+    this.service.connectorLayer.append(this.nativeElement);
   }
 
   get dragElement() { return this.nativeElement; }
@@ -51,7 +50,7 @@ export class MiddlePoint extends BaseUiElement implements DraggableUiElement {
   init() {
     this.move(this.coordinates);
 
-    this.state.middlePointInit$.next({ middlePointId: this.id });
+    this.service.middlePointInit$.next({ middlePointId: this.model.id });
     this._refreshTypeIcon();
     return this;
   }
@@ -93,7 +92,7 @@ export class MiddlePoint extends BaseUiElement implements DraggableUiElement {
       this.actionToolbar.move(this.coordinates);
     }
 
-    this.state.middlePointMove$.next({ middlePointId: this.id });
+    this.service.middlePointMove$.next({ middlePointId: this.model.id });
 
     return this;
   }
@@ -110,7 +109,7 @@ export class MiddlePoint extends BaseUiElement implements DraggableUiElement {
   }
 
   removeOutputConnector(connectorModel: ConnectorModel, removeDependency = true) {
-    this.state.middlePointRemoveOutputConnector$.next({ middlePointId: this.id, connectorModel, removeDependency });
+    this.service.middlePointRemoveOutputConnector$.next({ middlePointId: this.model.id, connectorModel, removeDependency });
   }
   // returns index of dependency.dependencies array
   getDependencyIdx(dependency: any): number {
@@ -152,7 +151,7 @@ export class MiddlePoint extends BaseUiElement implements DraggableUiElement {
       }
     }
 
-    this.state.middlePointRemove$.next({ middlePointId: this.id });
+    this.service.middlePointRemove$.next({ middlePointId: this.model.id });
     // TODO: Move to Diagram
     this.nativeElement && this.nativeElement.remove();
   }
@@ -209,7 +208,7 @@ export class MiddlePoint extends BaseUiElement implements DraggableUiElement {
       this.actionToolbar.toggle();
     }
 
-    this.state.middlePointClick$.next(this.id);
+    this.service.middlePointClick$.next(this.model.id);
   }
 
   addChild({ targetType, subtype }: { targetType: string, subtype?: string }) {
@@ -221,13 +220,13 @@ export class MiddlePoint extends BaseUiElement implements DraggableUiElement {
       scope: undefined,
     } as Dependency;
 
-    this.state.middlePointAddChild$.next({
+    this.service.middlePointAddChild$.next({
       id: this.generalItemId,
       message: {
         authoringX: this.coordinates.x,
         authoringY: this.coordinates.y,
       },
-      middlePointId: this.id,
+      middlePointId: this.model.id,
       dependency,
       name: subtype === 'scantag' ? 'scan tag' : 'message'
     });

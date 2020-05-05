@@ -1,7 +1,6 @@
 import { Subject, merge } from 'rxjs';
 import { BaseUiElement } from '../base-ui-element';
 import { Point } from '../../utils';
-import { State } from '../state'; // TODO: Remove dependency
 import { ToolbarButton } from './toolbar-button';
 import { ToolbarItem } from '../models';
 import {
@@ -11,6 +10,7 @@ import {
   DependencyTypeAction,
   DependencyTypeProximity
 } from '../../models/core';
+import { ConnectorsService } from '../services/connectors.service';
 
 export interface ChangeSingleDependencyTypeAction {
   targetType:
@@ -64,10 +64,7 @@ export class ConnectorToolbar extends BaseUiElement {
   private _changeSingleDependencyType = new Subject<ChangeSingleDependencyTypeAction>();
   private _changeSingleDependencyTypeWithDependency = new Subject<ChangeSingleDependencyWithDependencyAction>();
 
-  constructor(
-    private state: State, // TODO: Decompose into services. Use connectorsService here
-  ) {
-
+  constructor(private service: ConnectorsService) {
     super(
       document.querySelector('#diagram > .dependency-type-toolbar').cloneNode(true) as HTMLElement
     );
@@ -92,7 +89,7 @@ export class ConnectorToolbar extends BaseUiElement {
     this.hide();
 
     // TODO: replace with this.connectorsService.appendToConnectorLayer()
-    this.state.connectorLayer.appendChild(this.nativeElement);
+    this.service.connectorLayer.appendChild(this.nativeElement);
   }
 
   get changeSingleDependencyType() { return this._changeSingleDependencyType.asObservable(); }

@@ -1,10 +1,10 @@
 import { Subject, merge} from 'rxjs';
 import { BaseUiElement } from '../base-ui-element';
 import { Point } from '../../utils';
-import { State } from '../state'; // TODO: Remove dependency
 import { ToolbarButton } from './toolbar-button';
 import { ToolbarItem } from '../models';
 import { DependencyTypeAction, DependencyTypeProximity } from '../../models/core';
+import { MiddlePointsService } from '../services/middle-points.service';
 
 export interface AddChildAction {
   targetType:
@@ -28,9 +28,7 @@ export class ActionToolbar extends BaseUiElement {
   // Events
   private _addChild = new Subject<AddChildAction>();
 
-  constructor(
-    private state: State, // TODO: Decompose into services. Use connectorsService here
-  ) {
+  constructor(private service: MiddlePointsService) {
 
     super(
       document.querySelector('#diagram > .action-toolbar').cloneNode(true) as HTMLElement
@@ -47,7 +45,7 @@ export class ActionToolbar extends BaseUiElement {
     ), e => this._onAction(e.source));
 
     // TODO: replace with this.connectorsService.appendToConnectorLayer()
-    this.state.connectorLayer.appendChild(this.nativeElement);
+    this.service.connectorLayer.appendChild(this.nativeElement);
   }
 
   get addChild() { return this._addChild.asObservable(); }

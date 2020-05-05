@@ -1,10 +1,11 @@
 import { Subscription, Observable } from 'rxjs';
-import { Point } from '../utils';
+import { counter, Point } from '../utils';
 
 declare const TweenLite;
 
 export class BaseUiElement {
   protected _unsubscriber = new Subscription();
+  protected generateUniqueId = counter();
   private _point: Point;
   private _isVisible = false;
 

@@ -4,11 +4,11 @@ import { NodePort } from './node-port';
 import { ChangeSingleDependencyWithDependencyAction, ConnectorToolbar } from './toolbars/connector-toolbar';
 import { ConnectorActionsCircle, ConnectorPointAction } from './connector-actions-circle';
 import { BezierPath } from './bezier-path';
-import { State, ConnectorRemoveOptions } from './state'; // TODO: remove dependency
 import { getNumberFromPixels, Point } from '../utils';
 import { DraggableUiElement } from './draggable-ui-element';
 import { ConnectorModel, PortModel } from './models';
 import { BaseModelUiElement } from './base-model-ui-element';
+import {ConnectorRemoveOptions, ConnectorsService} from './services/connectors.service';
 
 export const bezierWeight = 0.675;
 
@@ -50,7 +50,7 @@ export class Connector extends BaseModelUiElement<ConnectorModel> implements Dra
   private _subscription = new Subscription();
   private _connectionSide = 'left';
 
-  constructor(private state: State, model: ConnectorModel, point: Point = { x: -1, y: -1 }) {
+  constructor(private service: ConnectorsService, model: ConnectorModel, point: Point = { x: -1, y: -1 }) {
     super(document.querySelector('.middle-connector').cloneNode(true) as HTMLElement, model);
 
     // TODO: Move to client code
@@ -75,11 +75,11 @@ export class Connector extends BaseModelUiElement<ConnectorModel> implements Dra
     }
 
     this.actionsCircle =
-      new ConnectorActionsCircle(this.state, this.nativeElement.querySelector('.base-middle-point'))
+      new ConnectorActionsCircle(this.nativeElement.querySelector('.base-middle-point'))
         .hide();
     this._subscription.add(this.actionsCircle.action.subscribe(action => this._onMiddlePointAction(action)));
 
-    this.connectorToolbar = new ConnectorToolbar(this.state);
+    this.connectorToolbar = new ConnectorToolbar(this.service);
     this._subscription.add(
       this.connectorToolbar.changeSingleDependencyType
         .subscribe(data => this._changeSingleDependencyType(data.targetType))
@@ -94,14 +94,14 @@ export class Connector extends BaseModelUiElement<ConnectorModel> implements Dra
     this.nativeElement.onmouseleave = (e) => this.onHoverLeave(e);
 
     // TODO: replace with this.connectorsService.prependToConnectorLayer()
-    this.state.connectorLayer.prepend(this.nativeElement);
+    this.service.connectorLayer.prepend(this.nativeElement);
   }
 
   initCreating() {
-    this.state.connectorCreate$.next({ connectorModel: this.model });
+    this.service.connectorCreate$.next({ connectorModel: this.model });
 
-    this.state.svg.onmousemove = (e) => this.mouseMoveHandler(e);
-    this.state.svg.onclick = (e) => this._onClick(e);
+    this.service.svg.onmousemove = (e) => this.mouseMoveHandler(e);
+    this.service.svg.onclick = (e) => this._onClick(e);
 
     return this;
   }
@@ -154,7 +154,7 @@ export class Connector extends BaseModelUiElement<ConnectorModel> implements Dra
   }
 
   onDrag() {
-    this.state.connectorMove$.next({ connectorModel: this.model });
+    this.service.connectorMove$.next({ connectorModel: this.model });
   }
 
   onDragEnd(port: NodePort) {
@@ -171,31 +171,28 @@ export class Connector extends BaseModelUiElement<ConnectorModel> implements Dra
       this.setInputPort(port);
     }
 
-    this.state.connectorAttach$.next({
+    this.service.connectorAttach$.next({
       connectorModel: this.model,
       port: port.model.isInput ? port.model : this._inputPort.model
     });
 
     this.updateHandle(port.model);
-    this.state.changeDependencies$.next();
-    this.state.connectorMove$.next({ connectorModel: this.model });
+    this.service.changeDependencies$.next();
+    this.service.connectorMove$.next({ connectorModel: this.model });
   }
 
   // TODO: Move to client code
   private mouseMoveHandler(e: MouseEvent) {
-    const coords = this.state.getDiagramCoords();
-    const offset = this.state.getConnectorCoordinatesOffset();
+    const offset = this.service.getConnectorCoordinatesOffset();
 
-    const dx = coords.x + offset.x;
-    const dy = coords.y + offset.y;
     const point = {
-      x: e.clientX - dx,
-      y: e.clientY - dy + window.scrollY,
+      x: e.clientX - offset.x,
+      y: e.clientY - offset.y + window.scrollY,
     };
 
     TweenLite.set(this.outputHandle, point);
 
-    this.state.connectorMove$.next({ connectorModel: this.model, point });
+    this.service.connectorMove$.next({ connectorModel: this.model, point });
   }
 
   remove(opts: ConnectorRemoveOptions = {}) {
@@ -213,7 +210,7 @@ export class Connector extends BaseModelUiElement<ConnectorModel> implements Dra
     this.connectorToolbar && this.connectorToolbar.remove();
     this.nativeElement && this.nativeElement.remove();
 
-    this.state.connectorRemove$.next({ connectorModel: this.model, opts });
+    this.service.connectorRemove$.next({ connectorModel: this.model, opts });
   }
 
   initViewState() { // TODO: Rename to update()
@@ -261,8 +258,8 @@ export class Connector extends BaseModelUiElement<ConnectorModel> implements Dra
   }
 
   removeHandlers() {
-    this.state.svg.onmousemove = null;
-    this.state.svg.onclick = null;
+    this.service.svg.onmousemove = null;
+    this.service.svg.onclick = null;
     this.onClick = null;
     return this;
   }
@@ -314,7 +311,7 @@ export class Connector extends BaseModelUiElement<ConnectorModel> implements Dra
 
     TweenLite.set(this.inputHandle, this.basePoint);
 
-    this.state.connectorMove$.next({ connectorModel: this.model });
+    this.service.connectorMove$.next({ connectorModel: this.model });
   }
 
   updateHandle(port: PortModel, allowedMoveEvent = true) { // TODO: Rename into update(isInput, point)
@@ -333,7 +330,7 @@ export class Connector extends BaseModelUiElement<ConnectorModel> implements Dra
     this.nativeElement.classList.remove('middle-connector--new');
 
     if (allowedMoveEvent) {
-      this.state.connectorMove$.next({ connectorModel: this.model });
+      this.service.connectorMove$.next({ connectorModel: this.model });
     }
   }
 
@@ -344,11 +341,11 @@ export class Connector extends BaseModelUiElement<ConnectorModel> implements Dra
   private onHover(e: MouseEvent) {
     if (this._inputPort && this._inputPort.inputNodeType.includes('ProximityDependency')) { return; }
 
-    this.state.connectorHover$.next({ connectorModel: this.model });
+    this.service.connectorHover$.next({ connectorModel: this.model });
   }
 
   private onHoverLeave(e: MouseEvent) {
-    this.state.connectorLeave$.next({ connectorModel: this.model });
+    this.service.connectorLeave$.next({ connectorModel: this.model });
   }
 
   updatePath(x = null, y = null, { fixedStart, fixedEnd, swapCoords, prevInputConnector, coords, length }: ConnectorPathOptions) {
@@ -436,7 +433,7 @@ export class Connector extends BaseModelUiElement<ConnectorModel> implements Dra
       return this.onClick(e);
     }
 
-    this.state.connectorClick$.next({ isSelected: this.isSelected });
+    this.service.connectorClick$.next({ isSelected: this.isSelected });
 
     this.isSelected = !this.isSelected;
     this.initViewState();
@@ -464,14 +461,14 @@ export class Connector extends BaseModelUiElement<ConnectorModel> implements Dra
   }
 
   private _changeSingleDependencyType(type: string) {
-    this.state.singleDependenciesOutput$.next({
+    this.service.singleDependenciesOutput$.next({
       connector: this,
       type,
     });
   }
 
   private _changeSingleDependencyTypeWithDependency(data: ChangeSingleDependencyWithDependencyAction) {
-    this.state.singleDependencyWithNewDependencyOutput$.next({
+    this.service.singleDependencyWithNewDependencyOutput$.next({
       connector: this,
       type: data.type,
       targetType: data.targetType,

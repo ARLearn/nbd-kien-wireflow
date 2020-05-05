@@ -1,22 +1,23 @@
 import { NodeShape } from './node-shape';
 import { Connector, ConnectorPathOptions } from './connector';
-import { State } from './state';
 import { DraggableUiElement } from './draggable-ui-element';
 import { NodePort } from './node-port';
 import { MiddlePoint } from './middle-point';
 import { ConnectorModel } from './models';
-import { Point } from '../utils';
+import { getNumberFromPixels, Point } from '../utils';
+import { NodesService } from './services/nodes.service';
+import { PortsService } from './services/ports.service';
+import { ConnectorsService } from './services/connectors.service';
+import { MiddlePointsService } from './services/middle-points.service';
 
 declare const TweenLite;
 declare const Draggable;
 
-// TODO: Merge with state, or wrap state inside, or make wrapped by state
 export class Diagram implements DraggableUiElement {
   shapes: NodeShape[] = [];
   connectorsOutput: Connector[] = [];
   middlePointsOutput: MiddlePoint[] = [];
 
-  element: any;
   target: DraggableUiElement;
   dragType: any;
   draggable: any;
@@ -30,24 +31,35 @@ export class Diagram implements DraggableUiElement {
 
   private openedConnector: Connector;
 
-  state = new State();
+  // services:
+  nodesService: NodesService;
+  portsService: PortsService;
+  connectorsService: ConnectorsService;
+  middlePointsService: MiddlePointsService;
 
   get isDragging() {
     return this.dragging;
   }
 
-  constructor(diagramEl, shapeEls, svgEl, dragProxyEl, fragEl, connectorEl, connectorLayerEl) {
-    this.state.init(diagramEl, shapeEls, svgEl, dragProxyEl, fragEl, connectorEl, connectorLayerEl);
-
-    this.element = this.state.diagramElement;
+  constructor(
+    public element,
+    private shapeElements,
+    private svg,
+    private dragProxy,
+    connectorLayerEl
+  ) {
+    this.nodesService = new NodesService();
+    this.portsService = new PortsService(this.element, this.svg);
+    this.connectorsService = new ConnectorsService(this.element, this.svg, connectorLayerEl);
+    this.middlePointsService = new MiddlePointsService(connectorLayerEl);
 
     this.target = null;
     this.dragType = null;
     this.dragging = false;
 
-    this.draggable = new Draggable(this.state.dragProxy, {
+    this.draggable = new Draggable(this.dragProxy, {
       allowContextMenu: true,
-      trigger: this.state.svg,
+      trigger: this.svg,
       onDrag: () => this._dragTarget(),
       onDragEnd: e => this._stopDragging(this._getDragArgs(e)),
       onPress: e => this._onDragStart(this._getDragArgs(e)),
@@ -58,9 +70,9 @@ export class Diagram implements DraggableUiElement {
   get dragElement() { return this.element; }
 
   initShapes(messages) {
-    this.state.shapeElements.forEach(element => {
+    this.shapeElements.forEach(element => {
       const message = messages.find(x => element.getAttribute('general-item-id') == x.id);
-      this.state.createNode(message);
+      this.nodesService.createNode(message, this.getDiagramCoords());
     });
   }
 
@@ -74,11 +86,12 @@ export class Diagram implements DraggableUiElement {
 
   getPortsBy(matcher: (p: NodePort) => boolean) {
     const ports = new Array<NodePort>();
-    for (const shape of this.shapes)
+    for (const shape of this.shapes) {
     for (const port of [...shape.inputs, ...shape.outputs]) {
       if (matcher(port)) {
         ports.push(port);
       }
+    }
     }
     return ports;
   }
@@ -125,7 +138,7 @@ export class Diagram implements DraggableUiElement {
   }
 
   removeConnectorFromOutput(connector: Connector) {  // TODO: Move to connectorsService
-    this.state.connectorModels = this.state.connectorModels.filter(c => c.id !== connector.model.id);
+    this.connectorsService.models = this.connectorsService.models.filter(c => c.id !== connector.model.id);
     this.connectorsOutput = this.connectorsOutput.filter(c => c.model.id !== connector.model.id);
   }
 
@@ -145,8 +158,8 @@ export class Diagram implements DraggableUiElement {
   createInputConnector(message: any, coords: Point, inputMiddlePoint: MiddlePoint): Connector {
 
     // TODO: Create ConnectorModel, and emit from connectorNew$
-    const model = this.state.createConnectorModel(null);
-    const connector = new Connector(this.state, model, coords); // TODO: Move to subscription
+    const model = this.connectorsService.createConnectorModel(null);
+    const connector = new Connector(this.connectorsService, model, coords); // TODO: Move to subscription
     this.addConnectorToOutput(connector);
     connector
       .initCreating()
@@ -178,8 +191,8 @@ export class Diagram implements DraggableUiElement {
     }
 
     if (inputPort && outputPort) {
-      const model = this.state.createConnectorModel(null);
-      const con = new Connector(this.state, model);
+      const model = this.connectorsService.createConnectorModel(null);
+      const con = new Connector(this.connectorsService, model);
       this.addConnectorToOutput(con);
       con
         .initCreating()
@@ -199,13 +212,25 @@ export class Diagram implements DraggableUiElement {
   }
 
   getMiddlePoint(id: string): MiddlePoint {
-    return this.middlePointsOutput.find(mp => mp.id === id);
+    return this.middlePointsOutput.find(mp => mp.model.id === id);
   }
 
   getMiddlePointByConnector(connector: ConnectorModel): MiddlePoint {
     return this.middlePointsOutput.find(({ inputConnector, outputConnectors }) => {
       return [inputConnector, ...outputConnectors].some(c => c.id === connector.id);
     });
+  }
+
+  getDiagramCoords() {
+    let x = 0;
+    let y = 0;
+
+    if (this.element._gsap) {
+      x = getNumberFromPixels(this.element._gsap.x);
+      y = getNumberFromPixels(this.element._gsap.y);
+    }
+
+    return { x, y };
   }
 
   getConnectorPathOptions(conn: Connector) {
@@ -232,7 +257,7 @@ export class Diagram implements DraggableUiElement {
   private _getDragArgs({target}: any) {
     let drag = target.getAttribute('data-drag');
 
-    while (!drag && target !== this.state.svg && 'getAttribute' in target.parentNode) {
+    while (!drag && target !== this.svg && 'getAttribute' in target.parentNode) {
       target = target.parentNode;
       drag = target.getAttribute('data-drag');
     }
@@ -256,7 +281,7 @@ export class Diagram implements DraggableUiElement {
 
       case 'port':
         const port = this.getPortById(id);
-        const con = new Connector(this.state, this.state.createConnectorModel(null));
+        const con = new Connector(this.connectorsService, this.connectorsService.createConnectorModel(null));
         this.addConnectorToOutput(con);
         con
           .initCreating()

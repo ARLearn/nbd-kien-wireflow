@@ -1,7 +1,7 @@
-import { State } from './state'; // TODO: Remove dependency
 import { DraggableUiElement } from './draggable-ui-element';
 import { BaseModelUiElement } from './base-model-ui-element';
 import { PortModel } from './models';
+import { PortsService } from './services/ports.service';
 
 (SVGElement.prototype as any).getTransformToElement = (SVGElement.prototype as any).getTransformToElement || function(toElement) {
   return toElement.getScreenCTM().inverse().multiply(this.getScreenCTM());
@@ -16,7 +16,12 @@ export class NodePort extends BaseModelUiElement<PortModel> implements Draggable
   center: SVGPoint;
   inputNodeType: string;
 
-  constructor(private state: State, parentNode: BaseModelUiElement<any>, nativeElement: HTMLElement, opts: PortModel) {
+  constructor(
+    private service: PortsService,
+    parentNode: BaseModelUiElement<any>,
+    nativeElement: HTMLElement,
+    opts: PortModel
+  ) {
 
     super(
       nativeElement,
@@ -36,8 +41,8 @@ export class NodePort extends BaseModelUiElement<PortModel> implements Draggable
 
     const bbox = this.portElement.getBBox();
 
-    this.global = this.state.svg.createSVGPoint();
-    this.center = this.state.svg.createSVGPoint();
+    this.global = (this.service.svg as any).createSVGPoint();
+    this.center = (this.service.svg as any).createSVGPoint();
     this.center.x = bbox.x + bbox.width / 2;
     this.center.y = bbox.y + bbox.height / 2;
 
@@ -50,11 +55,11 @@ export class NodePort extends BaseModelUiElement<PortModel> implements Draggable
   update() {
     this.updatePlacement();
 
-    this.state.nodePortUpdate$.next({ port: this.model });
+    this.service.nodePortUpdate$.next({ port: this.model });
   }
 
   updatePlacement() {
-    const transform = (this.portElement as any).getTransformToElement(this.state.diagramElement);
+    const transform = (this.portElement as any).getTransformToElement(this.service.diagramElement);
     this.global = this.center.matrixTransform(transform);
   }
 }

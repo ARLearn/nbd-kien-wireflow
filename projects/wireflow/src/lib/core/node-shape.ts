@@ -1,9 +1,9 @@
 import { NodePort } from './node-port';
-import { State } from './state'; // TODO: Remove dependency
 import { getNumberFromPixels, Point } from '../utils';
 import { DraggableUiElement } from './draggable-ui-element';
 import { BaseModelUiElement } from './base-model-ui-element';
 import { NodeModel } from './models';
+import { NodesService } from './services/nodes.service';
 
 export class NodeShape extends BaseModelUiElement<NodeModel> implements DraggableUiElement {
   id: string;
@@ -11,7 +11,7 @@ export class NodeShape extends BaseModelUiElement<NodeModel> implements Draggabl
   outputs = [] as  NodePort[];
 
   constructor(
-    private state: State,
+    private service: NodesService,
     nativeElement: HTMLElement,
     opts: NodeModel,
     point: Point,
@@ -35,17 +35,15 @@ export class NodeShape extends BaseModelUiElement<NodeModel> implements Draggabl
     const inputElements  = Array.from<HTMLElement>(this.nativeElement.querySelectorAll('.input-field'));
     const outputElements = Array.from<HTMLElement>(this.nativeElement.querySelectorAll('.output-field'));
 
-    inputElements.forEach(el => {
-      const generalItemId = el.getAttribute('general-item-id');
-      this.state.createPort(null, generalItemId, this.model, true);
-    });
+    const inputs  = inputElements.map(el => ({
+      generalItemId: el.getAttribute('general-item-id')
+    }));
+    const outputs = outputElements.map(el => ({
+      generalItemId: el.getAttribute('general-item-id'),
+      action: el.getAttribute('action'),
+    }));
 
-    outputElements.forEach(el => {
-      const generalItemId = el.getAttribute('general-item-id');
-      const action = el.getAttribute('action');
-      this.state.createPort(action, generalItemId, this.model, false);
-    });
-
+    this.service.nodeInit$.next({ model: this.model, inputs, outputs });
   }
 
   onDrag() {
@@ -70,15 +68,15 @@ export class NodeShape extends BaseModelUiElement<NodeModel> implements Draggabl
     const x = getNumberFromPixels(this.nativeElement['_gsap'].x);
     const y = getNumberFromPixels(this.nativeElement['_gsap'].y);
     this.nativeElement.classList.remove('no-events');
-    this.state.coordinatesOutput$.next({ x, y, messageId: this.model.generalItemId });
+    this.service.nodeCoordinatesChanged$.next({ x, y, messageId: this.model.generalItemId });
   }
 
   remove() {
-    this.state.nodeShapeModels.splice(this.state.nodeShapeModels.indexOf(this.model), 1);
-    this.state.nodeShapeRemove$.next(this.model.id);
+    this.service.models.splice(this.service.models.findIndex(x => x.id === this.model.id), 1);
+    this.service.nodeRemove$.next(this.model.id);
   }
 
   private _onClick() {
-    this.state.shapeClick$.next(this.model);
+    this.service.nodeClick$.next(this.model);
   }
 }
