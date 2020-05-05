@@ -280,7 +280,7 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnChanges, OnDe
 
     this.subscription.add(this.connectorAttach.subscribe(({connectorModel, port}) => {
       this.diagram.getConnectorsByPortId(port.id)
-        .filter(c => c.model.id !== connectorModel.id)
+        .filter(c => c && c.model.id !== connectorModel.id)
         .forEach(c => {
           c && c.remove({ onlyConnector: false });
         });
@@ -550,6 +550,7 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnChanges, OnDe
         if (this.currentMiddleConnector) {
           this.currentMiddleConnector.removeHandlers();
           this.currentMiddleConnector.remove();
+          this.diagram.removeConnectorFromOutput(this.currentMiddleConnector);
           this.currentMiddleConnector = null;
         }
 
@@ -719,7 +720,9 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnChanges, OnDe
     this.currentMiddleConnector = new Connector(
       this.diagram.state,
       model, { x: Math.floor(x.message.authoringX), y: Math.floor(x.message.authoringY) }
-    ).initCreating();
+    );
+    this.diagram.addConnectorToOutput(this.currentMiddleConnector);
+    this.currentMiddleConnector.initCreating();
 
     this.lastDependency = x.dependency;
     this.lastGeneralItemId = x.dependency.generalItemId;

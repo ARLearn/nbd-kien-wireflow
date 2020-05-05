@@ -74,9 +74,6 @@ export class Connector extends BaseModelUiElement<ConnectorModel> implements Dra
       TweenLite.set(this.inputHandle, point);
     }
 
-    this.state.svg.onmousemove = (e) => this.mouseMoveHandler(e);
-    this.state.svg.onclick = (e) => this._onClick(e);
-
     this.actionsCircle =
       new ConnectorActionsCircle(this.state, this.nativeElement.querySelector('.base-middle-point'))
         .hide();
@@ -102,6 +99,9 @@ export class Connector extends BaseModelUiElement<ConnectorModel> implements Dra
 
   initCreating() {
     this.state.connectorCreate$.next({ connectorModel: this.model });
+
+    this.state.svg.onmousemove = (e) => this.mouseMoveHandler(e);
+    this.state.svg.onclick = (e) => this._onClick(e);
 
     return this;
   }

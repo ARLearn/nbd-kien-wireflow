@@ -119,7 +119,9 @@ export class Diagram implements DraggableUiElement {
   }
 
   addConnectorToOutput(connector: Connector) { // TODO: Move to connectorsService
-    this.connectorsOutput = [ ...this.connectorsOutput, connector ];
+    if (this.connectorsOutput.findIndex(x => x.model.id === connector.model.id) === -1) {
+      this.connectorsOutput = [ ...this.connectorsOutput, connector ];
+    }
   }
 
   removeConnectorFromOutput(connector: Connector) {  // TODO: Move to connectorsService
