@@ -23,20 +23,6 @@ export class NodeShape extends BaseModelUiElement<NodeModel> implements Draggabl
 
     nativeElement.setAttribute('data-drag', `${this.model.id}:shape`);
 
-    const inputElements  = Array.from<HTMLElement>(nativeElement.querySelectorAll('.input-field'));
-    const outputElements = Array.from<HTMLElement>(nativeElement.querySelectorAll('.output-field'));
-
-    inputElements.forEach(el => {
-      const generalItemId = el.getAttribute('general-item-id');
-      this.state.createPort(null, generalItemId, this, true);
-    });
-
-    outputElements.forEach(el => {
-      const generalItemId = el.getAttribute('general-item-id');
-      const action = el.getAttribute('action');
-      this.state.createPort(action, generalItemId, this, false);
-    });
-
     this.move(point);
 
     this.nativeElement.onclick = this._onClick.bind(this);
@@ -44,6 +30,23 @@ export class NodeShape extends BaseModelUiElement<NodeModel> implements Draggabl
 
   get dragElement() { return this.nativeElement; }
   get dragType() { return 'shape'; }
+
+  initChildren() {
+    const inputElements  = Array.from<HTMLElement>(this.nativeElement.querySelectorAll('.input-field'));
+    const outputElements = Array.from<HTMLElement>(this.nativeElement.querySelectorAll('.output-field'));
+
+    inputElements.forEach(el => {
+      const generalItemId = el.getAttribute('general-item-id');
+      this.state.createPort(null, generalItemId, this.model, true);
+    });
+
+    outputElements.forEach(el => {
+      const generalItemId = el.getAttribute('general-item-id');
+      const action = el.getAttribute('action');
+      this.state.createPort(action, generalItemId, this.model, false);
+    });
+
+  }
 
   onDrag() {
     this.nativeElement.classList.add('no-events');
@@ -76,6 +79,6 @@ export class NodeShape extends BaseModelUiElement<NodeModel> implements Draggabl
   }
 
   private _onClick() {
-    this.state.shapeClick$.next(this);
+    this.state.shapeClick$.next(this.model);
   }
 }

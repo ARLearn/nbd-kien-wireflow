@@ -1,8 +1,4 @@
 import { Subject } from 'rxjs';
-import { NodeShape } from './node-shape'; // TODO: Remove dependency, use model instead
-import { NodePort } from './node-port'; // TODO: Remove dependency, use model instead
-import { Connector } from './connector'; // TODO: Remove dependency, use model instead
-import { MiddlePoint } from './middle-point'; // TODO: Remove dependency, use model instead
 import { counter, getNumberFromPixels, Point } from '../utils';
 import { ConnectorModel, NodeModel, PortModel } from './models';
 import { GameMessageCommon, Dependency } from '../models/core';
@@ -26,18 +22,10 @@ export interface NodeShapeNewArgs {
 
 export interface NodePortNewArgs {
   model: PortModel;
-  parentNode: NodeShape;
+  parentNode: NodeModel;
 }
 
-export interface ConnectorCreateArgs {
-  connector: Connector;
-}
-
-export interface ConnectorHoverArgs {
-  connectorModel: ConnectorModel;
-}
-
-export interface ConnectorLeaveArgs {
+export interface ConnectorArgs {
   connectorModel: ConnectorModel;
 }
 
@@ -53,17 +41,12 @@ export interface ConnectorRemoveOptions {
 }
 
 export interface ConnectorPortArgs {
-  connector: Connector;
-  port: NodePort;
-}
-
-export interface ConnectorDetachPortArgs {
-  connector: ConnectorModel;
+  connectorModel: ConnectorModel;
   port: PortModel;
 }
 
 export interface ConnectorMoveArgs {
-  connector: Connector;
+  connectorModel: ConnectorModel;
   point?: Point;
 }
 
@@ -75,21 +58,13 @@ export interface NodePortUpdateArgs {
   port: PortModel;
 }
 
-export interface MiddlePointInitArgs {
-  middlePointId: string;
-}
-
-export interface MiddlePointMoveArgs {
-  middlePointId: string;
-}
-
-export interface MiddlePointRemoveArgs {
+export interface MiddlePointArgs {
   middlePointId: string;
 }
 
 export interface MiddlePointRemoveOutputConnectorArgs {
   middlePointId: string;
-  connector: ConnectorModel;
+  connectorModel: ConnectorModel;
   removeDependency: boolean;
 }
 
@@ -119,20 +94,20 @@ export class State {
   nodePortUpdate$ = new Subject<NodePortUpdateArgs>(); // TODO: Move to connectorsService
   nodeShapeNew$ = new Subject<NodeShapeNewArgs>(); // TODO: Move to nodesService
   nodeShapeRemove$ = new Subject<string>(); // TODO: Move to nodesService
-  connectorCreate$ = new Subject<ConnectorCreateArgs>(); // TODO: Move to connectorsService
-  connectorHover$ = new Subject<ConnectorHoverArgs>(); // TODO: Move to connectorsService
-  connectorLeave$ = new Subject<ConnectorLeaveArgs>(); // TODO: Move to connectorsService
+  connectorCreate$ = new Subject<ConnectorArgs>(); // TODO: Move to connectorsService
+  connectorHover$ = new Subject<ConnectorArgs>(); // TODO: Move to connectorsService
+  connectorLeave$ = new Subject<ConnectorArgs>(); // TODO: Move to connectorsService
   connectorRemove$ = new Subject<ConnectorRemoveArgs>(); // TODO: Move to connectorsService
   connectorAttach$ = new Subject<ConnectorPortArgs>(); // TODO: Move to connectorsService
-  connectorDetach$ = new Subject<ConnectorDetachPortArgs>(); // TODO: Move to connectorsService
+  connectorDetach$ = new Subject<ConnectorPortArgs>(); // TODO: Move to connectorsService
   connectorMove$ = new Subject<ConnectorMoveArgs>(); // TODO: Move to connectorsService
   connectorClick$ = new Subject<ConnectorClickArgs>(); // TODO: Move to connectorsService
-  middlePointInit$ = new Subject<MiddlePointInitArgs>(); // TODO: Move to connectorsService
-  middlePointMove$ = new Subject<MiddlePointMoveArgs>(); // TODO: Move to connectorsService
-  middlePointRemove$ = new Subject<MiddlePointRemoveArgs>(); // TODO: Move to connectorsService
+  middlePointInit$ = new Subject<MiddlePointArgs>(); // TODO: Move to connectorsService
+  middlePointMove$ = new Subject<MiddlePointArgs>(); // TODO: Move to connectorsService
+  middlePointRemove$ = new Subject<MiddlePointArgs>(); // TODO: Move to connectorsService
   middlePointRemoveOutputConnector$ = new Subject<MiddlePointRemoveOutputConnectorArgs>(); // TODO: Move to connectorsService
-  middlePointClick$ = new Subject<MiddlePoint>(); // TODO: Move to connectorsService
-  shapeClick$ = new Subject<NodeShape>(); // TODO: Move to nodesService
+  middlePointClick$ = new Subject<string>(); // TODO: Move to connectorsService
+  shapeClick$ = new Subject<NodeModel>(); // TODO: Move to nodesService
 
   createNode(message: GameMessageCommon) {
     const model = {
@@ -151,7 +126,7 @@ export class State {
     this.nodeShapeNew$.next({ message, model, point });
   }
 
-  createPort(action: string, generalItemId: string, parentNode: NodeShape, isInput: boolean) {
+  createPort(action: string, generalItemId: string, parentNode: NodeModel, isInput: boolean) {
     const model = {
       id: `port_${this.idCounter()}`,
       generalItemId,

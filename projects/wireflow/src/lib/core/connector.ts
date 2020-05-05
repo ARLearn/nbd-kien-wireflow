@@ -66,8 +66,6 @@ export class Connector extends BaseModelUiElement<ConnectorModel> implements Dra
 
     this.basePoint = point;
 
-    this.state.connectorCreate$.next({ connector: this });
-
     this.isSelected = false;
 
     this.initViewState();
@@ -100,6 +98,12 @@ export class Connector extends BaseModelUiElement<ConnectorModel> implements Dra
 
     // TODO: replace with this.connectorsService.prependToConnectorLayer()
     this.state.connectorLayer.prepend(this.nativeElement);
+  }
+
+  initCreating() {
+    this.state.connectorCreate$.next({ connectorModel: this.model });
+
+    return this;
   }
 
   get dragType() { return 'connector'; }
@@ -150,7 +154,7 @@ export class Connector extends BaseModelUiElement<ConnectorModel> implements Dra
   }
 
   onDrag() {
-    this.state.connectorMove$.next({ connector: this });
+    this.state.connectorMove$.next({ connectorModel: this.model });
   }
 
   onDragEnd(port: NodePort) {
@@ -168,13 +172,13 @@ export class Connector extends BaseModelUiElement<ConnectorModel> implements Dra
     }
 
     this.state.connectorAttach$.next({
-      connector: this,
-      port: port.model.isInput ? port : this._inputPort
+      connectorModel: this.model,
+      port: port.model.isInput ? port.model : this._inputPort.model
     });
 
     this.updateHandle(port.model);
     this.state.changeDependencies$.next();
-    this.state.connectorMove$.next({ connector: this });
+    this.state.connectorMove$.next({ connectorModel: this.model });
   }
 
   // TODO: Move to client code
@@ -191,7 +195,7 @@ export class Connector extends BaseModelUiElement<ConnectorModel> implements Dra
 
     TweenLite.set(this.outputHandle, point);
 
-    this.state.connectorMove$.next({ connector: this, point });
+    this.state.connectorMove$.next({ connectorModel: this.model, point });
   }
 
   remove(opts: ConnectorRemoveOptions = {}) {
@@ -310,7 +314,7 @@ export class Connector extends BaseModelUiElement<ConnectorModel> implements Dra
 
     TweenLite.set(this.inputHandle, this.basePoint);
 
-    this.state.connectorMove$.next({ connector: this });
+    this.state.connectorMove$.next({ connectorModel: this.model });
   }
 
   updateHandle(port: PortModel, allowedMoveEvent = true) { // TODO: Rename into update(isInput, point)
@@ -329,7 +333,7 @@ export class Connector extends BaseModelUiElement<ConnectorModel> implements Dra
     this.nativeElement.classList.remove('middle-connector--new');
 
     if (allowedMoveEvent) {
-      this.state.connectorMove$.next({ connector: this });
+      this.state.connectorMove$.next({ connectorModel: this.model });
     }
   }
 

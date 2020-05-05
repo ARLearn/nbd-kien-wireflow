@@ -146,7 +146,9 @@ export class Diagram implements DraggableUiElement {
     const model = this.state.createConnectorModel(null);
     const connector = new Connector(this.state, model, coords); // TODO: Move to subscription
     this.addConnectorToOutput(connector);
-    connector.setIsInput(true);
+    connector
+      .initCreating()
+      .setIsInput(true);
 
     if (!inputMiddlePoint.parentMiddlePoint) {
       const input = this.getInputPortByGeneralItemId(message.id);
@@ -175,12 +177,14 @@ export class Diagram implements DraggableUiElement {
 
     if (inputPort && outputPort) {
       const model = this.state.createConnectorModel(null);
-      const con = new Connector(this.state, model)
+      const con = new Connector(this.state, model);
+      this.addConnectorToOutput(con);
+      con
+        .initCreating()
         .removeHandlers()
         .init(inputPort)
         .setOutputPort(outputPort);
 
-      this.addConnectorToOutput(con);
 
       if (dependency.type.includes('ProximityDependency')) {
         con.setProximity(dependency.lat, dependency.lng, dependency.radius);
@@ -250,10 +254,13 @@ export class Diagram implements DraggableUiElement {
 
       case 'port':
         const port = this.getPortById(id);
-        const con = new Connector(this.state, this.state.createConnectorModel(null))
+        const con = new Connector(this.state, this.state.createConnectorModel(null));
+        this.addConnectorToOutput(con);
+        con
+          .initCreating()
           .removeHandlers()
-          .init(port);
-        con.updateHandle(port.model);
+          .init(port)
+          .updateHandle(port.model);
         // con.init(port);
         // con.updateHandle(port);
 

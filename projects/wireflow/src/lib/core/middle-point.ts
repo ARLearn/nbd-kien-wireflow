@@ -109,8 +109,8 @@ export class MiddlePoint extends BaseUiElement implements DraggableUiElement {
     this.outputConnectors.push(connector);
   }
 
-  removeOutputConnector(connector: ConnectorModel, removeDependency = true) {
-    this.state.middlePointRemoveOutputConnector$.next({ middlePointId: this.id, connector, removeDependency });
+  removeOutputConnector(connectorModel: ConnectorModel, removeDependency = true) {
+    this.state.middlePointRemoveOutputConnector$.next({ middlePointId: this.id, connectorModel, removeDependency });
   }
   // returns index of dependency.dependencies array
   getDependencyIdx(dependency: any): number {
@@ -209,7 +209,7 @@ export class MiddlePoint extends BaseUiElement implements DraggableUiElement {
       this.actionToolbar.toggle();
     }
 
-    this.state.middlePointClick$.next(this);
+    this.state.middlePointClick$.next(this.id);
   }
 
   addChild({ targetType, subtype }: { targetType: string, subtype?: string }) {
