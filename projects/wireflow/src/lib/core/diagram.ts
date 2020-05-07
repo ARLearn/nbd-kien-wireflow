@@ -145,7 +145,6 @@ export class Diagram implements DraggableUiElement {
   // TODO: Move to connectorsService
   unSelectAllConnectors() {
     this.connectorsOutput.forEach(x => x.deselect());
-    // this.middlePointsOutput.forEach(m => m.inputConnector.deselect());
   }
 
   deselectConnector(model: ConnectorModel) {
@@ -157,9 +156,8 @@ export class Diagram implements DraggableUiElement {
   // TODO: Move to connectorsService
   createInputConnector(message: any, coords: Point, inputMiddlePoint: MiddlePoint): Connector {
 
-    // TODO: Create ConnectorModel, and emit from connectorNew$
     const model = this.connectorsService.createConnectorModel(null);
-    const connector = new Connector(this.connectorsService, model, coords); // TODO: Move to subscription
+    const connector = new Connector(this.connectorsService, model, coords);
     this.addConnectorToOutput(connector);
     connector
       .initCreating()
@@ -288,8 +286,6 @@ export class Diagram implements DraggableUiElement {
           .removeHandlers()
           .init(port)
           .updateHandle(port.model);
-        // con.init(port);
-        // con.updateHandle(port);
 
         this.target = con;
         this.openedConnector = con;

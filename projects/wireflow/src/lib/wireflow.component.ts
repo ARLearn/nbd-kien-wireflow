@@ -777,11 +777,17 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnChanges, OnDe
           );
 
         if (!output) {
-          message.outputs.push({
+          const port = {
             action: x.dependency.action,
             type: x.dependency.type,
             generalItemId: message.id,
-          });
+          };
+
+          this.lastAddedNode = message;
+
+          message.outputs.push(port);
+
+          return;
         } else {
           const middlePoint = this.diagram.getMiddlePointByConnector(this.currentMiddleConnector.model);
           depend.generalItemId = output.generalItemId;

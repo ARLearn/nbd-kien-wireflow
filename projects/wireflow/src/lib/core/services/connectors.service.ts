@@ -33,17 +33,17 @@ export interface ConnectorClickArgs {
 }
 
 export class ConnectorsService extends BaseService<ConnectorModel> {
-  connectorCreate$ = new Subject<ConnectorArgs>(); // TODO: Move to connectorsService
-  connectorHover$ = new Subject<ConnectorArgs>(); // TODO: Move to connectorsService
-  connectorLeave$ = new Subject<ConnectorArgs>(); // TODO: Move to connectorsService
-  connectorRemove$ = new Subject<ConnectorRemoveArgs>(); // TODO: Move to connectorsService
-  connectorAttach$ = new Subject<ConnectorPortArgs>(); // TODO: Move to connectorsService
-  connectorDetach$ = new Subject<ConnectorPortArgs>(); // TODO: Move to connectorsService
-  connectorMove$ = new Subject<ConnectorMoveArgs>(); // TODO: Move to connectorsService
-  connectorClick$ = new Subject<ConnectorClickArgs>(); // TODO: Move to connectorsService
-  singleDependenciesOutput$ = new Subject(); // TODO: Move to some service
-  singleDependencyWithNewDependencyOutput$ = new Subject(); // TODO: Move to some service
-  changeDependencies$ = new Subject(); // TODO: Move to some service
+  connectorCreate$ = new Subject<ConnectorArgs>();
+  connectorHover$ = new Subject<ConnectorArgs>();
+  connectorLeave$ = new Subject<ConnectorArgs>();
+  connectorRemove$ = new Subject<ConnectorRemoveArgs>();
+  connectorAttach$ = new Subject<ConnectorPortArgs>();
+  connectorDetach$ = new Subject<ConnectorPortArgs>();
+  connectorMove$ = new Subject<ConnectorMoveArgs>();
+  connectorClick$ = new Subject<ConnectorClickArgs>();
+  singleDependenciesOutput$ = new Subject();
+  singleDependencyWithNewDependencyOutput$ = new Subject();
+  changeDependencies$ = new Subject();
 
   constructor(
     public diagramElement: HTMLElement,
