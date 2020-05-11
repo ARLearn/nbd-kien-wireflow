@@ -15,8 +15,8 @@ declare const Draggable;
 
 export class Diagram implements DraggableUiElement {
   shapes: NodeShape[] = [];
-  connectorsOutput: Connector[] = [];
-  middlePointsOutput: MiddlePoint[] = [];
+  connectors: Connector[] = [];
+  middlePoints: MiddlePoint[] = [];
 
   target: DraggableUiElement;
   dragType: any;
@@ -115,7 +115,7 @@ export class Diagram implements DraggableUiElement {
   }
 
   getConnectorById(id): Connector {
-    return this.connectorsOutput.find(c => c.model.id === id);
+    return this.connectors.find(c => c.model.id === id);
   }
 
   getConnectorsByPortId(id): Connector[] {
@@ -131,20 +131,20 @@ export class Diagram implements DraggableUiElement {
     return this.getConnectorById(model.id).isSelected;
   }
 
-  addConnectorToOutput(connector: Connector) { // TODO: Move to connectorsService
-    if (this.connectorsOutput.findIndex(x => x.model.id === connector.model.id) === -1) {
-      this.connectorsOutput = [ ...this.connectorsOutput, connector ];
+  addConnector(connector: Connector) { // TODO: Move to connectorsService
+    if (this.connectors.findIndex(x => x.model.id === connector.model.id) === -1) {
+      this.connectors = [ ...this.connectors, connector ];
     }
   }
 
-  removeConnectorFromOutput(connector: Connector) {  // TODO: Move to connectorsService
-    this.connectorsService.models = this.connectorsService.models.filter(c => c.id !== connector.model.id);
-    this.connectorsOutput = this.connectorsOutput.filter(c => c.model.id !== connector.model.id);
+  removeConnector(connector: Connector) {  // TODO: Move to connectorsService
+    this.connectorsService.removeConnector(connector.model.id);
+    this.connectors = this.connectors.filter(c => c.model.id !== connector.model.id);
   }
 
   // TODO: Move to connectorsService
   unSelectAllConnectors() {
-    this.connectorsOutput.forEach(x => x.deselect());
+    this.connectors.forEach(x => x.deselect());
   }
 
   deselectConnector(model: ConnectorModel) {
@@ -156,9 +156,9 @@ export class Diagram implements DraggableUiElement {
   // TODO: Move to connectorsService
   createInputConnector(message: any, coords: Point, inputMiddlePoint: MiddlePoint): Connector {
 
-    const model = this.connectorsService.createConnectorModel(null);
+    const model = this.connectorsService.createConnector(null);
     const connector = new Connector(this.connectorsService, model, coords);
-    this.addConnectorToOutput(connector);
+    this.addConnector(connector);
     connector
       .initCreating()
       .setIsInput(true);
@@ -189,9 +189,9 @@ export class Diagram implements DraggableUiElement {
     }
 
     if (inputPort && outputPort) {
-      const model = this.connectorsService.createConnectorModel(null);
+      const model = this.connectorsService.createConnector(null);
       const con = new Connector(this.connectorsService, model);
-      this.addConnectorToOutput(con);
+      this.addConnector(con);
       con
         .initCreating()
         .removeHandlers()
@@ -210,11 +210,11 @@ export class Diagram implements DraggableUiElement {
   }
 
   getMiddlePoint(id: string): MiddlePoint {
-    return this.middlePointsOutput.find(mp => mp.model.id === id);
+    return this.middlePoints.find(mp => mp.model.id === id);
   }
 
   getMiddlePointByConnector(connector: ConnectorModel): MiddlePoint {
-    return this.middlePointsOutput.find(({ inputConnector, outputConnectors }) => {
+    return this.middlePoints.find(({ inputConnector, outputConnectors }) => {
       return [inputConnector, ...outputConnectors].some(c => c.id === connector.id);
     });
   }
@@ -279,8 +279,8 @@ export class Diagram implements DraggableUiElement {
 
       case 'port':
         const port = this.getPortById(id);
-        const con = new Connector(this.connectorsService, this.connectorsService.createConnectorModel(null));
-        this.addConnectorToOutput(con);
+        const con = new Connector(this.connectorsService, this.connectorsService.createConnector(null));
+        this.addConnector(con);
         con
           .initCreating()
           .removeHandlers()

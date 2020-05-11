@@ -13,11 +13,14 @@ export interface NodePortUpdateArgs {
 }
 
 export class PortsService extends BaseService<PortModel> {
-  nodePortNew$ = new Subject<NodePortNewArgs>();
-  nodePortUpdate$ = new Subject<NodePortUpdateArgs>();
+  private nodePortNew$ = new Subject<NodePortNewArgs>();
+  private nodePortUpdate$ = new Subject<NodePortUpdateArgs>();
 
-  constructor(public diagramElement: HTMLElement, public svg: HTMLElement, baseState = []) {
-    super(baseState);
+  get nodePortNew() { return this.nodePortNew$.asObservable(); }
+  get nodePortUpdate() { return this.nodePortUpdate$.asObservable(); }
+
+  constructor(public diagramElement: HTMLElement, public svg: HTMLElement, models = []) {
+    super(models);
   }
 
   createPort(action: string, generalItemId: string, parentNode: NodeModel, isInput: boolean) {
@@ -34,6 +37,10 @@ export class PortsService extends BaseService<PortModel> {
     return new Promise<PortModel>(resolve => {
       this.nodePortNew$.next({ model, parentNode, doneCallback: x => resolve(x) });
     });
+  }
+
+  updatePort(port: PortModel) {
+    this.nodePortUpdate$.next({ port });
   }
 
 }

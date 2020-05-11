@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, Output, ViewChild } from '@angular/core';
+import { Component, OnDestroy, OnInit, Output } from '@angular/core';
 import { Subject, Subscription } from 'rxjs';
 import { NgxSmartModalService } from 'ngx-smart-modal';
 

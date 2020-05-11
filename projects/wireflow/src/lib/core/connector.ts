@@ -50,7 +50,11 @@ export class Connector extends BaseModelUiElement<ConnectorModel> implements Dra
   private _subscription = new Subscription();
   private _connectionSide = 'left';
 
-  constructor(private service: ConnectorsService, model: ConnectorModel, point: Point = { x: -1, y: -1 }) {
+  constructor(
+    private service: ConnectorsService,
+    model: ConnectorModel,
+    point: Point = { x: -1, y: -1 }
+  ) {
     super(document.querySelector('.middle-connector').cloneNode(true) as HTMLElement, model);
 
     // TODO: Move to client code

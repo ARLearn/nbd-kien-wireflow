@@ -33,28 +33,28 @@ export interface ConnectorClickArgs {
 }
 
 export class ConnectorsService extends BaseService<ConnectorModel> {
-  connectorCreate$ = new Subject<ConnectorArgs>();
-  connectorHover$ = new Subject<ConnectorArgs>();
-  connectorLeave$ = new Subject<ConnectorArgs>();
-  connectorRemove$ = new Subject<ConnectorRemoveArgs>();
-  connectorAttach$ = new Subject<ConnectorPortArgs>();
-  connectorDetach$ = new Subject<ConnectorPortArgs>();
-  connectorMove$ = new Subject<ConnectorMoveArgs>();
-  connectorClick$ = new Subject<ConnectorClickArgs>();
-  singleDependenciesOutput$ = new Subject();
-  singleDependencyWithNewDependencyOutput$ = new Subject();
-  changeDependencies$ = new Subject();
+  connectorCreate$ = new Subject<ConnectorArgs>(); // TODO: make private
+  connectorHover$ = new Subject<ConnectorArgs>(); // TODO: make private
+  connectorLeave$ = new Subject<ConnectorArgs>(); // TODO: make private
+  connectorRemove$ = new Subject<ConnectorRemoveArgs>(); // TODO: make private
+  connectorAttach$ = new Subject<ConnectorPortArgs>(); // TODO: make private
+  connectorDetach$ = new Subject<ConnectorPortArgs>(); // TODO: make private
+  connectorMove$ = new Subject<ConnectorMoveArgs>(); // TODO: make private
+  connectorClick$ = new Subject<ConnectorClickArgs>(); // TODO: make private
+  singleDependenciesOutput$ = new Subject(); // TODO: make private
+  singleDependencyWithNewDependencyOutput$ = new Subject(); // TODO: make private
+  changeDependencies$ = new Subject(); // TODO: make private
 
   constructor(
     public diagramElement: HTMLElement,
     public svg: HTMLElement,
     public connectorLayer: HTMLElement,
-    baseState = []
+    models = []
   ) {
-    super(baseState);
+    super(models);
   }
 
-  createConnectorModel(dependencyType, subType = null, proximity = null): ConnectorModel {
+  createConnector(dependencyType, subType = null, proximity = null): ConnectorModel {
     const model = {
       id: `connector_${this.generateUniqueId()}`,
       dependencyType,
@@ -64,6 +64,10 @@ export class ConnectorsService extends BaseService<ConnectorModel> {
 
     this.models.push(model);
     return model;
+  }
+
+  removeConnector(id: string) {
+    this.models = this.models.filter(c => c.id !== id);
   }
 
   private getDiagramCoords() {

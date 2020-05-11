@@ -26,18 +26,18 @@ export interface MiddlePointRemoveOutputConnectorArgs {
 }
 
 export class MiddlePointsService extends BaseService<MiddlePointModel> {
-  middlePointInit$ = new Subject<MiddlePointArgs>();
-  middlePointMove$ = new Subject<MiddlePointArgs>();
-  middlePointRemove$ = new Subject<MiddlePointArgs>();
-  middlePointRemoveOutputConnector$ = new Subject<MiddlePointRemoveOutputConnectorArgs>();
-  middlePointAddChild$ = new Subject<MiddlePointAddChildArgs>();
-  middlePointClick$ = new Subject<string>();
+  middlePointInit$ = new Subject<MiddlePointArgs>(); // TODO: make private
+  middlePointMove$ = new Subject<MiddlePointArgs>(); // TODO: make private
+  middlePointRemove$ = new Subject<MiddlePointArgs>(); // TODO: make private
+  middlePointRemoveOutputConnector$ = new Subject<MiddlePointRemoveOutputConnectorArgs>(); // TODO: make private
+  middlePointAddChild$ = new Subject<MiddlePointAddChildArgs>(); // TODO: make private
+  middlePointClick$ = new Subject<string>(); // TODO: make private
 
-  constructor(public connectorLayer: HTMLElement, baseState = []) {
-    super(baseState);
+  constructor(public connectorLayer: HTMLElement, models = []) {
+    super(models);
   }
 
-  createMiddlePointModel() {
+  createMiddlePoint() {
     const model = {
       id: `middle-point_${this.generateUniqueId()}`
     } as MiddlePointModel;
@@ -47,7 +47,7 @@ export class MiddlePointsService extends BaseService<MiddlePointModel> {
     return model;
   }
 
-  remove(id: string) {
+  removeMiddlePoint(id: string) {
     this.models.splice(this.models.findIndex((x) => x.id === id), 1);
   }
 }

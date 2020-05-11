@@ -43,7 +43,7 @@ export class NodeShape extends BaseModelUiElement<NodeModel> implements Draggabl
       action: el.getAttribute('action'),
     }));
 
-    this.service.nodeInit$.next({ model: this.model, inputs, outputs });
+    this.service.initNode(this.model.id, inputs, outputs);
   }
 
   onDrag() {
@@ -68,15 +68,14 @@ export class NodeShape extends BaseModelUiElement<NodeModel> implements Draggabl
     const x = getNumberFromPixels(this.nativeElement['_gsap'].x);
     const y = getNumberFromPixels(this.nativeElement['_gsap'].y);
     this.nativeElement.classList.remove('no-events');
-    this.service.nodeCoordinatesChanged$.next({ x, y, messageId: this.model.generalItemId });
+    this.service.setNodeCoordinates(this.model.generalItemId, { x, y });
   }
 
   remove() {
-    this.service.models.splice(this.service.models.findIndex(x => x.id === this.model.id), 1);
-    this.service.nodeRemove$.next(this.model.id);
+    this.service.removeNode(this.model.id);
   }
 
   private _onClick() {
-    this.service.nodeClick$.next(this.model);
+    this.service.emitNodeClick(this.model.id);
   }
 }
