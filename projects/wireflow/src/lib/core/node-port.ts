@@ -2,6 +2,7 @@ import { DraggableUiElement } from './draggable-ui-element';
 import { BaseModelUiElement } from './base-model-ui-element';
 import { PortModel } from './models';
 import { PortsService } from './services/ports.service';
+import { DomContext } from './dom-context';
 
 (SVGElement.prototype as any).getTransformToElement = (SVGElement.prototype as any).getTransformToElement || function(toElement) {
   return toElement.getScreenCTM().inverse().multiply(this.getScreenCTM());
@@ -17,6 +18,7 @@ export class NodePort extends BaseModelUiElement<PortModel> implements Draggable
   inputNodeType: string;
 
   constructor(
+    private domContext: DomContext,
     private service: PortsService,
     parentNode: BaseModelUiElement<any>,
     nativeElement: HTMLElement,
@@ -41,8 +43,8 @@ export class NodePort extends BaseModelUiElement<PortModel> implements Draggable
 
     const bbox = this.portElement.getBBox();
 
-    this.global = (this.service.svg as any).createSVGPoint();
-    this.center = (this.service.svg as any).createSVGPoint();
+    this.global = (this.domContext.svgElement as any).createSVGPoint();
+    this.center = (this.domContext.svgElement as any).createSVGPoint();
     this.center.x = bbox.x + bbox.width / 2;
     this.center.y = bbox.y + bbox.height / 2;
 
@@ -59,7 +61,7 @@ export class NodePort extends BaseModelUiElement<PortModel> implements Draggable
   }
 
   updatePlacement() {
-    const transform = (this.portElement as any).getTransformToElement(this.service.diagramElement);
+    const transform = (this.portElement as any).getTransformToElement(this.domContext.diagramElement);
     this.global = this.center.matrixTransform(transform);
   }
 }

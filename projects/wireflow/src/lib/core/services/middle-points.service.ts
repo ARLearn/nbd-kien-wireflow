@@ -33,7 +33,7 @@ export class MiddlePointsService extends BaseService<MiddlePointModel> {
   middlePointAddChild$ = new Subject<MiddlePointAddChildArgs>(); // TODO: make private
   middlePointClick$ = new Subject<string>(); // TODO: make private
 
-  constructor(public connectorLayer: HTMLElement, models = []) {
+  constructor(models = []) {
     super(models);
   }
 

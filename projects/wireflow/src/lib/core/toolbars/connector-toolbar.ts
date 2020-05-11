@@ -10,7 +10,7 @@ import {
   DependencyTypeAction,
   DependencyTypeProximity
 } from '../../models/core';
-import { ConnectorsService } from '../services/connectors.service';
+import { DomContext } from '../dom-context';
 
 export interface ChangeSingleDependencyTypeAction {
   targetType:
@@ -64,7 +64,7 @@ export class ConnectorToolbar extends BaseUiElement {
   private _changeSingleDependencyType = new Subject<ChangeSingleDependencyTypeAction>();
   private _changeSingleDependencyTypeWithDependency = new Subject<ChangeSingleDependencyWithDependencyAction>();
 
-  constructor(private connectorsService: ConnectorsService) {
+  constructor(private domContext: DomContext) {
     super(
       document.querySelector('#diagram > .dependency-type-toolbar').cloneNode(true) as HTMLElement
     );
@@ -89,7 +89,7 @@ export class ConnectorToolbar extends BaseUiElement {
     this.hide();
 
     // TODO: replace with this.connectorsService.appendToConnectorLayer()
-    this.connectorsService.connectorLayer.appendChild(this.nativeElement);
+    this.domContext.connectorLayer.appendChild(this.nativeElement);
   }
 
   get changeSingleDependencyType() { return this._changeSingleDependencyType.asObservable(); }

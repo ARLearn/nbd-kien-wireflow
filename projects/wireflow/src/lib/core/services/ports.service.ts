@@ -19,7 +19,7 @@ export class PortsService extends BaseService<PortModel> {
   get nodePortNew() { return this.nodePortNew$.asObservable(); }
   get nodePortUpdate() { return this.nodePortUpdate$.asObservable(); }
 
-  constructor(public diagramElement: HTMLElement, public svg: HTMLElement, models = []) {
+  constructor(models = []) {
     super(models);
   }
 

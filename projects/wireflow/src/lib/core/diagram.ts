@@ -9,6 +9,7 @@ import { NodesService } from './services/nodes.service';
 import { PortsService } from './services/ports.service';
 import { ConnectorsService } from './services/connectors.service';
 import { MiddlePointsService } from './services/middle-points.service';
+import { DomContext } from './dom-context';
 
 declare const TweenLite;
 declare const Draggable;
@@ -31,35 +32,24 @@ export class Diagram implements DraggableUiElement {
 
   private openedConnector: Connector;
 
-  // services:
-  nodesService: NodesService;
-  portsService: PortsService;
-  connectorsService: ConnectorsService;
-  middlePointsService: MiddlePointsService;
-
   get isDragging() {
     return this.dragging;
   }
 
   constructor(
-    public element,
-    private shapeElements,
-    private svg,
-    private dragProxy,
-    connectorLayerEl
+    private domContext: DomContext,
+    private nodesService: NodesService,
+    private portsService: PortsService,
+    private connectorsService: ConnectorsService,
+    private middlePointsService: MiddlePointsService,
   ) {
-    this.nodesService = new NodesService();
-    this.portsService = new PortsService(this.element, this.svg);
-    this.connectorsService = new ConnectorsService(this.element, this.svg, connectorLayerEl);
-    this.middlePointsService = new MiddlePointsService(connectorLayerEl);
-
     this.target = null;
     this.dragType = null;
     this.dragging = false;
 
-    this.draggable = new Draggable(this.dragProxy, {
+    this.draggable = new Draggable(this.domContext.dragProxy, {
       allowContextMenu: true,
-      trigger: this.svg,
+      trigger: this.domContext.svgElement,
       onDrag: () => this._dragTarget(),
       onDragEnd: e => this._stopDragging(this._getDragArgs(e)),
       onPress: e => this._onDragStart(this._getDragArgs(e)),
@@ -67,10 +57,10 @@ export class Diagram implements DraggableUiElement {
     });
   }
 
-  get dragElement() { return this.element; }
+  get dragElement() { return this.domContext.diagramElement; }
 
   initShapes(messages) {
-    this.shapeElements.forEach(element => {
+    this.domContext.shapeElements.forEach(element => {
       const message = messages.find(x => element.getAttribute('general-item-id') == x.id);
       this.nodesService.createNode(message, this.getDiagramCoords());
     });
@@ -157,7 +147,7 @@ export class Diagram implements DraggableUiElement {
   createInputConnector(message: any, coords: Point, inputMiddlePoint: MiddlePoint): Connector {
 
     const model = this.connectorsService.createConnector(null);
-    const connector = new Connector(this.connectorsService, model, coords);
+    const connector = new Connector(this.domContext, this.connectorsService, model, coords);
     this.addConnector(connector);
     connector
       .initCreating()
@@ -190,7 +180,7 @@ export class Diagram implements DraggableUiElement {
 
     if (inputPort && outputPort) {
       const model = this.connectorsService.createConnector(null);
-      const con = new Connector(this.connectorsService, model);
+      const con = new Connector(this.domContext, this.connectorsService, model);
       this.addConnector(con);
       con
         .initCreating()
@@ -223,9 +213,9 @@ export class Diagram implements DraggableUiElement {
     let x = 0;
     let y = 0;
 
-    if (this.element._gsap) {
-      x = getNumberFromPixels(this.element._gsap.x);
-      y = getNumberFromPixels(this.element._gsap.y);
+    if (this.domContext.diagramElement['_gsap']) {
+      x = getNumberFromPixels(this.domContext.diagramElement['_gsap'].x);
+      y = getNumberFromPixels(this.domContext.diagramElement['_gsap'].y);
     }
 
     return { x, y };
@@ -255,7 +245,7 @@ export class Diagram implements DraggableUiElement {
   private _getDragArgs({target}: any) {
     let drag = target.getAttribute('data-drag');
 
-    while (!drag && target !== this.svg && 'getAttribute' in target.parentNode) {
+    while (!drag && target !== this.domContext.svgElement && 'getAttribute' in target.parentNode) {
       target = target.parentNode;
       drag = target.getAttribute('data-drag');
     }
@@ -279,7 +269,7 @@ export class Diagram implements DraggableUiElement {
 
       case 'port':
         const port = this.getPortById(id);
-        const con = new Connector(this.connectorsService, this.connectorsService.createConnector(null));
+        const con = new Connector(this.domContext, this.connectorsService, this.connectorsService.createConnector(null));
         this.addConnector(con);
         con
           .initCreating()

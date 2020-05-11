@@ -4,7 +4,7 @@ import { Point } from '../../utils';
 import { ToolbarButton } from './toolbar-button';
 import { ToolbarItem } from '../models';
 import { DependencyTypeAction, DependencyTypeProximity } from '../../models/core';
-import { MiddlePointsService } from '../services/middle-points.service';
+import { DomContext } from '../dom-context';
 
 export interface AddChildAction {
   targetType:
@@ -28,7 +28,9 @@ export class MiddlePointToolbar extends BaseUiElement {
   // Events
   private _addChild = new Subject<AddChildAction>();
 
-  constructor(private middlePointsService: MiddlePointsService) {
+  constructor(
+    private domContext: DomContext,
+  ) {
 
     super(
       document.querySelector('#diagram > .middle-point-toolbar').cloneNode(true) as HTMLElement
@@ -44,8 +46,7 @@ export class MiddlePointToolbar extends BaseUiElement {
       this._btnQrScan.action
     ), e => this._onAction(e.source));
 
-    // TODO: replace with this.connectorsService.appendToConnectorLayer()
-    this.middlePointsService.connectorLayer.appendChild(this.nativeElement);
+    this.domContext.connectorLayer.appendChild(this.nativeElement);
   }
 
   get addChild() { return this._addChild.asObservable(); }

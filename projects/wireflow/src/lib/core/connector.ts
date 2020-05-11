@@ -9,6 +9,7 @@ import { DraggableUiElement } from './draggable-ui-element';
 import { ConnectorModel, PortModel } from './models';
 import { BaseModelUiElement } from './base-model-ui-element';
 import {ConnectorRemoveOptions, ConnectorsService} from './services/connectors.service';
+import { DomContext } from './dom-context';
 
 export const bezierWeight = 0.675;
 
@@ -51,6 +52,7 @@ export class Connector extends BaseModelUiElement<ConnectorModel> implements Dra
   private _connectionSide = 'left';
 
   constructor(
+    private domContext: DomContext,
     private service: ConnectorsService,
     model: ConnectorModel,
     point: Point = { x: -1, y: -1 }
@@ -83,7 +85,7 @@ export class Connector extends BaseModelUiElement<ConnectorModel> implements Dra
         .hide();
     this._subscription.add(this.actionsCircle.action.subscribe(action => this._onConnectorAction(action)));
 
-    this.connectorToolbar = new ConnectorToolbar(this.service);
+    this.connectorToolbar = new ConnectorToolbar(this.domContext);
     this._subscription.add(
       this.connectorToolbar.changeSingleDependencyType
         .subscribe(data => this._changeSingleDependencyType(data.targetType))
@@ -97,15 +99,14 @@ export class Connector extends BaseModelUiElement<ConnectorModel> implements Dra
     this.nativeElement.onmouseenter = (e) => this.onHover(e);
     this.nativeElement.onmouseleave = (e) => this.onHoverLeave(e);
 
-    // TODO: replace with this.connectorsService.prependToConnectorLayer()
-    this.service.connectorLayer.prepend(this.nativeElement);
+    this.domContext.connectorLayer.prepend(this.nativeElement);
   }
 
   initCreating() {
     this.service.connectorCreate$.next({ connectorModel: this.model });
 
-    this.service.svg.onmousemove = (e) => this.mouseMoveHandler(e);
-    this.service.svg.onclick = (e) => this._onClick(e);
+    this.domContext.svgElement.onmousemove = (e) => this.mouseMoveHandler(e);
+    this.domContext.svgElement.onclick = (e) => this._onClick(e);
 
     return this;
   }
@@ -263,8 +264,8 @@ export class Connector extends BaseModelUiElement<ConnectorModel> implements Dra
   }
 
   removeHandlers() {
-    this.service.svg.onmousemove = null;
-    this.service.svg.onclick = null;
+    this.domContext.svgElement.onmousemove = null;
+    this.domContext.svgElement.onclick = null;
     this.onClick = null;
     return this;
   }

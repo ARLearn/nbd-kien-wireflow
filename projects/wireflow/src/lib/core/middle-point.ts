@@ -7,6 +7,7 @@ import { ConnectorModel } from './models';
 import { BaseModelUiElement } from './base-model-ui-element';
 import { MiddlePointModel } from './models/MiddlePointModel';
 import { MiddlePointsService } from './services/middle-points.service';
+import { DomContext } from './dom-context';
 
 export class MiddlePoint extends BaseModelUiElement<MiddlePointModel> implements DraggableUiElement {
   inputPort: NodePort;
@@ -23,17 +24,18 @@ export class MiddlePoint extends BaseModelUiElement<MiddlePointModel> implements
   private pencilIcon: any;
 
   constructor(
+    private domContext: DomContext,
     private service: MiddlePointsService,
     opts: MiddlePointModel,
-    public generalItemId: number,
-    public dependency: Dependency,
+    private _generalItemId: number,
+    private _dependency: Dependency,
   ) {
     super(document.querySelector('svg .middle-point').cloneNode(true) as HTMLElement, opts);
 
     this.mainIcon = this.nativeElement.querySelector('.middle-point-font');
     this.pencilIcon = this.nativeElement.querySelector('.middle-point-pencil');
 
-    this.actionToolbar = new MiddlePointToolbar(this.service);
+    this.actionToolbar = new MiddlePointToolbar(this.domContext);
     this._unsubscriber.add(this.actionToolbar.addChild.subscribe(data => this.addChild(data)));
 
     this.show();
@@ -41,11 +43,12 @@ export class MiddlePoint extends BaseModelUiElement<MiddlePointModel> implements
     this.nativeElement.setAttribute('data-drag', `${this.model.id}:middle-point`);
     this.nativeElement.onclick = () => this._onClick();
 
-    // TODO: replace with this.connectorsService.appendToConnectorLayer()
-    this.service.connectorLayer.append(this.nativeElement);
+    this.domContext.connectorLayer.append(this.nativeElement);
   }
 
   get dragElement() { return this.nativeElement; }
+  get generalItemId() { return this._generalItemId; }
+  get dependency() { return this._dependency; }
 
   init() {
     this.move(this.coordinates);

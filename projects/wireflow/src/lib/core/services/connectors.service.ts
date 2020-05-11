@@ -2,6 +2,7 @@ import { Subject } from 'rxjs';
 import { BaseService } from './base.service';
 import { ConnectorModel, PortModel } from '../models';
 import { getNumberFromPixels, Point } from '../../utils';
+import { DomContext } from '../dom-context';
 
 export interface ConnectorArgs {
   connectorModel: ConnectorModel;
@@ -46,9 +47,7 @@ export class ConnectorsService extends BaseService<ConnectorModel> {
   changeDependencies$ = new Subject(); // TODO: make private
 
   constructor(
-    public diagramElement: HTMLElement,
-    public svg: HTMLElement,
-    public connectorLayer: HTMLElement,
+    private domContext: DomContext,
     models = []
   ) {
     super(models);
@@ -74,24 +73,20 @@ export class ConnectorsService extends BaseService<ConnectorModel> {
     let x = 0;
     let y = 0;
 
-    if ((this.diagramElement as any)._gsap) {
-      x = getNumberFromPixels((this.diagramElement as any)._gsap.x);
-      y = getNumberFromPixels((this.diagramElement as any)._gsap.y);
+    if (this.domContext.diagramElement['_gsap']) {
+      x = getNumberFromPixels(this.domContext.diagramElement['_gsap'].x);
+      y = getNumberFromPixels(this.domContext.diagramElement['_gsap'].y);
     }
 
     return { x, y };
   }
 
   getConnectorCoordinatesOffset(): Point {
-    let x;
-    let y;
-    const parent = this.svg.parentNode as HTMLElement;
-
-    x = parent.offsetLeft;
-    y = parent.offsetTop;
-
+    const {offsetLeft, offsetTop} = this.domContext.svgElement.parentNode as HTMLElement;
     const point = this.getDiagramCoords();
-
-    return { x: x + point.x, y: y + point.y } as Point;
+    return {
+      x: offsetLeft + point.x,
+      y: offsetTop + point.y
+    } as Point;
   }
 }
