@@ -19,17 +19,18 @@ import { TranslateService } from '@ngx-translate/core';
 
 import { NgxSmartModalService } from 'ngx-smart-modal';
 import { Diagram } from './core/diagram';
-import { GameMessageCommon, MultipleChoiceScreen } from './models/core';
+import { GameMessageCommon } from './models/core';
 import { Connector } from './core/connector';
 import { clone, diff, getDistance, Rectangle, minBy, Point, hasDeepDiff } from './utils';
-import { MiddlePoint } from './core/middle-point';
 import { NodeShape } from './core/node-shape';
 import { NodePort } from './core/node-port';
 import { NodesService } from './core/services/nodes.service';
 import { PortsService } from './core/services/ports.service';
 import { ConnectorsService } from './core/services/connectors.service';
-import { MiddlePointsService } from './core/services/middle-points.service';
+import { MiddlePointsService, MiddlePointAddChildArgs } from './core/services/middle-points.service';
 import { DomContext } from './core/dom-context';
+import { WireflowManager } from './core/managers/wireflow.manager';
+import { NodesManager } from './core/managers/nodes.manager';
 
 interface MessageEditorStateModel {
   messages: GameMessageCommon[];
@@ -95,12 +96,16 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
   private processing = false;
   private lastAddedPort: any;
 
-  // services:
+  // services
   domContext: DomContext;
   nodesService: NodesService;
   portsService: PortsService;
   connectorsService: ConnectorsService;
   middlePointsService: MiddlePointsService;
+
+  // managers
+  nodesManager: NodesManager;
+  wireflowManager: WireflowManager;
 
   get dependenciesOutput() { return this.connectorsService.changeDependencies$; }
   get coordinatesOutputSubject() { return this.nodesService.nodeCoordinatesChanged.pipe(distinct()); }
@@ -135,6 +140,8 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
     public ngxSmartModalService: NgxSmartModalService,
     private translate: TranslateService,
   ) {
+    this.nodesManager = new NodesManager();
+
     translate.setDefaultLang(this.lang);
     this.messagesChange = this.stateSubject
       .pipe(
@@ -148,7 +155,7 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
         map(result => {
           const messages = clone(result);
           messages.forEach((message: any) => {
-            const deps = this._getAllDependenciesByCondition(
+            const deps = this.nodesManager.getAllDependenciesByCondition(
               message.dependsOn, (d: any) => d.type && d.type.includes('ProximityDependency')
             );
             deps.forEach(dep => delete dep.generalItemId);
@@ -170,7 +177,7 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
   }
 
   ngOnInit() {
-    this.messages = this._getNodes(this.messages || []);
+    this.messages = this.nodesManager.getNodes(this.messages || []);
     this.populatedNodes = this.messages.slice();
   }
 
@@ -204,7 +211,7 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
     this.subscription.add(this
       .dependenciesOutput
       .subscribe(() => {
-        this.messages = this._populateOutputMessages(this.messages);
+        this.messages = this.wireflowManager.populateOutputMessages(this.messages);
 
         this._emitMessages(this.messages);
       }));
@@ -212,7 +219,7 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
     this.subscription.add(this
       .coordinatesOutputSubject
       .subscribe(x => {
-        const messages = this._populateOutputMessages(this.messages);
+        const messages = this.wireflowManager.populateOutputMessages(this.messages);
         const mess = messages.find(r => r.id.toString() === x.messageId.toString());
         const messPN = this.populatedNodes.find(r => r.id.toString() === x.messageId.toString());
 
@@ -231,12 +238,12 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
       if (x.type.includes('TimeDependency')) {
         this.ngxSmartModalService.getModal('timeModal').setData({data: x, onSubmit: this._onTimeDependencySubmit.bind(this) }, true).open();
       } else {
-        this._changeSingleDependency(this.messages, x.type, x.connector);
+        this.wireflowManager.changeSingleDependency(this.messages, x.type, x.connector);
       }
     }));
 
     this.subscription.add(this.singleDependencyWithNewDependencyOutput.subscribe((x: any) => {
-      const mp = this._changeSingleDependency(this.messages, x.type, x.connector, null, false);
+      const mp = this.wireflowManager.changeSingleDependency(this.messages, x.type, x.connector, null, false);
       mp.addChild({
         targetType: x.targetType,
         subtype: x.subtype
@@ -719,7 +726,7 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
 
     this.connectorLayer = document.querySelector('#connections-layer');
 
-    this._generateCoordinates(this.messages);
+    this.nodesManager.generateCoordinates(this.messages);
 
     this.domContext = new DomContext(
       this.diagramElement,
@@ -740,39 +747,18 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
       this.connectorsService,
       this.middlePointsService,
     );
+
+    this.wireflowManager = new WireflowManager(
+      this.domContext,
+      this.nodesService,
+      this.portsService,
+      this.connectorsService,
+      this.middlePointsService,
+      this.diagram,
+    );
   }
 
-  private _generateCoordinates(messages: GameMessageCommon[]) {
-    const screenWidth = window.innerWidth;
-    const spaceBetween = 16;
-    const baseShapeWidth = 204;
-    const fullHeight = 240;
-    const fullWidth = spaceBetween + baseShapeWidth;
-
-    const startX = spaceBetween;
-    const startY = spaceBetween;
-
-    const columns = Math.floor(screenWidth / fullWidth);
-    const rows = Math.ceil(messages.length / columns);
-
-    if (columns === 0) { return; }
-
-    for (let i = 0, index = 0; i < rows; i++) {
-      for (let j = 0; j < columns; j++, index++) {
-        if (index === messages.length) { break; }
-
-        if (!Number.isFinite(messages[index].authoringX)) {
-          messages[index].authoringX = Math.floor(startX + (j * fullWidth));
-        }
-
-        if (!Number.isFinite(messages[index].authoringY)) {
-          messages[index].authoringY = Math.floor(startY + (i * fullHeight));
-        }
-      }
-    }
-  }
-
-  private _initMiddleConnector(x: any) {
+  private _initMiddleConnector(x: MiddlePointAddChildArgs) {
     const model = this.connectorsService.createConnector(x.dependency.type, x.dependency.subtype);
     this.currentMiddleConnector = new Connector(
       this.domContext,
@@ -784,7 +770,7 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
     this.currentMiddleConnector.initCreating();
 
     this.lastDependency = x.dependency;
-    this.lastGeneralItemId = x.dependency.generalItemId;
+    this.lastGeneralItemId = x.dependency.generalItemId as any;
 
     const baseMp = this.diagram.getMiddlePoint(x.middlePointId);
     baseMp.addOutputConnector(this.currentMiddleConnector.model);
@@ -802,7 +788,7 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
       }
 
       if (!this.currentMiddleConnector.shape && (depend.subtype || x.dependency.type.includes('ProximityDependency'))) {
-        message = this._populateNode({
+        message = this.nodesManager.populateNode({
           ...x.message,
           id: x.dependency.generalItemId,
           name: x.dependency.type.includes('ProximityDependency') ? 'proximity' : x.name,
@@ -842,7 +828,7 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
           const middlePoint = this.diagram.getMiddlePointByConnector(this.currentMiddleConnector.model);
           depend.generalItemId = output.generalItemId;
           middlePoint.dependency.dependencies.push(depend);
-          this._createConnector(message, this.currentMiddleConnector, this.currentMiddleConnector.shape, depend);
+          this.wireflowManager.createConnector(message, this.currentMiddleConnector, this.currentMiddleConnector.shape, depend);
           this.currentMiddleConnector = null;
           this.lastGeneralItemId = null;
           this.connectorsService.changeDependencies$.next();
@@ -866,7 +852,7 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
 
   private _handleNodesRender() {
     if (this.lastAddedNode) {
-      this._renderLastAddedNode(this.lastAddedNode, this.currentMiddleConnector, this.lastDependency);
+      this.wireflowManager.renderLastAddedNode(this.lastAddedNode, this.currentMiddleConnector, this.lastDependency);
 
       this.lastAddedNode = null;
       this.lastDependency = null;
@@ -890,148 +876,6 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
 
   private _getDraggableElement(element: HTMLElement) {
     return element.querySelector('[data-drag]') as HTMLElement;
-  }
-
-  private _getNodes(messages: GameMessageCommon[]) {
-    const result = messages.map(x => {
-
-      const inputs = [
-        {
-          generalItemId: x.id,
-          title: 'Input',
-          type: (x.dependsOn && x.dependsOn.type) || 'org.celstec.arlearn2.beans.dependencies.ActionDependency'
-        }
-      ];
-      const outputs = [];
-
-      outputs.push(
-        {
-          type: 'org.celstec.arlearn2.beans.dependencies.ActionDependency',
-          generalItemId: x.id,
-          action: 'read'
-        },
-        {
-          type: 'org.celstec.arlearn2.beans.dependencies.ActionDependency',
-          generalItemId: x.id,
-          action: 'next'
-        }
-      );
-
-      if (x.type === 'org.celstec.arlearn2.beans.generalItem.VideoObject'
-        || x.type === 'org.celstec.arlearn2.beans.generalItem.AudioObject') {
-        outputs.push(
-          {
-            type: 'org.celstec.arlearn2.beans.dependencies.ActionDependency',
-            generalItemId: x.id,
-            action: 'complete'
-          }
-        );
-      }
-
-      if (x.type.includes('SingleChoice') || x.type.includes('MultipleChoice')) {
-        outputs.push(
-          {
-            type: 'org.celstec.arlearn2.beans.dependencies.ActionDependency',
-            generalItemId: x.id,
-            action: 'answer_correct',
-            title: 'Correct'
-          },
-          {
-            type: 'org.celstec.arlearn2.beans.dependencies.ActionDependency',
-            generalItemId: x.id,
-            action: 'answer_incorrect',
-            title: 'Wrong'
-          },
-          ...(x as MultipleChoiceScreen).answers.map((a, n) => ({
-            type: 'org.celstec.arlearn2.beans.dependencies.ActionDependency',
-            generalItemId: x.id,
-            action: `answer_${a.id}`,
-            title: a.answer || `option ${n + 1}`
-          }))
-        );
-      }
-
-      return {...x, outputs, inputs};
-    });
-
-    const msgs = messages.filter((m: any) => m.dependsOn);
-    const DEFAULT_TYPE = { type: '' };
-
-    msgs.forEach(x => {
-      const depends = this._getAllDependenciesByCondition(
-        x.dependsOn,
-        (d: any) => d.subtype && d.subtype.length > 0 || (
-          (messages.find(m => m.id.toString() === d.generalItemId) || DEFAULT_TYPE).type.includes('ScanTag')
-        )
-      );
-
-      const proximities = this._getAllDependenciesByCondition(x.dependsOn, (d: any) => d.type && d.type.includes('ProximityDependency'));
-
-      if (proximities.length > 0) {
-        proximities.forEach(p => {
-          const nId = Math.floor(Math.random() * 10000000);
-          p.generalItemId = nId;
-
-          result.push(this._populateNode({
-            name: 'proximity',
-            virtual: true,
-            id: nId,
-            type: p.type,
-            action: 'in range',
-            authoringX: Math.floor(x.authoringX - 350),
-            authoringY: Math.floor(x.authoringY)
-          }));
-        });
-      }
-
-      depends.forEach((d: any) => {
-        const node = result.find(n => n.id.toString() === d.generalItemId.toString());
-
-        if (node.outputs.findIndex(output => output.action === d.action) === -1) {
-          node.outputs.push({
-            type: d.type,
-            generalItemId: d.generalItemId,
-            action: d.action
-          });
-        }
-      });
-    });
-
-    return result;
-  }
-
-  private _populateNode(message) {
-    return {
-      ...message,
-      inputs: [ // TODO: Add interface PopulatedNode
-        {
-          generalItemId: message.id,
-          title: 'Input',
-          type: message.type || 'org.celstec.arlearn2.beans.dependencies.ActionDependency'
-        }
-      ],
-      outputs: [
-        {
-          type: message.type,
-          generalItemId: message.id,
-          action: message.action || 'read'
-        },
-      ]
-    };
-  }
-
-  private _getAllDependenciesByCondition(dependency, cb, result = []) {
-    if (cb(dependency)) {
-      result.push(dependency);
-    }
-
-    if (Array.isArray(dependency.dependencies) && dependency.dependencies.length > 0) {
-      dependency.dependencies.forEach(x => {
-        this._getAllDependenciesByCondition(x, cb, result);
-      });
-    }
-
-    return result;
   }
 
   onQrTagSubmit(formValue: any) {
@@ -1061,7 +905,7 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
 
     const modal = this.ngxSmartModalService.getModal('timeModal');
     const { data } = modal.getData();
-    this._changeSingleDependency(this.messages, data.type, data.connector, options);
+    this.wireflowManager.changeSingleDependency(this.messages, data.type, data.connector, options);
   }
 
   private _onChangeTimeDependency(formValue: any) {
@@ -1072,54 +916,12 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
     this.connectorsService.changeDependencies$.next();
   }
 
-  private _populateOutputMessages(messages: any[]) {
-    const mainMiddlePoints: MiddlePoint[] = this.diagram.middlePoints.filter(mp => !mp.parentMiddlePoint);
-
-    return clone(messages).map((x: any) => {
-      const message = {...x};
-
-      const currentMiddlePoint = mainMiddlePoints.find(mp => Number(mp.generalItemId) === x.id);
-
-      if (currentMiddlePoint) {
-        message.dependsOn = currentMiddlePoint.dependency;
-      } else {
-        const singleConnector = this.diagram.connectors.find(
-          c => {
-            const middlePoint = this.diagram.getMiddlePointByConnector(c.model);
-
-            return !middlePoint && c.inputPort.model.generalItemId === x.id.toString();
-          }
-        );
-
-        if (singleConnector) {
-          if (singleConnector.outputPort && singleConnector.outputPort.nodeType &&
-            singleConnector.outputPort.nodeType.includes('ProximityDependency') && singleConnector.model.proximity) {
-            message.dependsOn = {
-              type: singleConnector.outputPort.nodeType,
-              ...singleConnector.model.proximity,
-              generalItemId: x.dependsOn.generalItemId
-            };
-          } else {
-            message.dependsOn = {
-              type: singleConnector.outputPort.nodeType,
-              action: singleConnector.outputPort.model.action,
-              generalItemId: singleConnector.outputPort.model.generalItemId
-            };
-          }
-        } else {
-          message.dependsOn = {};
-        }
-      }
-      return message;
-    });
-  }
-
   private initState(messages: GameMessageCommon[]) {
     messages.forEach(message => {
       if (message.dependsOn && message.dependsOn.type && this.diagram.mpAllowedTypes.includes(message.dependsOn.type)) {
 
         if ((message.dependsOn.dependencies && message.dependsOn.dependencies.length > 0) || message.dependsOn.offset) {
-          this._initNodeMessage(clone(message));
+          this.wireflowManager.initNodeMessage(clone(message));
         }
       } else {
         if (message.dependsOn && ((message.dependsOn.generalItemId && message.dependsOn.action) ||
@@ -1131,318 +933,6 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
     });
 
     this.connectorsService.changeDependencies$.next();
-  }
-
-  private _changeSingleDependency(messages, type, connector: Connector, options = null, notifyChanges = true) {
-    // Connector
-    const middlePoint = this.diagram.getMiddlePointByConnector(connector.model);
-
-    if (middlePoint) {
-      const message = messages.find(r => r.id === middlePoint.generalItemId);
-      const coords = connector.getCenterCoordinates();
-
-      if (connector.isInputConnector && middlePoint.parentMiddlePoint) {
-        const parentMiddlePoint = middlePoint.parentMiddlePoint;
-
-        const dep: any = { type };
-        if (type.includes('TimeDependency') && options) {
-          dep.offset = middlePoint.dependency;
-          dep.timeDelta = options.timeDelta;
-        } else {
-          dep.dependencies = [ middlePoint.dependency ];
-        }
-
-        if (parentMiddlePoint.dependency.type.includes('TimeDependency')) {
-          parentMiddlePoint.dependency.offset = dep;
-        } else {
-          const idx = parentMiddlePoint
-            .dependency
-            .dependencies
-            .indexOf(middlePoint.dependency);
-
-          if (idx > -1) {
-            parentMiddlePoint.dependency.dependencies[idx] = dep;
-          }
-        }
-
-        const newMiddlePoint =
-          new MiddlePoint(
-            this.domContext,
-            this.middlePointsService,
-            this.middlePointsService.createMiddlePoint(),
-            message.id,
-            dep
-          )
-            .move(coords)
-            .setParentMiddlePoint(parentMiddlePoint);
-
-        parentMiddlePoint
-          .removeChildMiddlePoint(middlePoint)
-          .addChildMiddlePoint(newMiddlePoint);
-
-        middlePoint.setParentMiddlePoint(newMiddlePoint);
-        newMiddlePoint.addChildMiddlePoint(middlePoint);
-
-        const conn = this.diagram.getConnectorById(middlePoint.inputConnector.id);
-        conn.moveOutputHandle(newMiddlePoint.coordinates);
-
-        const inpConn = this.diagram.createInputConnector(message, coords, newMiddlePoint);
-
-        newMiddlePoint.setInputConnector(inpConn.model)
-        .init()
-        .show();
-
-        connector.actionsCircle.hide();
-        connector.connectorToolbar.hide();
-
-        this.diagram.middlePoints.push(newMiddlePoint);
-
-        notifyChanges && this.connectorsService.changeDependencies$.next();
-
-        return newMiddlePoint;
-      }
-
-      let dependency;
-
-      if (middlePoint.dependency.type.includes('TimeDependency')) {
-        dependency = middlePoint.dependency.offset;
-      } else {
-        dependency = middlePoint
-          .dependency
-          .dependencies
-          .find(x =>
-            (x.action === connector.outputPort.model.action ||
-              (connector.model.proximity &&
-                connector.model.proximity.lat === x.lat &&
-                connector.model.proximity.lng === x.lng &&
-                connector.model.proximity.radius === x.radius))
-          );
-      }
-
-      const newDep = {...dependency};
-
-      dependency.type = type;
-      delete dependency.action;
-      delete dependency.generalItemId;
-      delete dependency.subtype;
-      delete dependency.lng;
-      delete dependency.lat;
-      delete dependency.radius;
-
-      if (type.includes('TimeDependency') && options) {
-        dependency.offset = newDep;
-        dependency.timeDelta = options.timeDelta;
-      } else {
-        dependency.dependencies = [newDep];
-      }
-
-      const mp =
-        new MiddlePoint(
-          this.domContext,
-          this.middlePointsService,
-          this.middlePointsService.createMiddlePoint(),
-          message.id,
-          dependency
-        )
-          .setInputPort(this.diagram.getInputPortByGeneralItemId(message.id))
-          .setParentMiddlePoint(middlePoint);
-
-      middlePoint.addChildMiddlePoint(mp);
-
-      connector.remove({ removeDependency: false, removeVirtualNode: false });
-      this._initMiddlePointGroup(message, mp, dependency.dependencies || [ dependency.offset ]);
-
-      mp.move(coords)
-        .init();
-
-      notifyChanges && this.connectorsService.changeDependencies$.next();
-
-      return mp;
-    } else {
-      const message: any = this.messages.find(r => r.id.toString() === connector.inputPort.model.generalItemId.toString());
-
-      const dependencySingle: any = {...message.dependsOn};
-
-      if (!dependencySingle.action) {
-        dependencySingle.type = 'org.celstec.arlearn2.beans.dependencies.ActionDependency';
-        dependencySingle.action = connector.outputPort.model.action;
-        dependencySingle.generalItemId = connector.outputPort.model.generalItemId;
-        delete dependencySingle.dependencies;
-      }
-
-      message.dependsOn = { type };
-
-      if (type.includes('TimeDependency') && options) {
-        message.dependsOn.timeDelta = options.timeDelta;
-        message.dependsOn.offset = dependencySingle;
-      } else {
-        message.dependsOn.dependencies = [ dependencySingle ];
-      }
-
-      connector.detachOutputPort();
-      connector.remove();
-
-      const mp = this._initNodeMessage(message);
-      notifyChanges && this.connectorsService.changeDependencies$.next();
-
-      return mp;
-    }
-  }
-
-  private _createConnector(node: GameMessageCommon, currentConnector: Connector = null, nodeShape: NodeShape = null, dependency = null) {
-    if (!nodeShape) {
-      this.nodesService.createNode(node, this.diagram.getDiagramCoords());
-      nodeShape = this.diagram.shapes.find(x => x.model.generalItemId === node.id.toString());
-    }
-
-    let output: NodePort;
-
-    if (dependency) {
-      const action = dependency.type.includes('ProximityDependency') ? 'in range' : dependency.action;
-      output = this.diagram.getOutputPortByGeneralItemId(dependency.generalItemId, action);
-    } else {
-      output = nodeShape.outputs[0];
-    }
-
-    this.diagram.addConnector(currentConnector);
-
-    if (currentConnector) {
-      currentConnector.setOutputPort(output);
-      currentConnector.updateHandle(output.model);
-
-      if (dependency && dependency.type && dependency.type.includes('ProximityDependency')) {
-        currentConnector.setProximity(dependency.lat, dependency.lng, dependency.radius);
-      }
-
-      currentConnector.removeHandlers();
-    }
-
-
-    return currentConnector;
-  }
-
-  private _initMiddlePointGroup(message: any, input: MiddlePoint, outputs: any) {
-    const dependency = outputs[0];
-    const shape = this.diagram.getShapeByGeneralItemId(message.id);
-
-    const outConns = outputs.map(dep => {
-      if (dep.dependencies || dep.offset) {
-        const newMp =
-          new MiddlePoint(
-            this.domContext,
-            this.middlePointsService,
-            this.middlePointsService.createMiddlePoint(),
-            message.id,
-            dep
-          )
-            .setParentMiddlePoint(input);
-
-        input.addChildMiddlePoint(newMp);
-
-        if (dep.dependencies && dep.dependencies.length > 0) {
-            this._initMiddlePointGroup(message, newMp, dep.dependencies);
-        }
-
-        if (dep.offset) {
-            this._initMiddlePointGroup(message, newMp, [ dep.offset ]);
-        }
-      }
-
-      if (!dep.generalItemId) { return; }
-
-      const portExists = this.diagram.portsExistsBy(p => {
-        return p.model.generalItemId.toString() === dep.generalItemId.toString() && p.model.action === dep.action
-      });
-
-      if (!dep.type.includes('Proximity') && !portExists) { return; }
-
-      const model = this.connectorsService.createConnector(dep.type, dep.subtype);
-      const connector = new Connector(this.domContext, this.connectorsService, model);
-      this.diagram.addConnector(connector);
-      connector.initCreating();
-
-      return this._createConnector(
-        message,
-        connector,
-        shape, dep
-      );
-    }).filter(x => !!x);
-
-    const inputPort = this.diagram.getInputPortByGeneralItemId(message.id);
-    const outputPort = this.diagram.getOutputPortByGeneralItemId(dependency.generalItemId || '', dependency.action || '');
-
-    let coords = { x: 0, y: 0 };
-
-    if (inputPort && outputPort) {
-      const inputX = inputPort.global.x;
-      const inputY = inputPort.global.y;
-      const outputX = outputPort.global.x;
-      const outputY = outputPort.global.y;
-
-      coords = {x: (inputX + outputX) / 2, y: (inputY + outputY) / 2};
-    } else if (input.inputPort) {
-      coords = { x: input.inputPort.global.x - 75, y: input.inputPort.global.y };
-    }
-
-    const inpConn = this.diagram.createInputConnector(message, coords, input);
-    input.move(coords);
-    input.setInputConnector(inpConn.model);
-    input.init();
-
-    input.setOutputConnectors(outConns.map(c => c.model));
-
-    this.diagram.middlePoints.push(input);
-
-    return input;
-  }
-
-  // TODO: Move to nodesService
-  private _initNodeMessage(message: GameMessageCommon) {
-    const mp =
-      new MiddlePoint(
-        this.domContext,
-        this.middlePointsService,
-        this.middlePointsService.createMiddlePoint(),
-        message.id,
-        message.dependsOn
-      )
-        .setInputPort(this.diagram.getInputPortByGeneralItemId(message.id))
-        .move({ x: 0, y: 0 });
-    this._initMiddlePointGroup(message, mp, message.dependsOn.dependencies || [ message.dependsOn.offset ]);
-
-    this.diagram.middlePoints.forEach(mpo => mpo.init());
-
-    return mp;
-  }
-
-  private async _renderLastAddedNode(lastAddedNode: GameMessageCommon, currentMiddleConnector: Connector, lastDependency: any) {
-    let dep;
-    if (currentMiddleConnector.shape) {
-      const shape = currentMiddleConnector.shape;
-      const lastOutput = lastAddedNode['outputs'].find(o => {
-          return o.generalItemId.toString() === shape.model.generalItemId.toString() && o.action === lastDependency.action;
-      });
-
-      const shapeOutputPort = shape.outputs.find(
-        o => o.model.generalItemId.toString() === lastOutput.generalItemId.toString() && o.model.action === lastOutput.action
-      );
-
-      let port: NodePort;
-
-      if (shapeOutputPort) {
-        port = shapeOutputPort;
-        port.model.connectors.push(currentMiddleConnector.model); // TODO: Replace with con.setOutputPort(port)?
-      } else {
-        const { action, generalItemId } = lastOutput;
-        await this.portsService.createPort(action, generalItemId, currentMiddleConnector.shape.model, false);
-      }
-
-      dep = lastDependency || {};
-
-      dep.generalItemId = lastOutput.generalItemId;
-    }
-
-    this._createConnector(lastAddedNode, currentMiddleConnector, currentMiddleConnector.shape, dep);
   }
 
   private _preHash(input: GameMessageCommon) {
