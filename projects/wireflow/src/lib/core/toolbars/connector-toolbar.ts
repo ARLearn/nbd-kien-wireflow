@@ -64,7 +64,7 @@ export class ConnectorToolbar extends BaseUiElement {
   private _changeSingleDependencyType = new Subject<ChangeSingleDependencyTypeAction>();
   private _changeSingleDependencyTypeWithDependency = new Subject<ChangeSingleDependencyWithDependencyAction>();
 
-  constructor(private service: ConnectorsService) {
+  constructor(private connectorsService: ConnectorsService) {
     super(
       document.querySelector('#diagram > .dependency-type-toolbar').cloneNode(true) as HTMLElement
     );
@@ -89,7 +89,7 @@ export class ConnectorToolbar extends BaseUiElement {
     this.hide();
 
     // TODO: replace with this.connectorsService.appendToConnectorLayer()
-    this.service.connectorLayer.appendChild(this.nativeElement);
+    this.connectorsService.connectorLayer.appendChild(this.nativeElement);
   }
 
   get changeSingleDependencyType() { return this._changeSingleDependencyType.asObservable(); }

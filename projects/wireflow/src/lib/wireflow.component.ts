@@ -10,7 +10,6 @@ import {
   Output,
   SimpleChanges,
   ViewEncapsulation,
-  ChangeDetectorRef,
   DoCheck,
   AfterViewChecked,
 } from '@angular/core';
@@ -123,7 +122,6 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
   constructor(
     public ngxSmartModalService: NgxSmartModalService,
     private translate: TranslateService,
-    private changeDetector: ChangeDetectorRef,
   ) {
     translate.setDefaultLang(this.lang);
     this.messagesChange = this.stateSubject
@@ -271,7 +269,7 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
 
       if (!middlePoint || !connector.isInputConnector || (middlePoint && middlePoint.parentMiddlePoint)) {
         connector.actionsCircle.show();
-        connector.actionsCircle.move(connector.getMiddlePointCoordinates());
+        connector.actionsCircle.move(connector.getCenterCoordinates());
       }
     }));
 
@@ -1116,7 +1114,7 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
 
     if (middlePoint) {
       const message = messages.find(r => r.id === middlePoint.generalItemId);
-      const coords = connector.getMiddlePointCoordinates();
+      const coords = connector.getCenterCoordinates();
 
       if (connector.isInputConnector && middlePoint.parentMiddlePoint) {
         const parentMiddlePoint = middlePoint.parentMiddlePoint;

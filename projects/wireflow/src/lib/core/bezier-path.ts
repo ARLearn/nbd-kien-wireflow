@@ -18,10 +18,6 @@ export class BezierPath {
     return { x, y } as Point;
   }
 
-  getMiddlePoint(): { x: number, y: number } {
-    return this.getPoint(0.5);
-  }
-
   toString() {
     const { p1, p2, p3, p4 } = this.coords;
 

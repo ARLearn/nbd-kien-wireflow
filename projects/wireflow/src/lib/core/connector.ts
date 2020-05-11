@@ -81,7 +81,7 @@ export class Connector extends BaseModelUiElement<ConnectorModel> implements Dra
     this.actionsCircle =
       new ConnectorActionsCircle(this.nativeElement.querySelector('.base-middle-point'))
         .hide();
-    this._subscription.add(this.actionsCircle.action.subscribe(action => this._onMiddlePointAction(action)));
+    this._subscription.add(this.actionsCircle.action.subscribe(action => this._onConnectorAction(action)));
 
     this.connectorToolbar = new ConnectorToolbar(this.service);
     this._subscription.add(
@@ -256,8 +256,8 @@ export class Connector extends BaseModelUiElement<ConnectorModel> implements Dra
     return Math.sqrt( dx * dx + dy * dy );
   }
 
-  getMiddlePointCoordinates(): { x: number, y: number } {
-    const coords = this.bezierPath.getMiddlePoint();
+  getCenterCoordinates(): { x: number, y: number } {
+    const coords = this.bezierPath.getPoint(0.5);
 
     return { x: coords.x, y: coords.y - 2 }; // TODO: Use "point" {x,y} object
   }
@@ -428,7 +428,7 @@ export class Connector extends BaseModelUiElement<ConnectorModel> implements Dra
     this.path.setAttribute('d', data);
     this.pathOutline.setAttribute('d', data);
 
-    this.actionsCircle.move(this.getMiddlePointCoordinates());
+    this.actionsCircle.move(this.getCenterCoordinates());
     this.connectorToolbar.move(this.actionsCircle.coordinates);
   }
 
@@ -444,7 +444,7 @@ export class Connector extends BaseModelUiElement<ConnectorModel> implements Dra
     this.initViewState();
   }
 
-  private _onMiddlePointAction(action: ConnectorPointAction) {
+  private _onConnectorAction(action: ConnectorPointAction) {
     switch (action.action) {
       case 'click': return this._toggleToolbar(action.coordinates);
     }

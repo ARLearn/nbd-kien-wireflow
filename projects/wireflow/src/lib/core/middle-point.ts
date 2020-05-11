@@ -1,5 +1,5 @@
 import { NodePort } from './node-port';
-import { ActionToolbar } from './toolbars/action-toolbar';
+import { MiddlePointToolbar } from './toolbars/middle-point-toolbar';
 import { getNumberFromPixels, Point } from '../utils';
 import { DraggableUiElement } from './draggable-ui-element';
 import { Dependency } from '../models/core';
@@ -10,7 +10,7 @@ import { MiddlePointsService } from './services/middle-points.service';
 
 export class MiddlePoint extends BaseModelUiElement<MiddlePointModel> implements DraggableUiElement {
   inputPort: NodePort;
-  actionToolbar: ActionToolbar;
+  actionToolbar: MiddlePointToolbar;
 
   inputConnector: ConnectorModel;
   outputConnectors = [] as ConnectorModel[];
@@ -33,7 +33,7 @@ export class MiddlePoint extends BaseModelUiElement<MiddlePointModel> implements
     this.mainIcon = this.nativeElement.querySelector('.middle-point-font');
     this.pencilIcon = this.nativeElement.querySelector('.middle-point-pencil');
 
-    this.actionToolbar = new ActionToolbar(this.service);
+    this.actionToolbar = new MiddlePointToolbar(this.service);
     this._unsubscriber.add(this.actionToolbar.addChild.subscribe(data => this.addChild(data)));
 
     this.show();
