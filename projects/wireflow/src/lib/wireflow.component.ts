@@ -11,6 +11,9 @@ import {
   SimpleChanges,
   ViewChildren,
   ViewEncapsulation,
+  ChangeDetectorRef,
+  DoCheck,
+  AfterViewChecked,
 } from '@angular/core';
 import { Observable, Subject, Subscription } from 'rxjs';
 import { distinct, filter, map, skip } from 'rxjs/operators';
@@ -20,7 +23,7 @@ import { NgxSmartModalService } from 'ngx-smart-modal';
 import { Diagram } from './core/diagram';
 import { GameMessageCommon, MultipleChoiceScreen } from './models/core';
 import { Connector } from './core/connector';
-import { clone, diff, getDistance, Rectangle, minBy, Point } from './utils';
+import { clone, diff, getDistance, Rectangle, minBy, Point, hasDeepDiff } from './utils';
 import { MiddlePoint } from './core/middle-point';
 import { NodeShape } from './core/node-shape';
 import { NodePort } from './core/node-port';
@@ -36,9 +39,7 @@ interface MessageEditorStateModel {
   styleUrls: ['./wireflow.component.scss'],
   encapsulation: ViewEncapsulation.None
 })
-export class WireflowComponent implements OnInit, AfterViewInit, OnChanges, OnDestroy {
-  @ViewChildren('nodes') nodesFor: any;
-
+export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChanges, AfterViewChecked, OnDestroy {
   @Input() messages: GameMessageCommon[];
   @Input() lang: string = 'en';
   @Output() messagesChange: Observable<GameMessageCommon[]>;
@@ -46,6 +47,7 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnChanges, OnDe
   @Output() deselectMessage: Subject<GameMessageCommon>;
   @Output() noneSelected: Subject<void>;
 
+  populatedNodesPrev: GameMessageCommon[];
   populatedNodes: GameMessageCommon[];
   state = {
     messages: [],
@@ -79,6 +81,7 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnChanges, OnDe
   private heightPoint = 28;
   private _heightTitle = 40;
   private minHeightMainBlock = 120;
+  private _handleRenderNodesNeeded = false;
 
   private currentMiddleConnector: Connector;
 
@@ -121,6 +124,7 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnChanges, OnDe
   constructor(
     public ngxSmartModalService: NgxSmartModalService,
     private translate: TranslateService,
+    private changeDetector: ChangeDetectorRef,
   ) {
     translate.setDefaultLang(this.lang);
     this.messagesChange = this.stateSubject
@@ -130,7 +134,7 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnChanges, OnDe
           const a = this.state.messagesOld.filter((x: any) => !x.virtual);
           b = b.filter(x => !x.virtual);
 
-          return diff(b, a, item => this._getMessageHash(item));
+          return diff(b, a, item => hash.MD5(this._preHash(item)));
         }),
         map(result => {
           const messages = clone(result);
@@ -164,6 +168,13 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnChanges, OnDe
   ngOnChanges(changes: SimpleChanges): void {
     if (changes.lang) {
       this.translate.setDefaultLang(changes.lang.currentValue);
+    }
+  }
+
+  ngAfterViewChecked() {
+    if (this._handleRenderNodesNeeded) {
+      this._handleNodesRender();
+      this._handleRenderNodesNeeded = false;
     }
   }
 
@@ -452,7 +463,8 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnChanges, OnDe
       connector && this.diagram.removeConnectorFromOutput(connector);
     }));
 
-    this.subscription.add(this.nodePortNew.subscribe(({model, parentNode}) => {
+    this.subscription.add(this.nodePortNew.subscribe(({model, parentNode, doneCallback}) => {
+
       const shape = this.diagram.getShapeById(parentNode.id);
 
       const element =
@@ -468,6 +480,8 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnChanges, OnDe
       } else {
         shape.outputs.push(port);
       }
+
+      doneCallback && doneCallback(model);
     }));
 
     this.subscription.add(this.nodeNew.subscribe(({message, model, point}) => {
@@ -520,8 +534,6 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnChanges, OnDe
 
       this.toggleSelectedMessage(message.id.toString());
     }));
-
-    this.subscription.add(this.nodesFor.changes.subscribe(() => this._handleNodesRender()));
 
     this.diagram.initShapes(this.messages);
     this.initState(this.messages);
@@ -647,6 +659,26 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnChanges, OnDe
     };
 
     message.outputs.push({ ...this.lastAddedPort });
+
+    this._emitMessages(this.messages);
+  }
+
+  ngDoCheck() {
+    if (
+      this.populatedNodesPrev 
+      && this.populatedNodes
+      && hasDeepDiff(
+        this.populatedNodesPrev.map(x => this._preDiff(x)),
+        this.populatedNodes.map(x => this._preDiff(x)),
+      )
+    ) {
+      try {
+        this._handleRenderNodesNeeded = true;
+      } catch (err) {
+        console.error('ngDoCheck error', err);
+      }
+    }
+    this.populatedNodesPrev = clone(this.populatedNodes);
   }
 
   selectNode(id: string) {
@@ -782,12 +814,8 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnChanges, OnDe
             type: x.dependency.type,
             generalItemId: message.id,
           };
-
-          this.lastAddedNode = message;
-
+          this.lastAddedPort = port;
           message.outputs.push(port);
-
-          return;
         } else {
           const middlePoint = this.diagram.getMiddlePointByConnector(this.currentMiddleConnector.model);
           depend.generalItemId = output.generalItemId;
@@ -1383,7 +1411,7 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnChanges, OnDe
     return mp;
   }
 
-  private _renderLastAddedNode(lastAddedNode: GameMessageCommon, currentMiddleConnector: Connector, lastDependency: any) {
+  private async _renderLastAddedNode(lastAddedNode: GameMessageCommon, currentMiddleConnector: Connector, lastDependency: any) {
     let dep;
     if (currentMiddleConnector.shape) {
       const shape = currentMiddleConnector.shape;
@@ -1402,7 +1430,7 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnChanges, OnDe
         port.model.connectors.push(currentMiddleConnector.model); // TODO: Replace with con.setOutputPort(port)?
       } else {
         const { action, generalItemId } = lastOutput;
-        this.diagram.portsService.createPort(action, generalItemId, currentMiddleConnector.shape.model, false);
+        await this.diagram.portsService.createPort(action, generalItemId, currentMiddleConnector.shape.model, false);
       }
 
       dep = lastDependency || {};
@@ -1413,15 +1441,24 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnChanges, OnDe
     this._createConnector(lastAddedNode, currentMiddleConnector, currentMiddleConnector.shape, dep);
   }
 
-  private _getMessageHash(input: GameMessageCommon) {
-    return hash.MD5({
+  private _preHash(input: GameMessageCommon) {
+    return {
       ...input,
       inputs: undefined,
       outputs: undefined,
       lastModificationDate: undefined,
       authoringX: Math.floor(input.authoringX),
       authoringY: Math.floor(input.authoringY),
-    });
+    }
+  }
+
+  private _preDiff(input: GameMessageCommon) {
+    return {
+      ...input,
+      lastModificationDate: undefined,
+      authoringX: undefined,
+      authoringY: undefined,
+    }
   }
 
   ngOnDestroy() {
@@ -1430,7 +1467,6 @@ export class WireflowComponent implements OnInit, AfterViewInit, OnChanges, OnDe
 
   openQrOutputScanTagModal(node: GameMessageCommon) {
     const duplicates = (node as any).outputs.map(output => output.action);
-
     this.ngxSmartModalService.getModal('actionQrOutputScanTagModal')
       .setData({data: { generalItemId: node.id, duplicates } }, true)
       .open();

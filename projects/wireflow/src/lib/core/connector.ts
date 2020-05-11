@@ -141,6 +141,7 @@ export class Connector extends BaseModelUiElement<ConnectorModel> implements Dra
 
     this.staticPort = port;
     this.dragElement.setAttribute('data-drag', `${this.model.id}:connector`);
+
     this.staticElement.setAttribute('data-drag', `${port.model.id}:port`);
 
     this.basePoint = port.global as Point;

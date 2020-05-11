@@ -5,6 +5,7 @@ import { NodeModel, PortModel } from '../models';
 export interface NodePortNewArgs {
   model: PortModel;
   parentNode: NodeModel;
+  doneCallback?: (PortModel) => void;
 }
 
 export interface NodePortUpdateArgs {
@@ -30,7 +31,9 @@ export class PortsService extends BaseService<PortModel> {
 
     this.models.push(model);
 
-    this.nodePortNew$.next({ model, parentNode });
+    return new Promise<PortModel>(resolve => {
+      this.nodePortNew$.next({ model, parentNode, doneCallback: x => resolve(x) });
+    });
   }
 
 }
