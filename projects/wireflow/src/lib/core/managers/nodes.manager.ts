@@ -71,9 +71,11 @@ export class NodesManager {
     msgs.forEach(x => {
       const depends = this.getAllDependenciesByCondition(
         x.dependsOn,
-        (d: any) => d.subtype && d.subtype.length > 0 || (
-          (messages.find(m => m.id.toString() === d.generalItemId) || DEFAULT_TYPE).type.includes('ScanTag')
-        )
+        (d: any) => {
+          return d.subtype && d.subtype.length > 0 || (
+            (messages.find(m => d.generalItemId && m.id.toString() === d.generalItemId.toString()) || DEFAULT_TYPE).type.includes('ScanTag')
+          );
+        }
       );
 
       const proximities = this.getAllDependenciesByCondition(x.dependsOn, (d: any) => d.type && d.type.includes('ProximityDependency'));
