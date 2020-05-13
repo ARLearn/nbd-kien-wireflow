@@ -26,12 +26,19 @@ export interface MiddlePointRemoveOutputConnectorArgs {
 }
 
 export class MiddlePointsService extends BaseService<MiddlePointModel> {
-  middlePointInit$ = new Subject<MiddlePointArgs>(); // TODO: make private
-  middlePointMove$ = new Subject<MiddlePointArgs>(); // TODO: make private
-  middlePointRemove$ = new Subject<MiddlePointArgs>(); // TODO: make private
-  middlePointRemoveOutputConnector$ = new Subject<MiddlePointRemoveOutputConnectorArgs>(); // TODO: make private
-  middlePointAddChild$ = new Subject<MiddlePointAddChildArgs>(); // TODO: make private
-  middlePointClick$ = new Subject<string>(); // TODO: make private
+  private middlePointInit$ = new Subject<MiddlePointArgs>();
+  private middlePointMove$ = new Subject<MiddlePointArgs>();
+  private middlePointRemove$ = new Subject<MiddlePointArgs>();
+  private middlePointRemoveOutputConnector$ = new Subject<MiddlePointRemoveOutputConnectorArgs>();
+  private middlePointAddChild$ = new Subject<MiddlePointAddChildArgs>();
+  private middlePointClick$ = new Subject<string>();
+
+  get middlePointInit() { return this.middlePointInit$.asObservable(); }
+  get middlePointMove() { return this.middlePointMove$.asObservable(); }
+  get middlePointRemove() { return this.middlePointRemove$.asObservable(); }
+  get middlePointRemoveOutputConnector() { return this.middlePointRemoveOutputConnector$.asObservable(); }
+  get middlePointAddChild() { return this.middlePointAddChild$.asObservable(); }
+  get middlePointClick() { return this.middlePointClick$.asObservable(); }
 
   constructor(models = []) {
     super(models);
@@ -47,7 +54,31 @@ export class MiddlePointsService extends BaseService<MiddlePointModel> {
     return model;
   }
 
-  removeMiddlePoint(id: string) {
+  initMiddlePoint(opts: MiddlePointArgs) {
+    this.middlePointInit$.next(opts);
+  }
+
+  moveMiddlePoint(opts: MiddlePointArgs) {
+    this.middlePointMove$.next(opts);
+  }
+
+  addChild(opts: MiddlePointAddChildArgs) {
+    this.middlePointAddChild$.next(opts);
+  }
+
+  clickMiddlePoint(id: string) {
+    this.middlePointClick$.next(id);
+  }
+
+  removeMiddlePoint(opts: MiddlePointArgs) {
+    this.middlePointRemove$.next(opts);
+  }
+
+  removeOutputConnector(opts: MiddlePointRemoveOutputConnectorArgs) {
+    this.middlePointRemoveOutputConnector$.next(opts);
+  }
+
+  removeMiddlePointModel(id: string) {
     this.models.splice(this.models.findIndex((x) => x.id === id), 1);
   }
 }

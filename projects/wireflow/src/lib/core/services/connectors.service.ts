@@ -8,6 +8,18 @@ export interface ConnectorArgs {
   connectorModel: ConnectorModel;
 }
 
+export interface ConnectorSingleDependencyArgs {
+  connectorModel: ConnectorModel;
+  type: string;
+}
+
+export interface ConnectorSingleDependencyWithNewDependencyArgs {
+  connectorModel: ConnectorModel;
+  type: string;
+  targetType: string;
+  subtype?: string;
+}
+
 export interface ConnectorRemoveArgs {
   connectorModel: ConnectorModel;
   opts: ConnectorRemoveOptions;
@@ -34,17 +46,29 @@ export interface ConnectorClickArgs {
 }
 
 export class ConnectorsService extends BaseService<ConnectorModel> {
-  connectorCreate$ = new Subject<ConnectorArgs>(); // TODO: make private
-  connectorHover$ = new Subject<ConnectorArgs>(); // TODO: make private
-  connectorLeave$ = new Subject<ConnectorArgs>(); // TODO: make private
-  connectorRemove$ = new Subject<ConnectorRemoveArgs>(); // TODO: make private
-  connectorAttach$ = new Subject<ConnectorPortArgs>(); // TODO: make private
-  connectorDetach$ = new Subject<ConnectorPortArgs>(); // TODO: make private
-  connectorMove$ = new Subject<ConnectorMoveArgs>(); // TODO: make private
-  connectorClick$ = new Subject<ConnectorClickArgs>(); // TODO: make private
-  singleDependenciesOutput$ = new Subject(); // TODO: make private
-  singleDependencyWithNewDependencyOutput$ = new Subject(); // TODO: make private
-  changeDependencies$ = new Subject(); // TODO: make private
+  private connectorCreate$ = new Subject<ConnectorArgs>();
+  private connectorHover$ = new Subject<ConnectorArgs>();
+  private connectorLeave$ = new Subject<ConnectorArgs>();
+  private connectorRemove$ = new Subject<ConnectorRemoveArgs>();
+  private connectorAttach$ = new Subject<ConnectorPortArgs>();
+  private connectorDetach$ = new Subject<ConnectorPortArgs>();
+  private connectorMove$ = new Subject<ConnectorMoveArgs>();
+  private connectorClick$ = new Subject<ConnectorClickArgs>();
+  private singleDependenciesOutput$ = new Subject<ConnectorSingleDependencyArgs>();
+  private singleDependencyWithNewDependencyOutput$ = new Subject<ConnectorSingleDependencyWithNewDependencyArgs>();
+  private changeDependencies$ = new Subject<void>();
+
+  get connectorCreate() { return this.connectorCreate$.asObservable(); }
+  get connectorHover() { return this.connectorHover$.asObservable(); }
+  get connectorLeave() { return this.connectorLeave$.asObservable(); }
+  get connectorRemove() { return this.connectorRemove$.asObservable(); }
+  get connectorAttach() { return this.connectorAttach$.asObservable(); }
+  get connectorDetach() { return this.connectorDetach$.asObservable(); }
+  get connectorMove() { return this.connectorMove$.asObservable(); }
+  get connectorClick() { return this.connectorClick$.asObservable(); }
+  get singleDependenciesOutput() { return this.singleDependenciesOutput$.asObservable(); }
+  get singleDependencyWithNewDependencyOutput() { return this.singleDependencyWithNewDependencyOutput$.asObservable(); }
+  get changeDependencies() { return this.changeDependencies$.asObservable(); }
 
   constructor(
     private domContext: DomContext,
@@ -53,7 +77,52 @@ export class ConnectorsService extends BaseService<ConnectorModel> {
     super(models);
   }
 
-  createConnector(dependencyType, subType = null, proximity = null): ConnectorModel {
+
+  createConnector(opts: ConnectorArgs) {
+    this.connectorCreate$.next(opts);
+  }
+
+  hoverConnector(opts: ConnectorArgs) {
+    this.connectorHover$.next(opts);
+  }
+
+  leaveConnector(opts: ConnectorArgs) {
+    this.connectorLeave$.next(opts);
+  }
+
+  removeConnector(opts: ConnectorRemoveArgs) {
+    this.connectorRemove$.next(opts);
+  }
+
+  attachConnector(opts: ConnectorPortArgs) {
+    this.connectorAttach$.next(opts);
+  }
+
+  detachConnector(opts: ConnectorPortArgs) {
+    this.connectorDetach$.next(opts);
+  }
+
+  moveConnector(opts: ConnectorMoveArgs) {
+    this.connectorMove$.next(opts);
+  }
+
+  clickConnector(opts: ConnectorClickArgs) {
+    this.connectorClick$.next(opts);
+  }
+
+  emitSingleDependenciesOutput(opts: ConnectorSingleDependencyArgs) {
+    this.singleDependenciesOutput$.next(opts);
+  }
+
+  emitSingleDependencyWithNewDependencyOutput(opts: ConnectorSingleDependencyWithNewDependencyArgs) {
+    this.singleDependencyWithNewDependencyOutput$.next(opts);
+  }
+
+  emitChangeDependencies() {
+    this.changeDependencies$.next();
+  }
+
+  createConnectorModel(dependencyType, subType = null, proximity = null): ConnectorModel {
     const model = {
       id: `connector_${this.generateUniqueId()}`,
       dependencyType,
@@ -65,7 +134,7 @@ export class ConnectorsService extends BaseService<ConnectorModel> {
     return model;
   }
 
-  removeConnector(id: string) {
+  removeConnectorModel(id: string) {
     this.models = this.models.filter(c => c.id !== id);
   }
 

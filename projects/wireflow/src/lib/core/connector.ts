@@ -103,7 +103,7 @@ export class Connector extends BaseModelUiElement<ConnectorModel> implements Dra
   }
 
   initCreating() {
-    this.service.connectorCreate$.next({ connectorModel: this.model });
+    this.service.createConnector({ connectorModel: this.model });
 
     this.domContext.svgElement.onmousemove = (e) => this.mouseMoveHandler(e);
     this.domContext.svgElement.onclick = (e) => this._onClick(e);
@@ -160,7 +160,7 @@ export class Connector extends BaseModelUiElement<ConnectorModel> implements Dra
   }
 
   onDrag() {
-    this.service.connectorMove$.next({ connectorModel: this.model });
+    this.service.moveConnector({ connectorModel: this.model });
   }
 
   onDragEnd(port: NodePort) {
@@ -177,14 +177,14 @@ export class Connector extends BaseModelUiElement<ConnectorModel> implements Dra
       this.setInputPort(port);
     }
 
-    this.service.connectorAttach$.next({
+    this.service.attachConnector({
       connectorModel: this.model,
       port: port.model.isInput ? port.model : this._inputPort.model
     });
 
     this.updateHandle(port.model);
-    this.service.changeDependencies$.next();
-    this.service.connectorMove$.next({ connectorModel: this.model });
+    this.service.emitChangeDependencies();
+    this.service.moveConnector({ connectorModel: this.model });
   }
 
   // TODO: Move to client code
@@ -198,7 +198,7 @@ export class Connector extends BaseModelUiElement<ConnectorModel> implements Dra
 
     TweenLite.set(this.outputHandle, point);
 
-    this.service.connectorMove$.next({ connectorModel: this.model, point });
+    this.service.moveConnector({ connectorModel: this.model, point });
   }
 
   remove(opts: ConnectorRemoveOptions = {}) {
@@ -216,7 +216,7 @@ export class Connector extends BaseModelUiElement<ConnectorModel> implements Dra
     this.connectorToolbar && this.connectorToolbar.remove();
     this.nativeElement && this.nativeElement.remove();
 
-    this.service.connectorRemove$.next({ connectorModel: this.model, opts });
+    this.service.removeConnector({ connectorModel: this.model, opts });
   }
 
   initViewState() { // TODO: Rename to update()
@@ -317,7 +317,7 @@ export class Connector extends BaseModelUiElement<ConnectorModel> implements Dra
 
     TweenLite.set(this.inputHandle, this.basePoint);
 
-    this.service.connectorMove$.next({ connectorModel: this.model });
+    this.service.moveConnector({ connectorModel: this.model });
   }
 
   updateHandle(port: PortModel, allowedMoveEvent = true) { // TODO: Rename into update(isInput, point)
@@ -336,7 +336,7 @@ export class Connector extends BaseModelUiElement<ConnectorModel> implements Dra
     this.nativeElement.classList.remove('middle-connector--new');
 
     if (allowedMoveEvent) {
-      this.service.connectorMove$.next({ connectorModel: this.model });
+      this.service.moveConnector({ connectorModel: this.model });
     }
   }
 
@@ -347,11 +347,11 @@ export class Connector extends BaseModelUiElement<ConnectorModel> implements Dra
   private onHover(e: MouseEvent) {
     if (this._inputPort && this._inputPort.inputNodeType.includes('ProximityDependency')) { return; }
 
-    this.service.connectorHover$.next({ connectorModel: this.model });
+    this.service.hoverConnector({ connectorModel: this.model });
   }
 
   private onHoverLeave(e: MouseEvent) {
-    this.service.connectorLeave$.next({ connectorModel: this.model });
+    this.service.leaveConnector({ connectorModel: this.model });
   }
 
   updatePath(x = null, y = null, { fixedStart, fixedEnd, swapCoords, prevInputConnector, coords, length }: ConnectorPathOptions) {
@@ -439,7 +439,7 @@ export class Connector extends BaseModelUiElement<ConnectorModel> implements Dra
       return this.onClick(e);
     }
 
-    this.service.connectorClick$.next({ isSelected: this.isSelected });
+    this.service.clickConnector({ isSelected: this.isSelected });
 
     this.isSelected = !this.isSelected;
     this.initViewState();
@@ -467,15 +467,15 @@ export class Connector extends BaseModelUiElement<ConnectorModel> implements Dra
   }
 
   private _changeSingleDependencyType(type: string) {
-    this.service.singleDependenciesOutput$.next({
-      connector: this,
+    this.service.emitSingleDependenciesOutput({
+      connectorModel: this.model,
       type,
     });
   }
 
   private _changeSingleDependencyTypeWithDependency(data: ChangeSingleDependencyWithDependencyAction) {
-    this.service.singleDependencyWithNewDependencyOutput$.next({
-      connector: this,
+    this.service.emitSingleDependencyWithNewDependencyOutput({
+      connectorModel: this.model,
       type: data.type,
       targetType: data.targetType,
       subtype: data.subtype

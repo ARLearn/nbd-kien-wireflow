@@ -128,7 +128,7 @@ export class Diagram implements DraggableUiElement {
   }
 
   removeConnector(connector: Connector) {  // TODO: Move to connectorsService
-    this.connectorsService.removeConnector(connector.model.id);
+    this.connectorsService.removeConnectorModel(connector.model.id);
     this.connectors = this.connectors.filter(c => c.model.id !== connector.model.id);
   }
 
@@ -146,7 +146,7 @@ export class Diagram implements DraggableUiElement {
   // TODO: Move to connectorsService
   createInputConnector(message: any, coords: Point, inputMiddlePoint: MiddlePoint): Connector {
 
-    const model = this.connectorsService.createConnector(null);
+    const model = this.connectorsService.createConnectorModel(null);
     const connector = new Connector(this.domContext, this.connectorsService, model, coords);
     this.addConnector(connector);
     connector
@@ -179,7 +179,7 @@ export class Diagram implements DraggableUiElement {
     }
 
     if (inputPort && outputPort) {
-      const model = this.connectorsService.createConnector(null);
+      const model = this.connectorsService.createConnectorModel(null);
       const con = new Connector(this.domContext, this.connectorsService, model);
       this.addConnector(con);
       con
@@ -269,7 +269,7 @@ export class Diagram implements DraggableUiElement {
 
       case 'port':
         const port = this.getPortById(id);
-        const con = new Connector(this.domContext, this.connectorsService, this.connectorsService.createConnector(null));
+        const con = new Connector(this.domContext, this.connectorsService, this.connectorsService.createConnectorModel(null));
         this.addConnector(con);
         con
           .initCreating()

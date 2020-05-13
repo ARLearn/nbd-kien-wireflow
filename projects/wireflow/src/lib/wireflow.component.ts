@@ -107,29 +107,29 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
   nodesManager: NodesManager;
   wireflowManager: WireflowManager;
 
-  get dependenciesOutput() { return this.connectorsService.changeDependencies$; }
+  get dependenciesOutput() { return this.connectorsService.changeDependencies; }
   get coordinatesOutputSubject() { return this.nodesService.nodeCoordinatesChanged.pipe(distinct()); }
-  get singleDependenciesOutput() { return this.connectorsService.singleDependenciesOutput$.pipe(distinct()); }
-  get singleDependencyWithNewDependencyOutput() { return this.connectorsService.singleDependencyWithNewDependencyOutput$.pipe(distinct()); }
-  get middlePointAddChild() { return this.middlePointsService.middlePointAddChild$; }
+  get singleDependenciesOutput() { return this.connectorsService.singleDependenciesOutput.pipe(distinct()); }
+  get singleDependencyWithNewDependencyOutput() { return this.connectorsService.singleDependencyWithNewDependencyOutput.pipe(distinct()); }
+  get middlePointAddChild() { return this.middlePointsService.middlePointAddChild; }
   get nodeNew() { return this.nodesService.nodeNew; }
   get nodeInit() { return this.nodesService.nodeInit; }
   get nodeRemove() { return this.nodesService.nodeRemove; }
-  get connectorCreate() { return this.connectorsService.connectorCreate$; }
-  get connectorHover() { return this.connectorsService.connectorHover$; }
-  get connectorLeave() { return this.connectorsService.connectorLeave$; }
-  get connectorRemove() { return this.connectorsService.connectorRemove$; }
-  get connectorAttach() { return this.connectorsService.connectorAttach$; }
-  get connectorDetach() { return this.connectorsService.connectorDetach$; }
-  get connectorMove() { return this.connectorsService.connectorMove$; }
-  get connectorClick() { return this.connectorsService.connectorClick$; }
+  get connectorCreate() { return this.connectorsService.connectorCreate; }
+  get connectorHover() { return this.connectorsService.connectorHover; }
+  get connectorLeave() { return this.connectorsService.connectorLeave; }
+  get connectorRemove() { return this.connectorsService.connectorRemove; }
+  get connectorAttach() { return this.connectorsService.connectorAttach; }
+  get connectorDetach() { return this.connectorsService.connectorDetach; }
+  get connectorMove() { return this.connectorsService.connectorMove; }
+  get connectorClick() { return this.connectorsService.connectorClick; }
   get nodePortNew() { return this.portsService.nodePortNew; }
   get nodePortUpdate() { return this.portsService.nodePortUpdate; }
-  get middlePointInit() { return this.middlePointsService.middlePointInit$; }
-  get middlePointMove() { return this.middlePointsService.middlePointMove$; }
-  get middlePointClick() { return this.middlePointsService.middlePointClick$; }
-  get middlePointRemove() { return this.middlePointsService.middlePointRemove$; }
-  get middlePointRemoveOutputConnector() { return this.middlePointsService.middlePointRemoveOutputConnector$; }
+  get middlePointInit() { return this.middlePointsService.middlePointInit; }
+  get middlePointMove() { return this.middlePointsService.middlePointMove; }
+  get middlePointClick() { return this.middlePointsService.middlePointClick; }
+  get middlePointRemove() { return this.middlePointsService.middlePointRemove; }
+  get middlePointRemoveOutputConnector() { return this.middlePointsService.middlePointRemoveOutputConnector; }
   get nodeClick() { return this.nodesService.nodeClick; }
 
   get heightTitle() {
@@ -235,6 +235,8 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
       }));
 
     this.subscription.add(this.singleDependenciesOutput.subscribe((x: any) => {
+      x.connector = this.diagram.getConnectorById(x.connectorModel.id);
+
       if (x.type.includes('TimeDependency')) {
         this.ngxSmartModalService.getModal('timeModal').setData({data: x, onSubmit: this._onTimeDependencySubmit.bind(this) }, true).open();
       } else {
@@ -243,6 +245,8 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
     }));
 
     this.subscription.add(this.singleDependencyWithNewDependencyOutput.subscribe((x: any) => {
+      x.connector = this.diagram.getConnectorById(x.connectorModel.id);
+
       const mp = this.wireflowManager.changeSingleDependency(this.messages, x.type, x.connector, null, false);
       mp.addChild({
         targetType: x.targetType,
@@ -420,7 +424,7 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
         connector && connector.remove({ onlyConnector: false });
       });
 
-      this.middlePointsService.removeMiddlePoint(middlePoint.model.id);
+      this.middlePointsService.removeMiddlePointModel(middlePoint.model.id);
       this.diagram.middlePoints.splice(this.diagram.middlePoints.indexOf(middlePoint), 1);
     }));
 
@@ -448,7 +452,7 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
       const connector = this.diagram.getConnectorById(connectorModel.id);
       const usedPorts = this.diagram.getPortsBy(x => x.model.connectors.includes(connectorModel));
       usedPorts.forEach(port => {
-        this.connectorsService.connectorDetach$.next({ connectorModel, port: port.model });
+        this.connectorsService.detachConnector({ connectorModel, port: port.model });
       });
 
       const isInput = connector && ((connector.outputPort && connector.outputPort.model.isInput) || connector.isInputConnector);
@@ -541,7 +545,7 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
 
         if (connectorModel) {
           this.ngxSmartModalService.getModal('proximityModal').setData({
-            initialData: connectorModel.proximity, connector
+            initialData: connectorModel.proximity, connector, node: nodeModel.generalItemId
           }, true).open();
         }
       }
@@ -574,7 +578,7 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
             x.remove();
           }
         });
-        this.connectorsService.changeDependencies$.next();
+        this.connectorsService.emitChangeDependencies();
 
         break;
       }
@@ -680,7 +684,7 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
 
   ngDoCheck() {
     if (
-      this.populatedNodesPrev 
+      this.populatedNodesPrev
       && this.populatedNodes
       && hasDeepDiff(
         this.populatedNodesPrev.map(x => this._preDiff(x)),
@@ -759,7 +763,7 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
   }
 
   private _initMiddleConnector(x: MiddlePointAddChildArgs) {
-    const model = this.connectorsService.createConnector(x.dependency.type, x.dependency.subtype);
+    const model = this.connectorsService.createConnectorModel(x.dependency.type, x.dependency.subtype);
     this.currentMiddleConnector = new Connector(
       this.domContext,
       this.connectorsService,
@@ -831,7 +835,7 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
           this.wireflowManager.createConnector(message, this.currentMiddleConnector, this.currentMiddleConnector.shape, depend);
           this.currentMiddleConnector = null;
           this.lastGeneralItemId = null;
-          this.connectorsService.changeDependencies$.next();
+          this.connectorsService.emitChangeDependencies();
           this.processing = false;
           return;
         }
@@ -859,7 +863,7 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
       this.lastGeneralItemId = null;
       this.currentMiddleConnector = null;
       this.processing = false;
-      this.connectorsService.changeDependencies$.next();
+      this.connectorsService.emitChangeDependencies();
     }
 
     if (this.lastAddedPort) {
@@ -888,14 +892,34 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
   onProximityDependencySubmit({ lng, lat, radius }: any) {
     const modal = this.ngxSmartModalService.getModal('proximityModal');
     const data = modal.getData();
-    delete data.dependency.action;
-    delete data.dependency.subtype;
 
-    data.dependency.lng = lng;
-    data.dependency.lat = lat;
-    data.dependency.radius = radius;
+    if (data.dependency) {
+      delete data.dependency.action;
+      delete data.dependency.subtype;
 
-    this._initMiddleConnector(data);
+      data.dependency.lng = lng;
+      data.dependency.lat = lat;
+      data.dependency.radius = radius;
+
+      this._initMiddleConnector(data);
+    } else {
+      const model = data.connector.model;
+      model.proximity.lng = lng;
+      model.proximity.lat = lat;
+      model.proximity.radius = radius;
+
+      const mp = this.diagram.getMiddlePointByConnector(model);
+
+      if (mp) {
+        const dep = mp.dependency.dependencies.find(x => x.generalItemId && x.generalItemId.toString() === data.node.toString());
+
+        dep.lng = lng;
+        dep.lat = lat;
+        dep.radius = radius;
+      }
+
+      this.connectorsService.emitChangeDependencies();
+    }
   }
 
   private _onTimeDependencySubmit(formValue: any) {
@@ -913,7 +937,7 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
     const { data } = modal.getData();
 
     data.middlePoint.dependency.timeDelta = formValue.seconds * 1000;
-    this.connectorsService.changeDependencies$.next();
+    this.connectorsService.emitChangeDependencies();
   }
 
   private initState(messages: GameMessageCommon[]) {
@@ -932,7 +956,7 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
       }
     });
 
-    this.connectorsService.changeDependencies$.next();
+    this.connectorsService.emitChangeDependencies();
   }
 
   private _preHash(input: GameMessageCommon) {

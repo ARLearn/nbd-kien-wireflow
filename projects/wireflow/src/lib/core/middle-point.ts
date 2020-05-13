@@ -53,7 +53,7 @@ export class MiddlePoint extends BaseModelUiElement<MiddlePointModel> implements
   init() {
     this.move(this.coordinates);
 
-    this.service.middlePointInit$.next({ middlePointId: this.model.id });
+    this.service.initMiddlePoint({ middlePointId: this.model.id });
     this._refreshTypeIcon();
     return this;
   }
@@ -95,7 +95,7 @@ export class MiddlePoint extends BaseModelUiElement<MiddlePointModel> implements
       this.actionToolbar.move(this.coordinates);
     }
 
-    this.service.middlePointMove$.next({ middlePointId: this.model.id });
+    this.service.moveMiddlePoint({ middlePointId: this.model.id });
 
     return this;
   }
@@ -112,7 +112,7 @@ export class MiddlePoint extends BaseModelUiElement<MiddlePointModel> implements
   }
 
   removeOutputConnector(connectorModel: ConnectorModel, removeDependency = true) {
-    this.service.middlePointRemoveOutputConnector$.next({ middlePointId: this.model.id, connectorModel, removeDependency });
+    this.service.removeOutputConnector({ middlePointId: this.model.id, connectorModel, removeDependency });
   }
   // returns index of dependency.dependencies array
   getDependencyIdx(dependency: any): number {
@@ -154,7 +154,7 @@ export class MiddlePoint extends BaseModelUiElement<MiddlePointModel> implements
       }
     }
 
-    this.service.middlePointRemove$.next({ middlePointId: this.model.id });
+    this.service.removeMiddlePoint({ middlePointId: this.model.id });
     // TODO: Move to Diagram
     this.nativeElement && this.nativeElement.remove();
   }
@@ -211,7 +211,7 @@ export class MiddlePoint extends BaseModelUiElement<MiddlePointModel> implements
       this.actionToolbar.toggle();
     }
 
-    this.service.middlePointClick$.next(this.model.id);
+    this.service.clickMiddlePoint(this.model.id);
   }
 
   addChild({ targetType, subtype }: { targetType: string, subtype?: string }) {
@@ -223,7 +223,7 @@ export class MiddlePoint extends BaseModelUiElement<MiddlePointModel> implements
       scope: undefined,
     } as Dependency;
 
-    this.service.middlePointAddChild$.next({
+    this.service.addChild({
       id: this.generalItemId,
       message: {
         authoringX: this.coordinates.x,

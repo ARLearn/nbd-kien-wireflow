@@ -128,7 +128,7 @@ export class WireflowManager {
 
         this.diagram.middlePoints.push(newMiddlePoint);
 
-        notifyChanges && this.connectorsService.changeDependencies$.next();
+        notifyChanges && this.connectorsService.emitChangeDependencies();
 
         return newMiddlePoint;
       }
@@ -186,7 +186,7 @@ export class WireflowManager {
       mp.move(coords)
         .init();
 
-      notifyChanges && this.connectorsService.changeDependencies$.next();
+      notifyChanges && this.connectorsService.emitChangeDependencies();
 
       return mp;
     } else {
@@ -214,7 +214,7 @@ export class WireflowManager {
       connector.remove();
 
       const mp = this.initNodeMessage(message);
-      notifyChanges && this.connectorsService.changeDependencies$.next();
+      notifyChanges && this.connectorsService.emitChangeDependencies();
 
       return mp;
     }
@@ -287,7 +287,7 @@ export class WireflowManager {
 
       if (!dep.type.includes('Proximity') && !portExists) { return; }
 
-      const model = this.connectorsService.createConnector(dep.type, dep.subtype);
+      const model = this.connectorsService.createConnectorModel(dep.type, dep.subtype);
       const connector = new Connector(this.domContext, this.connectorsService, model);
       this.diagram.addConnector(connector);
       connector.initCreating();
