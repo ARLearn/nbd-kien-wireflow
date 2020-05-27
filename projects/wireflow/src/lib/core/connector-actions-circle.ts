@@ -7,16 +7,14 @@ export interface ConnectorPointAction extends ObjectMap<any> {
 }
 
 export class ConnectorActionsCircle extends BaseUiElement {
-  id: string;
 
   private _action = new Subject<ConnectorPointAction>();
 
   constructor(
     element: HTMLElement,
+    public id: string,
   ) {
-    super(element); // TODO: Move to client code
-
-    this.id = `actions-point_${this.generateUniqueId()}`;
+    super(element);
 
     this.nativeElement.onclick = (e) => this._onClick(e);
   }

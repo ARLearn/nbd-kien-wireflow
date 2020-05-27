@@ -19,3 +19,6 @@ getTestBed().initTestEnvironment(
 const context = require.context('./', true, /\.spec\.ts$/);
 // And load the modules.
 context.keys().map(context);
+
+// Importing just for coverage report
+import './lib/wireflow.module';

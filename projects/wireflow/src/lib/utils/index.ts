@@ -1,5 +1,5 @@
 export * from './array';
-export * from './counter';
+export * from './unique-id-generator';
 export * from './geometry';
 export * from './map';
 export * from './minBy';

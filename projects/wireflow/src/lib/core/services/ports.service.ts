@@ -1,6 +1,8 @@
+import { Injectable } from '@angular/core';
 import { Subject } from 'rxjs';
 import { BaseService } from './base.service';
 import { NodeModel, PortModel } from '../models';
+import { UniqueIdGenerator } from '../../utils';
 
 export interface NodePortNewArgs {
   model: PortModel;
@@ -12,6 +14,7 @@ export interface NodePortUpdateArgs {
   port: PortModel;
 }
 
+@Injectable()
 export class PortsService extends BaseService<PortModel> {
   private nodePortNew$ = new Subject<NodePortNewArgs>();
   private nodePortUpdate$ = new Subject<NodePortUpdateArgs>();
@@ -19,13 +22,13 @@ export class PortsService extends BaseService<PortModel> {
   get nodePortNew() { return this.nodePortNew$.asObservable(); }
   get nodePortUpdate() { return this.nodePortUpdate$.asObservable(); }
 
-  constructor(models = []) {
-    super(models);
+  constructor(uniqueIdGenerator: UniqueIdGenerator) {
+    super(uniqueIdGenerator);
   }
 
   createPort(action: string, generalItemId: string, parentNode: NodeModel, isInput: boolean) {
     const model = {
-      id: `port_${this.generateUniqueId()}`,
+      id: `port_${this.uniqueIdGenerator.generate()}`,
       generalItemId,
       action,
       isInput,

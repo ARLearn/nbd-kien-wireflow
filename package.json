@@ -6,7 +6,8 @@
     "start": "concurrently --kill-others \"ng build wireflow --watch\" \"ng serve app\"",
     "build": "ng build wireflow && ng build app --prod",
     "prod": "npm run build && pushstate-server -d dist/app -p 4200",
-    "test": "ng test",
+    "test": "ng test wireflow --code-coverage",
+    "test-headless": "ng test wireflow --code-coverage --browsers=ChromeHeadless",
     "lint": "ng lint",
     "e2e": "ng e2e"
   },

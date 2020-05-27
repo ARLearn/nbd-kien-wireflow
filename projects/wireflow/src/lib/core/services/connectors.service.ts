@@ -1,7 +1,7 @@
 import { Subject } from 'rxjs';
 import { BaseService } from './base.service';
 import { ConnectorModel, PortModel } from '../models';
-import { getNumberFromPixels, Point } from '../../utils';
+import { getNumberFromPixels, Point, UniqueIdGenerator } from '../../utils';
 import { DomContext } from '../dom-context';
 
 export interface ConnectorArgs {
@@ -71,12 +71,17 @@ export class ConnectorsService extends BaseService<ConnectorModel> {
   get changeDependencies() { return this.changeDependencies$.asObservable(); }
 
   constructor(
+    uniqueIdGenerator: UniqueIdGenerator,
     private domContext: DomContext,
     models = []
   ) {
-    super(models);
+    super(uniqueIdGenerator);
   }
 
+  // TODO: Move uniqueIDGenerator to Injector
+  generateUniqueId() {
+    return this.uniqueIdGenerator.generate();
+  }
 
   createConnector(opts: ConnectorArgs) {
     this.connectorCreate$.next(opts);
@@ -124,7 +129,7 @@ export class ConnectorsService extends BaseService<ConnectorModel> {
 
   createConnectorModel(dependencyType, subType = null, proximity = null): ConnectorModel {
     const model = {
-      id: `connector_${this.generateUniqueId()}`,
+      id: `connector_${this.uniqueIdGenerator.generate()}`,
       dependencyType,
       subType,
       proximity

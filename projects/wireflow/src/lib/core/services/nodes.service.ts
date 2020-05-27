@@ -2,7 +2,7 @@ import { Subject } from 'rxjs';
 import { BaseService} from './base.service';
 import { NodeModel } from '../models';
 import { GameMessageCommon } from '../../models/core';
-import { Point } from '../../utils';
+import { Point, UniqueIdGenerator } from '../../utils';
 
 export interface InputModel { generalItemId: string };
 export interface OutputModel { generalItemId: string, action: string };
@@ -31,8 +31,8 @@ export class NodesService extends BaseService<NodeModel> {
   private nodeCoordinatesChanged$ = new Subject<NodeSetCoordsArgs>();
   private nodeClick$ = new Subject<NodeModel>();
 
-  constructor(models = []) {
-    super(models);
+  constructor(uniqueIdGenerator: UniqueIdGenerator) {
+    super(uniqueIdGenerator);
   }
 
   get nodeNew() { return this.nodeNew$.asObservable(); }
@@ -43,7 +43,7 @@ export class NodesService extends BaseService<NodeModel> {
 
   createNode(message: GameMessageCommon, offset: Point) {
     const model = {
-      id: `shape_${this.generateUniqueId()}`,
+      id: `shape_${this.uniqueIdGenerator.generate()}`,
       generalItemId: message.id.toString(),
       dependencyType: message.type,
       inputModels: [],

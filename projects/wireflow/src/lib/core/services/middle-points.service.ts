@@ -3,6 +3,7 @@ import { BaseService } from './base.service';
 import { MiddlePointModel } from '../models/MiddlePointModel';
 import { Dependency } from '../../models/core';
 import { ConnectorModel } from '../models';
+import { UniqueIdGenerator } from '../../utils';
 
 export interface MiddlePointAddChildArgs {
   id: number;
@@ -40,13 +41,13 @@ export class MiddlePointsService extends BaseService<MiddlePointModel> {
   get middlePointAddChild() { return this.middlePointAddChild$.asObservable(); }
   get middlePointClick() { return this.middlePointClick$.asObservable(); }
 
-  constructor(models = []) {
-    super(models);
+  constructor(uniqueIdGenerator: UniqueIdGenerator) {
+    super(uniqueIdGenerator);
   }
 
   createMiddlePoint() {
     const model = {
-      id: `middle-point_${this.generateUniqueId()}`
+      id: `middle-point_${this.uniqueIdGenerator.generate()}`
     } as MiddlePointModel;
 
     this.models.push(model);

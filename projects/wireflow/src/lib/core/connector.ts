@@ -81,7 +81,7 @@ export class Connector extends BaseModelUiElement<ConnectorModel> implements Dra
     }
 
     this.actionsCircle =
-      new ConnectorActionsCircle(this.nativeElement.querySelector('.base-middle-point'))
+      new ConnectorActionsCircle(this.nativeElement.querySelector('.base-middle-point'), `actions-point_${this.service.generateUniqueId()}`)
         .hide();
     this._subscription.add(this.actionsCircle.action.subscribe(action => this._onConnectorAction(action)));
 

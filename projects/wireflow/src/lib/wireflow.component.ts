@@ -21,7 +21,7 @@ import { NgxSmartModalService } from 'ngx-smart-modal';
 import { Diagram } from './core/diagram';
 import { GameMessageCommon } from './models/core';
 import { Connector } from './core/connector';
-import { clone, diff, getDistance, Rectangle, minBy, Point, hasDeepDiff } from './utils';
+import { clone, diff, getDistance, Rectangle, minBy, Point, hasDeepDiff, UniqueIdGenerator } from './utils';
 import { NodeShape } from './core/node-shape';
 import { NodePort } from './core/node-port';
 import { NodesService } from './core/services/nodes.service';
@@ -739,10 +739,12 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
       this.dragProxy,
       this.connectorLayer,
     );
-    this.nodesService = new NodesService();
-    this.portsService = new PortsService();
-    this.connectorsService = new ConnectorsService(this.domContext);
-    this.middlePointsService = new MiddlePointsService();
+
+    const uniqueIdGenerator = new UniqueIdGenerator();
+    this.nodesService = new NodesService(uniqueIdGenerator);
+    this.portsService = new PortsService(uniqueIdGenerator);
+    this.connectorsService = new ConnectorsService(uniqueIdGenerator, this.domContext);
+    this.middlePointsService = new MiddlePointsService(uniqueIdGenerator);
 
     this.diagram = new Diagram(
       this.domContext,

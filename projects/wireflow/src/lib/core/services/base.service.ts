@@ -1,9 +1,8 @@
-import { counter } from '../../utils';
+import { UniqueIdGenerator } from '../../utils';
 
 export class BaseService<TModel = any> {
-  generateUniqueId = counter();
-
+  protected models: TModel[] = [];
   constructor(
-    protected models: TModel[],
+    protected uniqueIdGenerator: UniqueIdGenerator,
   ) {}
 }
