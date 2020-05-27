@@ -559,6 +559,10 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
     this.initState(this.messages);
   }
 
+  filterOutputs(outputs: any[]) {
+    return outputs.filter(x => x.action !== 'next');
+  }
+
   @HostListener('document:keydown', ['$event'])
   onKeyPress(event) {
     switch (event.code) {

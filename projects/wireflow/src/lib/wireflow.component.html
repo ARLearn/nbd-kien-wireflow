@@ -63,7 +63,7 @@
 
                 <g class="outputs">
                   <g class="output-field"
-                     *ngFor="let output of node.outputs; let i = index;"
+                     *ngFor="let output of filterOutputs(node.outputs); let i = index;"
                      [attr.transform]="'translate(12, ' + (25 * i + 16) + ')'"
                      [attr.general-item-id]="output.generalItemId"
                      [attr.action]="output.action"
@@ -82,7 +82,7 @@
                       <rect x="10" y="0" [attr.width]="102" [attr.height]="19" />
                     </clipPath>
 
-                    <text class="port-label" x="10" y="12" fill="#000" [attr.clip-path]="'url(#clip-port-text' + c + '' + i + ')'">{{ output.title || output.action | translate }}</text>
+                    <text class="port-label" x="10" y="12" fill="#000" [attr.clip-path]="'url(#clip-port-text' + c + '' + i + ')'">{{ output.title || (output.action === 'read' ? 'next' : output.action) | translate }}</text>
                   </g>
                 </g>
               </g>
