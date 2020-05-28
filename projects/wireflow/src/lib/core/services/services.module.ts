@@ -2,8 +2,8 @@ import { NgModule } from '@angular/core';
 import { PortsService } from './ports.service';
 
 @NgModule({
-    providers: [
-      PortsService,
-    ],
-  })
-  export class ServicesModule { }
+  providers: [
+    PortsService,
+  ],
+})
+export class ServicesModule { }

@@ -13,8 +13,8 @@ import {
   DoCheck,
   AfterViewChecked,
 } from '@angular/core';
-import { Observable, Subject, Subscription } from 'rxjs';
-import { distinct, filter, map, skip } from 'rxjs/operators';
+import { Observable, Subject, Subscription, from } from 'rxjs';
+import { distinct, filter, map, skip, delay } from 'rxjs/operators';
 import { TranslateService } from '@ngx-translate/core';
 
 import { NgxSmartModalService } from 'ngx-smart-modal';

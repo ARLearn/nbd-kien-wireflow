@@ -1,5 +1,8 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { GameMessageCommon } from 'wireflow/lib/models/core';
+import { from } from 'rxjs';
+import { delay, map } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root'
@@ -9,11 +12,28 @@ export class AppService {
   constructor(private http: HttpClient) { }
 
   getData() {
+    return this._getData().pipe(map(x => this._populateNodes(x)));
+  }
+
+  private _getData() {
     return this.http.get<any[]>('assets/data.json');
     // return this.http.get<any[]>('assets/data2.json');
     // return this.http.get<any[]>('assets/data3.json');
     // return this.http.get<any[]>('assets/data4.json');
     // return this.http.get<any[]>('assets/data5.json');
     // return this.http.get<any[]>('assets/data6.json');
+  }
+
+  private _populateNodes(nodes: GameMessageCommon[]) {
+    return nodes && nodes.map(x => this._populateNode(x));
+  }
+
+  private _populateNode(node: GameMessageCommon) {
+    node.backgroundPath = this._randomImgObservable(node.id);
+    return node;
+  }
+
+  private _randomImgObservable(id) {
+    return from(['https://picsum.photos/seed/'+id+'/400/300']).pipe(delay(3000 * Math.random()));
   }
 }

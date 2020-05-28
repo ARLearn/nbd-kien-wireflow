@@ -1,5 +1,7 @@
 // core interfaces here
 
+import { Observable } from 'rxjs';
+
 export type MessageTypeAudioObject = 'org.celstec.arlearn2.beans.generalItem.AudioObject';
 export type MessageTypeSingleChoiceImageTest = 'org.celstec.arlearn2.beans.generalItem.SingleChoiceImageTest';
 export type MessageTypeMultipleChoiceImageTest = 'org.celstec.arlearn2.beans.generalItem.MultipleChoiceImageTest';
@@ -30,6 +32,7 @@ export interface GameMessageCommon {
   lastModificationDate?: number;
   lat?: number;
   lng?: number;
+  backgroundPath?: Observable<string>;
 }
 
 
