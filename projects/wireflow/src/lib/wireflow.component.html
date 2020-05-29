@@ -42,11 +42,31 @@
                 </feMerge>
               </filter>
 
+              <defs>
+                <pattern id="img{{ c }}" patternUnits="userSpaceOnUse" [attr.width]="(getHeight(node) + heightTitle) * 1.2" [attr.height]="(getHeight(node) + heightTitle) * 1.5">
+                  <image
+                    [attr.href]="node.backgroundPath|async"
+                    [attr.width]="(getHeight(node) + heightTitle) * 1.2"
+                    [attr.height]="(getHeight(node) + heightTitle) * 1.5"
+                    [attr.y]="-(getHeight(node) + heightTitle) * 1.2 / 4 - 15"
+                    [attr.x]="-(getHeight(node) + heightTitle) * 1.2 * 0.25"
+                  />
+                </pattern>
+              </defs>
+
 
               <rect class="whole-rect" fill="#ffffff" width="152" [attr.height]="getHeight(node) + heightTitle" filter="url(#dropshadow)"></rect>
               <g class="node-content">
                 <rect width="152" [attr.height]="getHeight(node)" fill="#D2D6D8"/>
-                <image [attr.href]="node.backgroundPath|async" width="152" [attr.height]="getHeight(node) + heightTitle" />
+<!--                <image [attr.href]="node.backgroundPath|async" width="152" [attr.height]="getHeight(node) + heightTitle" />-->
+                <rect [attr.fill]="'url(#img' + c + ')'" width="152" [attr.height]="getHeight(node) + heightTitle" />
+
+<!--                <rect x="0" y="0" width="150" height="150" [attr.fill]="'url(#img' + c + ')'"-->
+<!--                       />-->
+
+
+
+
                 <g class="inputs" *ngIf="!node.virtual">
                   <g class="input-field" *ngFor="let input of node.inputs; let i = index;"
                      [attr.transform]="'translate(-26, ' + ((getHeight(node) + 32) / 2 - 20) + ')'"
