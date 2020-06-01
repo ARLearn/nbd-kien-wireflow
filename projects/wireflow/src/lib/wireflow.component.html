@@ -56,14 +56,7 @@
               <rect class="whole-rect" fill="#ffffff" width="152" [attr.height]="getHeight(node) + heightTitle" filter="url(#dropshadow)"></rect>
               <g class="node-content">
                 <rect width="152" [attr.height]="getHeight(node)" fill="#D2D6D8"/>
-<!--                <image [attr.href]="node.backgroundPath|async" width="152" [attr.height]="getHeight(node) + heightTitle" />-->
                 <rect [attr.fill]="'url(#img' + c + ')'" width="152" [attr.height]="getHeight(node) + heightTitle" />
-
-<!--                <rect x="0" y="0" width="150" height="150" [attr.fill]="'url(#img' + c + ')'"-->
-<!--                       />-->
-
-
-
 
                 <g class="inputs" *ngIf="!node.virtual">
                   <g class="input-field" *ngFor="let input of node.inputs; let i = index;"
