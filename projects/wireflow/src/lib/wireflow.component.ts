@@ -86,6 +86,7 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
   private _heightTitle = 40;
   private minHeightMainBlock = 120;
   private _handleRenderNodesNeeded = false;
+  private loadedImages: any = {};
 
   private currentMiddleConnector: Connector;
 
@@ -179,6 +180,16 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
   ngOnInit() {
     this.messages = this.nodesManager.getNodes(this.messages || []);
     this.populatedNodes = this.messages.slice();
+
+    this.messages.forEach(x => {
+      if (x.backgroundPath) {
+        x.backgroundPath.toPromise().then(async x => {
+          if (x) {
+            this.loadedImages[x] = await this.getImageParam(x);
+          }
+        });
+      }
+    });
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -704,6 +715,21 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
     this.populatedNodesPrev = clone(this.populatedNodes);
   }
 
+
+  public async getImageParam(url) {
+    return new Promise((resolve) => {
+      const img = document.createElement('img');
+      img.src = url;
+      img.onload = function() {
+        const width = img.width;
+        const height = img.height;
+
+        resolve({ width, height });
+      }
+    });
+  }
+
+
   private selectNode(id: string) {
     this.selectedMessageId = id;
     const selectedMessage = this.populatedNodes.find(m => m.id.toString() === this.selectedMessageId.toString());
@@ -1016,5 +1042,28 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
   onDiagramBackdropClick() {
     this.deselectNode();
     this.emitNoneSelectEvent();
+  }
+
+  getImageWidth(key: string, number: number) {
+    if (this.loadedImages[key]) {
+      const { width, height } = this.loadedImages[key];
+
+      if (width < height) {
+        return number;
+      }
+    }
+    return undefined;
+  }
+
+  getImageHeight(key: string, number: number) {
+    if (this.loadedImages[key]) {
+      const { width, height } = this.loadedImages[key];
+
+      if (width > height) {
+        return number;
+      }
+    }
+
+    return undefined;
   }
 }

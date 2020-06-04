@@ -1,8 +1,10 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { GameMessageCommon } from 'wireflow/lib/models/core';
+// import { GameMessageCommon } from 'wireflow/lib/models/core';
 import { from } from 'rxjs';
 import { delay, map } from 'rxjs/operators';
+import { GameMessageCommon } from '../../../wireflow/src/lib/models/core';
+// import { GameMessageCommon } from 'wireflow/lib/models/core';
 
 @Injectable({
   providedIn: 'root'
@@ -34,6 +36,6 @@ export class AppService {
   }
 
   private _randomImgObservable(id) {
-    return from(['https://picsum.photos/seed/'+id+'/400/300']).pipe(delay(3000 * Math.random()));
+    return from(['https://picsum.photos/seed/'+id+'/300/800']).pipe(delay(3000 * Math.random()));
   }
 }
