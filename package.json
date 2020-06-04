@@ -4,7 +4,7 @@
   "scripts": {
     "ng": "ng",
     "start": "concurrently --kill-others \"ng build wireflow --watch\" \"ng serve app\"",
-    "build": "ng build wireflow && ng build app --prod",
+    "build": "ng build wireflow && ng build app",
     "prod": "npm run build && pushstate-server -d dist/app -p 4200",
     "test": "ng test wireflow --code-coverage",
     "test-headless": "ng test wireflow --code-coverage --browsers=ChromeHeadless",
