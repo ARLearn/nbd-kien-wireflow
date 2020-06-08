@@ -51,4 +51,8 @@ export class AppComponent implements OnInit {
   noneSelected() {
     console.log('FROM NONE_SELECTED');
   }
+
+  onEvent({ type, nodeType, payload }) {
+    console.log(type, nodeType, payload);
+  }
 }

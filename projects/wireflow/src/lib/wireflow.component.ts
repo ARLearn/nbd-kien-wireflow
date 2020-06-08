@@ -37,6 +37,12 @@ interface MessageEditorStateModel {
   messagesOld: GameMessageCommon[];
 }
 
+interface CustomEvent {
+  type: string;
+  nodeType: string;
+  payload: any;
+}
+
 @Component({
   selector: 'lib-wireflow',
   templateUrl: './wireflow.component.html',
@@ -50,6 +56,7 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
   @Output() selectMessage: Subject<GameMessageCommon>;
   @Output() deselectMessage: Subject<GameMessageCommon>;
   @Output() noneSelected: Subject<void>;
+  @Output() onEvent: Subject<CustomEvent>;
 
   populatedNodesPrev: GameMessageCommon[];
   populatedNodes: GameMessageCommon[];
@@ -171,6 +178,7 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
     this.selectMessage = new Subject<GameMessageCommon>();
     this.deselectMessage = new Subject<GameMessageCommon>();
     this.noneSelected = new Subject<void>();
+    this.onEvent = new Subject<CustomEvent>();
 
     this.subscription.add(this.stateSubject.subscribe(x => {
       this.state = { ...x, messages: clone(x.messages), messagesOld: this.state.messages };
@@ -183,9 +191,9 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
 
     this.messages.forEach(x => {
       if (x.backgroundPath) {
-        x.backgroundPath.toPromise().then(async x => {
-          if (x) {
-            this.loadedImages[x] = await this.getImageParam(x);
+        x.backgroundPath.toPromise().then(async image => {
+          if (image) {
+            this.loadedImages[image] = await this.getImageParam(image);
           }
         });
       }
@@ -695,6 +703,12 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
     message.outputs.push({ ...this.lastAddedPort });
 
     this._emitMessages(this.messages);
+
+    this.onEvent.next({
+      type: 'newOutputAdded',
+      nodeType: 'ScanTag',
+      payload: message,
+    });
   }
 
   ngDoCheck() {
@@ -720,12 +734,12 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
     return new Promise((resolve) => {
       const img = document.createElement('img');
       img.src = url;
-      img.onload = function() {
+      img.onload = () => {
         const width = img.width;
         const height = img.height;
 
         resolve({ width, height });
-      }
+      };
     });
   }
 
