@@ -138,7 +138,7 @@ export class NodesManager {
       result.push(dependency);
     }
 
-    if (Array.isArray(dependency.dependencies) && dependency.dependencies.length > 0) {
+    if (dependency && Array.isArray(dependency.dependencies) && dependency.dependencies.length > 0) {
       dependency.dependencies.forEach(x => {
         this.getAllDependenciesByCondition(x, cb, result);
       });

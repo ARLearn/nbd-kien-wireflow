@@ -164,7 +164,7 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
           const messages = clone(result);
           messages.forEach((message: any) => {
             const deps = this.nodesManager.getAllDependenciesByCondition(
-              message.dependsOn, (d: any) => d.type && d.type.includes('ProximityDependency')
+              message.dependsOn, (d: any) => d && d.type && d.type.includes('ProximityDependency')
             );
             deps.forEach(dep => delete dep.generalItemId);
           });
