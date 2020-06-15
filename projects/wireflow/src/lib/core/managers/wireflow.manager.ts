@@ -20,6 +20,7 @@ export class WireflowManager {
     private connectorsService: ConnectorsService,
     private middlePointsService: MiddlePointsService,
     private diagram: Diagram,
+    private selector: string,
   ) { }
 
   populateOutputMessages(messages: any[]) {
@@ -31,7 +32,7 @@ export class WireflowManager {
       const currentMiddlePoint = mainMiddlePoints.find(mp => Number(mp.generalItemId) === x.id);
 
       if (currentMiddlePoint) {
-        message.dependsOn = currentMiddlePoint.dependency;
+        message[this.selector] = currentMiddlePoint.dependency;
       } else {
         const singleConnector = this.diagram.connectors.find(
           c => {
@@ -44,20 +45,20 @@ export class WireflowManager {
         if (singleConnector) {
           if (singleConnector.outputPort && singleConnector.outputPort.nodeType &&
             singleConnector.outputPort.nodeType.includes('ProximityDependency') && singleConnector.model.proximity) {
-            message.dependsOn = {
+            message[this.selector] = {
               type: singleConnector.outputPort.nodeType,
               ...singleConnector.model.proximity,
-              generalItemId: x.dependsOn.generalItemId
+              generalItemId: x[this.selector].generalItemId
             };
           } else {
-            message.dependsOn = {
+            message[this.selector] = {
               type: singleConnector.outputPort.nodeType,
               action: singleConnector.outputPort.model.action,
               generalItemId: singleConnector.outputPort.model.generalItemId
             };
           }
         } else {
-          message.dependsOn = {};
+          message[this.selector] = {};
         }
       }
       return message;
@@ -192,7 +193,7 @@ export class WireflowManager {
     } else {
       const message: any = messages.find(r => r.id.toString() === connector.inputPort.model.generalItemId.toString());
 
-      const dependencySingle: any = { ...message.dependsOn };
+      const dependencySingle: any = { ...message[this.selector] };
 
       if (!dependencySingle.action) {
         dependencySingle.type = 'org.celstec.arlearn2.beans.dependencies.ActionDependency';
@@ -201,13 +202,13 @@ export class WireflowManager {
         delete dependencySingle.dependencies;
       }
 
-      message.dependsOn = { type };
+      message[this.selector] = { type };
 
       if (type.includes('TimeDependency') && options) {
-        message.dependsOn.timeDelta = options.timeDelta;
-        message.dependsOn.offset = dependencySingle;
+        message[this.selector].timeDelta = options.timeDelta;
+        message[this.selector].offset = dependencySingle;
       } else {
-        message.dependsOn.dependencies = [dependencySingle];
+        message[this.selector].dependencies = [dependencySingle];
       }
 
       connector.detachOutputPort();
@@ -334,11 +335,11 @@ export class WireflowManager {
         this.middlePointsService,
         this.middlePointsService.createMiddlePoint(),
         message.id,
-        message.dependsOn
+        message[this.selector]
       )
         .setInputPort(this.diagram.getInputPortByGeneralItemId(message.id))
         .move({ x: 0, y: 0 });
-    this.initMiddlePointGroup(message, mp, message.dependsOn.dependencies || [message.dependsOn.offset]);
+    this.initMiddlePointGroup(message, mp, message[this.selector].dependencies || [message[this.selector].offset]);
 
     this.diagram.middlePoints.forEach(mpo => mpo.init());
 

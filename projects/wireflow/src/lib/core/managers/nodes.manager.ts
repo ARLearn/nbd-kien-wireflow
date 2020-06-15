@@ -3,6 +3,9 @@ import { MultipleChoiceScreen } from '../../models/core';
 
 export class NodesManager {
 
+  constructor(private selector: string) {
+  }
+
   getNodes(messages: GameMessageCommon[]) {
     const result = messages.map(x => {
 
@@ -10,7 +13,7 @@ export class NodesManager {
         {
           generalItemId: x.id,
           title: 'Input',
-          type: (x.dependsOn && x.dependsOn.type) || 'org.celstec.arlearn2.beans.dependencies.ActionDependency'
+          type: (x[this.selector] && x[this.selector].type) || 'org.celstec.arlearn2.beans.dependencies.ActionDependency'
         }
       ];
       const outputs = [];
@@ -65,12 +68,12 @@ export class NodesManager {
       return { ...x, outputs, inputs };
     });
 
-    const msgs = messages.filter((m: any) => m.dependsOn);
+    const msgs = messages.filter((m: any) => m[this.selector]);
     const DEFAULT_TYPE = { type: '' };
 
     msgs.forEach(x => {
       const depends = this.getAllDependenciesByCondition(
-        x.dependsOn,
+        x[this.selector],
         (d: any) => {
           return d.subtype && d.subtype.length > 0 || (
             (messages.find(m => d.generalItemId && m.id.toString() === d.generalItemId.toString()) || DEFAULT_TYPE).type.includes('ScanTag')
@@ -78,7 +81,7 @@ export class NodesManager {
         }
       );
 
-      const proximities = this.getAllDependenciesByCondition(x.dependsOn, (d: any) => d.type && d.type.includes('ProximityDependency'));
+      const proximities = this.getAllDependenciesByCondition(x[this.selector], (d: any) => d.type && d.type.includes('ProximityDependency'));
 
       if (proximities.length > 0) {
         proximities.forEach(p => {

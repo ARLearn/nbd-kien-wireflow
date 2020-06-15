@@ -52,6 +52,7 @@ interface CustomEvent {
 export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChanges, AfterViewChecked, OnDestroy {
   @Input() messages: GameMessageCommon[];
   @Input() lang: string = 'en';
+  @Input() selector: string = 'dependsOn';
   @Output() messagesChange: Observable<GameMessageCommon[]>;
   @Output() selectMessage: Subject<GameMessageCommon>;
   @Output() deselectMessage: Subject<GameMessageCommon>;
@@ -148,7 +149,7 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
     public ngxSmartModalService: NgxSmartModalService,
     private translate: TranslateService,
   ) {
-    this.nodesManager = new NodesManager();
+    this.nodesManager = new NodesManager(this.selector);
 
     translate.setDefaultLang(this.lang);
     this.messagesChange = this.stateSubject
@@ -164,7 +165,7 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
           const messages = clone(result);
           messages.forEach((message: any) => {
             const deps = this.nodesManager.getAllDependenciesByCondition(
-              message.dependsOn, (d: any) => d && d.type && d.type.includes('ProximityDependency')
+              message[this.selector], (d: any) => d && d.type && d.type.includes('ProximityDependency')
             );
             deps.forEach(dep => delete dep.generalItemId);
           });
@@ -805,6 +806,7 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
       this.connectorsService,
       this.middlePointsService,
       this.diagram,
+      this.selector,
     );
   }
 
@@ -844,7 +846,7 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
           name: x.dependency.type.includes('ProximityDependency') ? 'proximity' : x.name,
           type: x.dependency.type,
           action: x.dependency.type.includes('ProximityDependency') ? 'in range' : x.dependency.action,
-          dependsOn: {},
+          [this.selector]: {},
           virtual: x.dependency.type.includes('ProximityDependency')
         });
 
@@ -988,16 +990,16 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
 
   private initState(messages: GameMessageCommon[]) {
     messages.forEach(message => {
-      if (message.dependsOn && message.dependsOn.type && this.diagram.mpAllowedTypes.includes(message.dependsOn.type)) {
+      if (message[this.selector] && message[this.selector].type && this.diagram.mpAllowedTypes.includes(message[this.selector].type)) {
 
-        if ((message.dependsOn.dependencies && message.dependsOn.dependencies.length > 0) || message.dependsOn.offset) {
+        if ((message[this.selector].dependencies && message[this.selector].dependencies.length > 0) || message[this.selector].offset) {
           this.wireflowManager.initNodeMessage(clone(message));
         }
       } else {
-        if (message.dependsOn && ((message.dependsOn.generalItemId && message.dependsOn.action) ||
-            message.dependsOn.type && message.dependsOn.type.includes('ProximityDependency'))
+        if (message[this.selector] && ((message[this.selector].generalItemId && message[this.selector].action) ||
+            message[this.selector].type && message[this.selector].type.includes('ProximityDependency'))
         ) {
-          this.diagram.initConnector(message.dependsOn, message);
+          this.diagram.initConnector(message[this.selector], message);
         }
       }
     });
