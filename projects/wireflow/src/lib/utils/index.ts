@@ -1,4 +1,5 @@
 export * from './array';
+export * from './chunk';
 export * from './unique-id-generator';
 export * from './geometry';
 export * from './map';

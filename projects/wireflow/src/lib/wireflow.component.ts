@@ -21,7 +21,7 @@ import { NgxSmartModalService } from 'ngx-smart-modal';
 import { Diagram } from './core/diagram';
 import { GameMessageCommon } from './models/core';
 import { Connector } from './core/connector';
-import { clone, diff, getDistance, Rectangle, minBy, Point, hasDeepDiff, UniqueIdGenerator } from './utils';
+import { clone, diff, getDistance, Rectangle, minBy, Point, hasDeepDiff, UniqueIdGenerator, chunk } from './utils';
 import { NodeShape } from './core/node-shape';
 import { NodePort } from './core/node-port';
 import { NodesService } from './core/services/nodes.service';
@@ -68,6 +68,8 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
 
   selectedMessageId: string;
 
+  loadedImages: any = {};
+
   private icons = {
     'org.celstec.arlearn2.beans.generalItem.NarratorItem': '&#xf4a6;',
     'org.celstec.arlearn2.beans.generalItem.ScanTag': '&#xf029;',
@@ -80,21 +82,19 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
   };
 
   private stateSubject = new Subject<MessageEditorStateModel>();
-
   private diagram: Diagram;
   private svg: HTMLElement;
   private diagramElement: HTMLElement;
   private dragProxy: HTMLElement;
   private shapeElements: HTMLElement[];
+
   private connectorLayer: HTMLElement;
 
   private lastAddedNode: GameMessageCommon;
-
   private heightPoint = 28;
   private _heightTitle = 40;
   private minHeightMainBlock = 120;
   private _handleRenderNodesNeeded = false;
-  private loadedImages: any = {};
 
   private currentMiddleConnector: Connector;
 
@@ -184,10 +184,16 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
     }));
   }
 
-  ngOnInit() {
+  async ngOnInit() {
     this.messages = this.nodesManager.getNodes(this.messages || []);
     this.populatedNodes = this.messages.slice();
 
+    for (const messages of chunk(this.messages.map(x => x.backgroundPath).filter(x => x), 16)) {
+      await Promise.all(messages.map(async backgroundPath => {
+        const url = await backgroundPath.toPromise();
+        this.loadedImages[url] = await this.getImageParam(url);
+      }));
+    }
   }
 
   ngOnChanges(changes: SimpleChanges): void {
