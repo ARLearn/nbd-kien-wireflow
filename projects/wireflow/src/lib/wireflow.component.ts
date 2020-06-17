@@ -158,8 +158,7 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
         map((b: any) => {
           const a = this.state.messagesOld.filter((x: any) => !x.virtual);
           b = b.filter(x => !x.virtual);
-
-          return diff(b, a, item => hash.MD5(this._preHash(item)));
+          return diff(b, a);
         }),
         map(result => {
           const messages = clone(result);
@@ -169,7 +168,6 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
             );
             deps.forEach(dep => delete dep.generalItemId);
           });
-
           return messages;
         }),
         skip(1),
@@ -190,15 +188,6 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
     this.messages = this.nodesManager.getNodes(this.messages || []);
     this.populatedNodes = this.messages.slice();
 
-    this.messages.forEach(x => {
-      if (x.backgroundPath) {
-        x.backgroundPath.toPromise().then(async image => {
-          if (image) {
-            this.loadedImages[image] = await this.getImageParam(image);
-          }
-        });
-      }
-    });
   }
 
   ngOnChanges(changes: SimpleChanges): void {
