@@ -116,6 +116,8 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
   nodesManager: NodesManager;
   wireflowManager: WireflowManager;
 
+  private initialized = false;
+
   get dependenciesOutput() { return this.connectorsService.changeDependencies; }
   get coordinatesOutputSubject() { return this.nodesService.nodeCoordinatesChanged.pipe(distinct()); }
   get singleDependenciesOutput() { return this.connectorsService.singleDependenciesOutput.pipe(distinct()); }
@@ -708,6 +710,9 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
   }
 
   ngDoCheck() {
+    if (!this.initialized) {
+      return;
+    }
     if (
       this.populatedNodesPrev
       && this.populatedNodes
