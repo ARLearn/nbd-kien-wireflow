@@ -1,4 +1,3 @@
-import * as hash from 'object-hash';
 import {
   AfterViewInit,
   Component,
@@ -13,15 +12,15 @@ import {
   DoCheck,
   AfterViewChecked,
 } from '@angular/core';
-import { Observable, Subject, Subscription, from } from 'rxjs';
-import { distinct, filter, map, skip, delay } from 'rxjs/operators';
+import { Observable, Subject, Subscription } from 'rxjs';
+import { distinct, filter, map, skip } from 'rxjs/operators';
 import { TranslateService } from '@ngx-translate/core';
 
 import { NgxSmartModalService } from 'ngx-smart-modal';
 import { Diagram } from './core/diagram';
 import { GameMessageCommon } from './models/core';
 import { Connector } from './core/connector';
-import { clone, diff, getDistance, Rectangle, minBy, Point, hasDeepDiff, UniqueIdGenerator, chunk } from './utils';
+import { clone, diff, getDistance, Rectangle, minBy, Point, hasDeepDiff, UniqueIdGenerator, chunks, sleep, profile } from './utils';
 import { NodeShape } from './core/node-shape';
 import { NodePort } from './core/node-port';
 import { NodesService } from './core/services/nodes.service';
@@ -31,6 +30,8 @@ import { MiddlePointsService, MiddlePointAddChildArgs } from './core/services/mi
 import { DomContext } from './core/dom-context';
 import { WireflowManager } from './core/managers/wireflow.manager';
 import { NodesManager } from './core/managers/nodes.manager';
+
+const LAZY_LOAD_CHUNK_SIZE = 2;
 
 interface MessageEditorStateModel {
   messages: GameMessageCommon[];
@@ -190,12 +191,30 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
     this.messages = this.nodesManager.getNodes(this.messages || []);
     this.populatedNodes = this.messages.slice();
 
-    for (const messages of chunk(this.messages.map(x => x.backgroundPath).filter(x => x), 16)) {
-      await Promise.all(messages.map(async backgroundPath => {
-        const url = await backgroundPath.toPromise();
-        this.loadedImages[url] = await this.getImageParam(url);
-      }));
+    const msgs = this.populatedNodes.filter(x => !x['isVisible']);
+
+    for (const chunk of chunks(msgs, LAZY_LOAD_CHUNK_SIZE)) {
+      chunk.forEach(x => x['isVisible'] = true);
+
+      await sleep(600); // Wait for Angular to render SVG elements
+
+      this.domContext.refreshShapeElements();
+      this.diagram.initShapes(chunk);
+
+      await Promise.all(chunk
+        .map(x => x.backgroundPath)
+        .filter(x => x)
+        .map(async backgroundPath => {
+          const url = await backgroundPath.toPromise();
+          this.loadedImages[url] = await this.getImageParam(url);
+        }));
+
+      profile(`CHUNK init msgs: ${chunk.map(x => msgs.indexOf(x)).join(' ')}`,
+        () => this.initState(this.populatedNodes)
+      );
     }
+
+    this.initialized = true;
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -847,7 +866,7 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
           type: x.dependency.type,
           action: x.dependency.type.includes('ProximityDependency') ? 'in range' : x.dependency.action,
           [this.selector]: {},
-          virtual: x.dependency.type.includes('ProximityDependency')
+          virtual: x.dependency.type.includes('ProximityDependency'),
         });
 
         oldNodes = [...this.populatedNodes, message];
@@ -989,18 +1008,28 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
   }
 
   private initState(messages: GameMessageCommon[]) {
-    messages.forEach(message => {
-      if (message[this.selector] && message[this.selector].type && this.diagram.mpAllowedTypes.includes(message[this.selector].type)) {
-
-        if ((message[this.selector].dependencies && message[this.selector].dependencies.length > 0) || message[this.selector].offset) {
-          this.wireflowManager.initNodeMessage(clone(message));
+    messages
+    .forEach(message => {
+      try {
+        if (message[this.selector] && message[this.selector].type && this.diagram.mpAllowedTypes.includes(message[this.selector].type)) {
+          if ((message[this.selector].dependencies && message[this.selector].dependencies.length > 0) || message[this.selector].offset) {
+            if (!message['initNodeMessageDone'] && this.wireflowManager.canInitNodeMessage(message)) {
+              this.wireflowManager.initNodeMessage(clone(message));
+              message['initNodeMessageDone'] = true;
+            }
+          }
+        } else {
+          if (message[this.selector] && ((message[this.selector].generalItemId && message[this.selector].action) ||
+              message[this.selector].type && message[this.selector].type.includes('ProximityDependency'))
+          ) {
+            if (!message['initConnectorDone'] && this.diagram.canInitConnector(message[this.selector], message)) {
+              this.diagram.initConnector(message[this.selector], message);
+              message['initConnectorDone'] = true;
+            }
+          }
         }
-      } else {
-        if (message[this.selector] && ((message[this.selector].generalItemId && message[this.selector].action) ||
-            message[this.selector].type && message[this.selector].type.includes('ProximityDependency'))
-        ) {
-          this.diagram.initConnector(message[this.selector], message);
-        }
+      } catch (err) {
+        console.debug('initState:', err);
       }
     });
 

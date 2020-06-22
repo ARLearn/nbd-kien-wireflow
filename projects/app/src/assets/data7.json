@@ -1,0 +1,274 @@
+[
+    {
+        "type": "org.celstec.arlearn2.beans.generalItem.NarratorItem",
+        "gameId": 5678053736841216,
+        "deleted": false,
+        "lastModificationDate": 1586371384578,
+        "id": 5638350320959488,
+        "scope": "user",
+        "name": "welkom boodschap",
+        "description": "ga verder",
+        "autoLaunch": false,
+        "lng": 5.75727158261725,
+        "lat": 51.00049742195146,
+        "authoringX": 115.875,
+        "authoringY": 141.6017,
+        "fileReferences": {
+            "background": "/game/5678053736841216/Resultaat L-Book fullscreen.png"
+        },
+        "primaryColor": "#5034df",
+        "richText": "Welcome",
+        "message": false,
+        "showFeedback": false,
+        "backgroundPath": {
+            "_isScalar": false,
+            "source": {
+                "_isScalar": false
+            },
+            "operator": {
+                "delay": 2874.4259435706795,
+                "scheduler": {
+                    "actions": [],
+                    "active": false
+                }
+            }
+        },
+        "dependsOn": {}
+    },
+    {
+        "type": "org.celstec.arlearn2.beans.generalItem.NarratorItem",
+        "gameId": 5678053736841216,
+        "deleted": false,
+        "lastModificationDate": 1592477704165,
+        "id": 5652383656837120,
+        "scope": "user",
+        "name": "New message",
+        "description": "next",
+        "dependsOn": {
+            "type": "org.celstec.arlearn2.beans.dependencies.ActionDependency",
+            "action": "read",
+            "generalItemId": "5638350320959488"
+        },
+        "autoLaunch": false,
+        "authoringX": 332,
+        "authoringY": 1726,
+        "fileReferences": {
+            "background": "/game/5678053736841216/Resultaat B-Book fullscreen.png"
+        },
+        "richText": "",
+        "message": true,
+        "showFeedback": false,
+        "backgroundPath": {
+            "_isScalar": false,
+            "source": {
+                "_isScalar": false
+            },
+            "operator": {
+                "delay": 708.9519730333483,
+                "scheduler": {
+                    "actions": [],
+                    "active": false
+                }
+            }
+        }
+    },
+    {
+        "type": "org.celstec.arlearn2.beans.generalItem.SingleChoiceImageTest",
+        "gameId": 5678053736841216,
+        "deleted": false,
+        "lastModificationDate": 1586374047535,
+        "id": 5675720294531072,
+        "scope": "user",
+        "name": "Do you read a lot?",
+        "description": "",
+        "dependsOn": {
+            "type": "org.celstec.arlearn2.beans.dependencies.ActionDependency",
+            "action": "read",
+            "generalItemId": "5652383656837120"
+        },
+        "autoLaunch": false,
+        "authoringX": 546,
+        "authoringY": 283,
+        "fileReferences": {
+            "rwQ1F": "/game/5678053736841216/1A-Answer_A.png",
+            "background": "/game/5678053736841216/Resultaat F-Book fullscreen.png",
+            "wrong": "/game/5678053736841216/Resultaat I-Book fullscreen.png",
+            "AxUO3": "/game/5678053736841216/1A-Answer_B.png",
+            "correct": "/game/5678053736841216/Resultaat A-Book fullscreen.png"
+        },
+        "answers": [
+            {
+                "type": "org.celstec.arlearn2.beans.generalItem.MultipleChoiceAnswerItem",
+                "isCorrect": true,
+                "feedback": "feedback 1",
+                "answer": "",
+                "id": "rwQ1F"
+            },
+            {
+                "type": "org.celstec.arlearn2.beans.generalItem.MultipleChoiceAnswerItem",
+                "isCorrect": false,
+                "feedback": "feedback 2",
+                "answer": "",
+                "id": "AxUO3"
+            }
+        ],
+        "showFeedback": false,
+        "columns": 3,
+        "message": true,
+        "backgroundPath": {
+            "_isScalar": false,
+            "source": {
+                "_isScalar": false
+            },
+            "operator": {
+                "delay": 611.3798577945178,
+                "scheduler": {
+                    "actions": [],
+                    "active": false
+                }
+            }
+        }
+    },
+    {
+        "type": "org.celstec.arlearn2.beans.generalItem.MultipleChoiceImageTest",
+        "gameId": 5678053736841216,
+        "deleted": false,
+        "lastModificationDate": 1592477700198,
+        "id": 5683127032741888,
+        "scope": "user",
+        "name": "multiple options with image",
+        "description": "",
+        "autoLaunch": false,
+        "fileReferences": {
+            "background": "/game/5678053736841216/Resultaat F-Book fullscreen.png",
+            "audgQ": "/game/5678053736841216/3A-Answer_A.png",
+            "uwtn9": "/game/5678053736841216/3B-Answer_B.png"
+        },
+        "answers": [
+            {
+                "type": "org.celstec.arlearn2.beans.generalItem.MultipleChoiceAnswerItem",
+                "isCorrect": false,
+                "feedback": "",
+                "answer": "option 1",
+                "id": "audgQ"
+            },
+            {
+                "type": "org.celstec.arlearn2.beans.generalItem.MultipleChoiceAnswerItem",
+                "isCorrect": false,
+                "feedback": "",
+                "answer": "option 2",
+                "id": "uwtn9"
+            }
+        ],
+        "showFeedback": false,
+        "columns": 3,
+        "message": true,
+        "backgroundPath": {
+            "_isScalar": false,
+            "source": {
+                "_isScalar": false
+            },
+            "operator": {
+                "delay": 2453.9808685468065,
+                "scheduler": {
+                    "actions": [],
+                    "active": false
+                }
+            }
+        },
+        "dependsOn": {}
+    },
+    {
+        "type": "org.celstec.arlearn2.beans.generalItem.NarratorItem",
+        "gameId": 5678053736841216,
+        "deleted": false,
+        "lastModificationDate": 1592477700198,
+        "id": 5711239405633536,
+        "scope": "user",
+        "name": "optie 1",
+        "description": "next",
+        "dependsOn": {
+            "type": "org.celstec.arlearn2.beans.dependencies.ActionDependency",
+            "action": "answer_rwQ1F",
+            "generalItemId": "5675720294531072"
+        },
+        "autoLaunch": false,
+        "authoringX": 1686,
+        "authoringY": 1221,
+        "fileReferences": {
+            "background": "/game/5678053736841216/Resultaat I-Book fullscreen.png"
+        },
+        "richText": "",
+        "message": true,
+        "showFeedback": false,
+        "backgroundPath": {
+            "_isScalar": false,
+            "source": {
+                "_isScalar": false
+            },
+            "operator": {
+                "delay": 2132.7961619032253,
+                "scheduler": {
+                    "actions": [],
+                    "active": false
+                }
+            }
+        },
+        "outputs": [
+            {
+                "type": "org.celstec.arlearn2.beans.dependencies.ActionDependency",
+                "generalItemId": 5711239405633536,
+                "action": "read"
+            },
+            {
+                "type": "org.celstec.arlearn2.beans.dependencies.ActionDependency",
+                "generalItemId": 5711239405633536,
+                "action": "next"
+            }
+        ],
+        "inputs": [
+            {
+                "generalItemId": 5711239405633536,
+                "title": "Input",
+                "type": "org.celstec.arlearn2.beans.dependencies.ActionDependency"
+            }
+        ]
+    },
+    {
+        "type": "org.celstec.arlearn2.beans.generalItem.NarratorItem",
+        "gameId": 5678053736841216,
+        "deleted": false,
+        "lastModificationDate": 1592477701486,
+        "id": 5722383033827328,
+        "scope": "user",
+        "name": "optie 2",
+        "description": "einde",
+        "dependsOn": {
+            "type": "org.celstec.arlearn2.beans.dependencies.ActionDependency",
+            "action": "answer_AxUO3",
+            "generalItemId": "5675720294531072"
+        },
+        "autoLaunch": false,
+        "authoringX": 1012,
+        "authoringY": 1324,
+        "fileReferences": {
+            "background": "/game/5678053736841216/Resultaat M-Book fullscreen.png"
+        },
+        "richText": "you gave an answer",
+        "message": true,
+        "showFeedback": false,
+        "backgroundPath": {
+            "_isScalar": false,
+            "source": {
+                "_isScalar": false
+            },
+            "operator": {
+                "delay": 920.3396431913928,
+                "scheduler": {
+                    "actions": [],
+                    "active": false
+                }
+            }
+        }
+    }
+]

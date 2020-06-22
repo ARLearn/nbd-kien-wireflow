@@ -6,7 +6,7 @@ export class NodesManager {
   constructor(private selector: string) {
   }
 
-  getNodes(messages: GameMessageCommon[]) {
+  getNodes(messages: GameMessageCommon[], initializing = true) {
     const result = messages.map(x => {
 
       const inputs = [
@@ -65,7 +65,7 @@ export class NodesManager {
         );
       }
 
-      return { ...x, outputs, inputs };
+      return { ...x, outputs, inputs, ['isVisible']: !initializing || ( x.authoringX <= window.innerWidth && x.authoringY <= window.innerHeight ) };
     });
 
     const msgs = messages.filter((m: any) => m[this.selector]);
@@ -119,6 +119,7 @@ export class NodesManager {
   populateNode(message) {
     return {
       ...message,
+      ['isVisible']: true,
       inputs: [ // TODO: Add interface PopulatedNode
         {
           generalItemId: message.id,

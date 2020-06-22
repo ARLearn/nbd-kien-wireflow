@@ -146,15 +146,13 @@ export class Connector extends BaseModelUiElement<ConnectorModel> implements Dra
 
     this.staticPort = port;
     this.dragElement.setAttribute('data-drag', `${this.model.id}:connector`);
-
     this.staticElement.setAttribute('data-drag', `${port.model.id}:port`);
-
     this.basePoint = port.global as Point;
 
     TweenLite.set([this.inputHandle, this.outputHandle], {
       x: port.global.x,
-      y: port.global.y
-    });
+      y: port.global.y,
+    }, 0);
 
     return this;
   }

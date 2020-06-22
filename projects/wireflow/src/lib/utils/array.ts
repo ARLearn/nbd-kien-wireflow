@@ -23,3 +23,11 @@ export function diff<T>(
 
   return base;
 }
+
+export function chunks<T>(input: T[], chunkSize: number) {
+    const results = new Array<T[]>();
+    for (let i = 0; i < input.length; i += chunkSize) {
+        results.push(input.slice(i, i + chunkSize));
+    }
+    return results;
+}

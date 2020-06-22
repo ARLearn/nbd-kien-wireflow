@@ -10,6 +10,7 @@ import { PortsService } from './services/ports.service';
 import { ConnectorsService } from './services/connectors.service';
 import { MiddlePointsService } from './services/middle-points.service';
 import { DomContext } from './dom-context';
+import { GameMessageCommon } from '../models/core';
 
 declare const TweenLite;
 declare const Draggable;
@@ -62,7 +63,7 @@ export class Diagram implements DraggableUiElement {
   initShapes(messages) {
     this.domContext.shapeElements.forEach(element => {
       const message = messages.find(x => element.getAttribute('general-item-id') == x.id);
-      this.nodesService.createNode(message, this.getDiagramCoords());
+      message && this.nodesService.createNode(message, this.getDiagramCoords());
     });
   }
 
@@ -77,11 +78,11 @@ export class Diagram implements DraggableUiElement {
   getPortsBy(matcher: (p: NodePort) => boolean) {
     const ports = new Array<NodePort>();
     for (const shape of this.shapes) {
-    for (const port of [...shape.inputs, ...shape.outputs]) {
-      if (matcher(port)) {
-        ports.push(port);
+      for (const port of [...shape.inputs, ...shape.outputs]) {
+        if (matcher(port)) {
+          ports.push(port);
+        }
       }
-    }
     }
     return ports;
   }
@@ -144,7 +145,11 @@ export class Diagram implements DraggableUiElement {
   }
 
   // TODO: Move to connectorsService
-  createInputConnector(message: any, coords: Point, inputMiddlePoint: MiddlePoint): Connector {
+  canCreateInputConnector(message: GameMessageCommon) {
+    return !!this.getInputPortByGeneralItemId(message.id);
+  }
+  // TODO: Move to connectorsService
+  createInputConnector(message: GameMessageCommon, coords: Point, inputMiddlePoint: MiddlePoint): Connector {
 
     const model = this.connectorsService.createConnectorModel(null);
     const connector = new Connector(this.domContext, this.connectorsService, model, coords);
@@ -166,9 +171,21 @@ export class Diagram implements DraggableUiElement {
     return connector;
   }
 
-  initConnector(dependency, message) {
+  canInitConnector(dependency, message: GameMessageCommon)  {
     const inputPort = this.getInputPortByGeneralItemId(message.id);
+    let outputPort: NodePort;
+    if (dependency.type.includes('ProximityDependency')) {
+      outputPort = this.getPortsBy(p => !p.model.isInput &&
+        p.model.generalItemId.toString() === dependency.generalItemId.toString() &&
+        p.nodeType.includes('ProximityDependency'))[0];
+    } else {
+      outputPort = this.getOutputPortByGeneralItemId(dependency.generalItemId, dependency.action);
+    }
+    return !!inputPort && !!outputPort;
+  }
 
+  initConnector(dependency, message: GameMessageCommon) {
+    const inputPort = this.getInputPortByGeneralItemId(message.id);
     let outputPort: NodePort;
     if (dependency.type.includes('ProximityDependency')) {
       outputPort = this.getPortsBy(p => !p.model.isInput &&
@@ -187,7 +204,6 @@ export class Diagram implements DraggableUiElement {
         .removeHandlers()
         .init(inputPort)
         .setOutputPort(outputPort);
-
 
       if (dependency.type.includes('ProximityDependency')) {
         con.setProximity(dependency.lat, dependency.lng, dependency.radius);
@@ -351,7 +367,6 @@ export class Diagram implements DraggableUiElement {
 
   private _getHitPort({dragElement, isInputConnector: isInput}: Connector, shape: NodeShape) {
     const shapePorts = isInput ? shape.outputs : shape.inputs;
-
     for (const port of shapePorts) {
 
       if (Draggable.hitTest(dragElement, port.portElement)) {

@@ -26,40 +26,44 @@ export class WireflowManager {
   populateOutputMessages(messages: any[]) {
     const mainMiddlePoints: MiddlePoint[] = this.diagram.middlePoints.filter(mp => !mp.parentMiddlePoint);
 
-    return clone(messages).map((x: any) => {
+    return clone(messages)
+    .map(x => {
       const message = { ...x };
+      try {
+        const currentMiddlePoint = mainMiddlePoints.find(mp => Number(mp.generalItemId) === x.id);
 
-      const currentMiddlePoint = mainMiddlePoints.find(mp => Number(mp.generalItemId) === x.id);
-
-      if (currentMiddlePoint) {
-        message[this.selector] = currentMiddlePoint.dependency;
-      } else {
-        const singleConnector = this.diagram.connectors.find(
-          c => {
-            const middlePoint = this.diagram.getMiddlePointByConnector(c.model);
-
-            return !middlePoint && c.inputPort.model.generalItemId === x.id.toString();
-          }
-        );
-
-        if (singleConnector) {
-          if (singleConnector.outputPort && singleConnector.outputPort.nodeType &&
-            singleConnector.outputPort.nodeType.includes('ProximityDependency') && singleConnector.model.proximity) {
-            message[this.selector] = {
-              type: singleConnector.outputPort.nodeType,
-              ...singleConnector.model.proximity,
-              generalItemId: x[this.selector].generalItemId
-            };
-          } else {
-            message[this.selector] = {
-              type: singleConnector.outputPort.nodeType,
-              action: singleConnector.outputPort.model.action,
-              generalItemId: singleConnector.outputPort.model.generalItemId
-            };
-          }
+        if (currentMiddlePoint) {
+          message[this.selector] = currentMiddlePoint.dependency;
         } else {
-          message[this.selector] = {};
+          const singleConnector = this.diagram.connectors.find(
+            c => {
+              const middlePoint = this.diagram.getMiddlePointByConnector(c.model);
+
+              return !middlePoint && c.inputPort.model.generalItemId === x.id.toString();
+            }
+          );
+
+          if (singleConnector) {
+            if (singleConnector.outputPort && singleConnector.outputPort.nodeType &&
+              singleConnector.outputPort.nodeType.includes('ProximityDependency') && singleConnector.model.proximity) {
+              message[this.selector] = {
+                type: singleConnector.outputPort.nodeType,
+                ...singleConnector.model.proximity,
+                generalItemId: x[this.selector].generalItemId
+              };
+            } else {
+              message[this.selector] = {
+                type: singleConnector.outputPort.nodeType,
+                action: singleConnector.outputPort.model.action,
+                generalItemId: singleConnector.outputPort.model.generalItemId
+              };
+            }
+          } else {
+            message[this.selector] = {};
+          }
         }
+      } catch (err) {
+        console.debug('populateOutputMessages:', err);
       }
       return message;
     });
@@ -253,6 +257,32 @@ export class WireflowManager {
     return currentConnector;
   }
 
+  canInitMiddlePointGroup(message: GameMessageCommon, outputs: any[]) {
+    
+    let result = this.diagram.canCreateInputConnector(message);
+    
+    if (outputs && outputs.length) {
+      for (const dep of outputs) {
+        if (dep.generalItemId && !dep.type.includes('Proximity')) {
+          const portExists = this.diagram.portsExistsBy(p => {
+            return p.model.generalItemId.toString() === dep.generalItemId.toString() && p.model.action === dep.action
+          });
+          result = result && portExists;
+        }
+
+        if (dep.dependencies && dep.dependencies.length > 0) {
+          result = result && this.canInitMiddlePointGroup(message, dep.dependencies);
+        }
+
+        if (dep.offset) {
+          result = result && this.canInitMiddlePointGroup(message, [dep.offset]);
+        }
+      }
+    }
+
+    return result;
+  }
+
   initMiddlePointGroup(message: any, input: MiddlePoint, outputs: any) {
     const dependency = outputs[0];
     const shape = this.diagram.getShapeByGeneralItemId(message.id);
@@ -326,6 +356,10 @@ export class WireflowManager {
     this.diagram.middlePoints.push(input);
 
     return input;
+  }
+
+  canInitNodeMessage(message: GameMessageCommon) {
+    return this.canInitMiddlePointGroup(message, message[this.selector].dependencies || [message[this.selector].offset]);
   }
 
   initNodeMessage(message: GameMessageCommon) {

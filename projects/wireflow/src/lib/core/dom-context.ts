@@ -14,4 +14,9 @@ export class DomContext {
     get svgElement() { return this._svgElement; }
     get dragProxy() { return this._dragProxy; }
     get connectorLayer() { return this._connectorLayer; }
+
+
+    public refreshShapeElements() {
+        this._shapeElements = Array.from(document.querySelectorAll('.node-container'));
+    }
 }

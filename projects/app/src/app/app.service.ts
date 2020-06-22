@@ -25,6 +25,7 @@ export class AppService {
     // return this.http.get<any[]>('assets/data4.json');
     // return this.http.get<any[]>('assets/data5.json');
     // return this.http.get<any[]>('assets/data6.json');
+    // return this.http.get<any[]>('assets/data7.json');
   }
 
   private _populateNodes(nodes: GameMessageCommon[]) {
