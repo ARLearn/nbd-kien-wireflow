@@ -7,8 +7,8 @@
     "id": 5645612305350656,
     "scope": "user",
     "name": "watch this video (if you have both the single and multiple choice correct)",
-    "authoringX": 1059.7049876363562,
-    "authoringY": 669.646992613285,
+    "authoringX": 1992,
+    "authoringY": 1884,
     "dependsOn": {
       "type": "org.celstec.arlearn2.beans.dependencies.OrDependency",
       "dependencies": [

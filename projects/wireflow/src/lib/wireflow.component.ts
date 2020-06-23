@@ -197,7 +197,6 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
       chunk.forEach(x => x['isVisible'] = true);
 
       await sleep(600); // Wait for Angular to render SVG elements
-
       this.domContext.refreshShapeElements();
       this.diagram.initShapes(chunk);
 
@@ -542,9 +541,12 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
 
     this.subscription.add(this.nodeNew.subscribe(({message, model, point}) => {
       const element = document.querySelector(`.node-container[general-item-id="${ message.id }"]`) as HTMLElement;
-      const shape = new NodeShape(this.nodesService, element, model, point);
-      this.diagram.shapes.push(shape);
-      shape.initChildren();
+
+      if (!this.diagram.shapeExist(model.generalItemId)) {
+        const shape = new NodeShape(this.nodesService, element, model, point);
+        this.diagram.shapes.push(shape);
+        shape.initChildren();
+      }
     }));
 
     this.subscription.add(this.nodeInit.subscribe(({ model, inputs, outputs }) => {

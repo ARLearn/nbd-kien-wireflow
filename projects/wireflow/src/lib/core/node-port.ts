@@ -56,7 +56,6 @@ export class NodePort extends BaseModelUiElement<PortModel> implements Draggable
 
   update() {
     this.updatePlacement();
-
     this.service.updatePort(this.model);
   }
 

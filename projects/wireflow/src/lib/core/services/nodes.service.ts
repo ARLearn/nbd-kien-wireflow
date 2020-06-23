@@ -52,7 +52,13 @@ export class NodesService extends BaseService<NodeModel> {
 
     this.models.push(model);
 
-    const point = { x: message.authoringX - offset.x, y: message.authoringY - offset.y };
+    let point;
+
+    if (message['initNodeMessageDone']) {
+      point = { x: message.authoringX, y: message.authoringY };
+    } else {
+      point = { x: message.authoringX - offset.x, y: message.authoringY - offset.y };
+    }
 
     this.nodeNew$.next({ message, model, point });
   }
@@ -74,5 +80,9 @@ export class NodesService extends BaseService<NodeModel> {
   removeNode(id: string) {
     this.models.splice(this.models.findIndex(x => x.id === id), 1);
     this.nodeRemove$.next(id);
+  }
+
+  exists(generalItemId: any): boolean {
+    return this.models.findIndex(x => x.generalItemId.toString() === generalItemId.toString()) > -1;
   }
 }

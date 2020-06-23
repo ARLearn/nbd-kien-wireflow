@@ -75,6 +75,10 @@ export class Diagram implements DraggableUiElement {
     return this.shapes.find(x => x.model.generalItemId === generalItemId.toString());
   }
 
+  shapeExist(generalItemId): boolean {
+    return this.shapes.findIndex(x => x.model.generalItemId === generalItemId.toString()) > -1;
+  }
+
   getPortsBy(matcher: (p: NodePort) => boolean) {
     const ports = new Array<NodePort>();
     for (const shape of this.shapes) {
