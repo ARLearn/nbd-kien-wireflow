@@ -30,6 +30,7 @@ import { MiddlePointsService, MiddlePointAddChildArgs } from './core/services/mi
 import { DomContext } from './core/dom-context';
 import { WireflowManager } from './core/managers/wireflow.manager';
 import { NodesManager } from './core/managers/nodes.manager';
+import { DiagramService } from './core/services/diagram.service';
 
 const LAZY_LOAD_CHUNK_SIZE = 2;
 
@@ -112,6 +113,7 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
   portsService: PortsService;
   connectorsService: ConnectorsService;
   middlePointsService: MiddlePointsService;
+  diagramService: DiagramService;
 
   // managers
   nodesManager: NodesManager;
@@ -143,6 +145,7 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
   get middlePointRemove() { return this.middlePointsService.middlePointRemove; }
   get middlePointRemoveOutputConnector() { return this.middlePointsService.middlePointRemoveOutputConnector; }
   get nodeClick() { return this.nodesService.nodeClick; }
+  get diagramDragged() { return this.diagramService.diagramDrag; }
 
   get heightTitle() {
     return this._heightTitle;
@@ -165,6 +168,8 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
         }),
         map(result => {
           const messages = clone(result);
+
+
           messages.forEach((message: any) => {
             const deps = this.nodesManager.getAllDependenciesByCondition(
               message[this.selector], (d: any) => d && d.type && d.type.includes('ProximityDependency')
@@ -191,29 +196,34 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
     this.messages = this.nodesManager.getNodes(this.messages || []);
     this.populatedNodes = this.messages.slice();
 
-    const msgs = this.populatedNodes.filter(x => !x['isVisible']);
+    // const msgs = this.populatedNodes.filter(x => !x['isVisible']);
+    // const msgs = [];
 
-    for (const chunk of chunks(msgs, LAZY_LOAD_CHUNK_SIZE)) {
-      chunk.forEach(x => x['isVisible'] = true);
-
-      await sleep(600); // Wait for Angular to render SVG elements
-      this.domContext.refreshShapeElements();
-      this.diagram.initShapes(chunk);
-
-      await Promise.all(chunk
-        .map(x => x.backgroundPath)
-        .filter(x => x)
-        .map(async backgroundPath => {
-          const url = await backgroundPath.toPromise();
-          this.loadedImages[url] = await this.getImageParam(url);
-        }));
-
-      profile(`CHUNK init msgs: ${chunk.map(x => msgs.indexOf(x)).join(' ')}`,
-        () => this.initState(this.populatedNodes)
-      );
-    }
+    // for (const chunk of chunks(msgs, LAZY_LOAD_CHUNK_SIZE)) {
+    //   await this.renderChunk(chunk, msgs);
+    // }
 
     this.initialized = true;
+  }
+
+  async renderChunk(chunk, msgs) {
+    chunk.forEach(x => x['isVisible'] = true);
+
+    await sleep(600); // Wait for Angular to render SVG elements
+    this.domContext.refreshShapeElements();
+    this.diagram.initShapes(chunk);
+
+    await Promise.all(chunk
+      .map(x => x.backgroundPath)
+      .filter(x => x)
+      .map(async backgroundPath => {
+        const url = await backgroundPath.toPromise();
+        this.loadedImages[url] = await this.getImageParam(url);
+      }));
+
+    profile(`CHUNK init msgs: ${chunk.map(x => msgs.indexOf(x)).join(' ')}`,
+      () => this.initState(this.populatedNodes)
+    );
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -593,6 +603,33 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
       this.toggleSelectedMessage(message.id.toString());
     }));
 
+    this.subscription.add(this.diagramDragged.subscribe(async () => {
+
+      const offset = this.diagram.getDiagramCoords();
+      const start = { x: Math.abs(offset.x), y: Math.abs(offset.y) };
+      const end = { x: start.x + window.innerWidth, y: start.y + window.innerHeight };
+
+      const nodes = this.populatedNodes.filter(x => !x['virtual'] && (
+        x.authoringX >= start.x && x.authoringX <= end.x &&
+        x.authoringY >= start.y && x.authoringY <= end.y
+      ));
+
+      const unvisibleNodes = this.populatedNodes.filter(n => !n['isVisible']);
+      const neighboursToRender = [];
+      for (const visibleNode of nodes.filter(n => n['isVisible'])) {
+        const neighbours = this.nodesManager.getClosestNodes(visibleNode, unvisibleNodes);
+        neighboursToRender.push(...neighbours);
+      }
+
+      const neighbourIds = neighboursToRender.map(x => x.id);
+
+      const nodesToRender = [...neighboursToRender, ...nodes.filter(x => !neighbourIds.includes(x.id))];
+
+      for (const chunk of chunks(nodesToRender, LAZY_LOAD_CHUNK_SIZE)) {
+        await this.renderChunk(chunk, this.messages);
+      }
+    }));
+
     this.diagram.initShapes(this.messages);
     this.initState(this.messages);
   }
@@ -735,7 +772,8 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
       return;
     }
     if (
-      this.populatedNodesPrev
+         this.lastAddedPort
+      && this.populatedNodesPrev
       && this.populatedNodes
       && hasDeepDiff(
         this.populatedNodesPrev.map(x => this._preDiff(x)),
@@ -811,6 +849,7 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
     this.portsService = new PortsService(uniqueIdGenerator);
     this.connectorsService = new ConnectorsService(uniqueIdGenerator, this.domContext);
     this.middlePointsService = new MiddlePointsService(uniqueIdGenerator);
+    this.diagramService = new DiagramService();
 
     this.diagram = new Diagram(
       this.domContext,
@@ -818,6 +857,7 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
       this.portsService,
       this.connectorsService,
       this.middlePointsService,
+      this.diagramService,
     );
 
     this.wireflowManager = new WireflowManager(
@@ -1050,12 +1090,7 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
   }
 
   private _preDiff(input: GameMessageCommon) {
-    return {
-      ...input,
-      lastModificationDate: undefined,
-      authoringX: undefined,
-      authoringY: undefined,
-    }
+    return input['outputs']
   }
 
   ngOnDestroy() {

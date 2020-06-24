@@ -11,6 +11,7 @@ import { ConnectorsService } from './services/connectors.service';
 import { MiddlePointsService } from './services/middle-points.service';
 import { DomContext } from './dom-context';
 import { GameMessageCommon } from '../models/core';
+import { DiagramService } from './services/diagram.service';
 
 declare const TweenLite;
 declare const Draggable;
@@ -43,6 +44,7 @@ export class Diagram implements DraggableUiElement {
     private portsService: PortsService,
     private connectorsService: ConnectorsService,
     private middlePointsService: MiddlePointsService,
+    private diagramService: DiagramService,
   ) {
     this.target = null;
     this.dragType = null;
@@ -63,7 +65,7 @@ export class Diagram implements DraggableUiElement {
   initShapes(messages) {
     this.domContext.shapeElements.forEach(element => {
       const message = messages.find(x => element.getAttribute('general-item-id') == x.id);
-      message && this.nodesService.createNode(message, this.getDiagramCoords());
+      message && this.nodesService.createNode(message, this.getDiagramCoords(), true);
     });
   }
 
@@ -323,6 +325,8 @@ export class Diagram implements DraggableUiElement {
 
   private _stopDragging({id, dragType}) {
     this.dragging = false;
+
+
     switch (dragType) {
       case 'shape':
         this.target = this.getShapeById(id);
@@ -333,6 +337,11 @@ export class Diagram implements DraggableUiElement {
 
         this.cleanDraggableShapes();
         break;
+      case 'diagram': {
+        if (this.target instanceof Diagram) {
+          this.diagramService.drag();
+        }
+      }
       default: {
         if (this.target) {
           const hitShape = this.target instanceof Connector && this._getHitShape(

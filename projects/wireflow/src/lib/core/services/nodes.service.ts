@@ -41,7 +41,7 @@ export class NodesService extends BaseService<NodeModel> {
   get nodeCoordinatesChanged() { return this.nodeCoordinatesChanged$.asObservable(); }
   get nodeClick() { return this.nodeClick$.asObservable(); }
 
-  createNode(message: GameMessageCommon, offset: Point) {
+  createNode(message: GameMessageCommon, offset: Point, skipOffset = false) {
     const model = {
       id: `shape_${this.uniqueIdGenerator.generate()}`,
       generalItemId: message.id.toString(),
@@ -54,7 +54,7 @@ export class NodesService extends BaseService<NodeModel> {
 
     let point;
 
-    if (message['initNodeMessageDone']) {
+    if (skipOffset) {
       point = { x: message.authoringX, y: message.authoringY };
     } else {
       point = { x: message.authoringX - offset.x, y: message.authoringY - offset.y };
