@@ -1,6 +1,6 @@
 {
   "name": "@arlearn/nbd-kien-wireflow",
-  "version": "0.0.5",
+  "version": "0.0.7",
   "repository": "git@github.com:arlearn/nbd-kien-wireflow.git",
   "peerDependencies": {
     "@angular/common": "^8.2.14",

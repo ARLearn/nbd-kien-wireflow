@@ -196,17 +196,10 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
     this.messages = this.nodesManager.getNodes(this.messages || []);
     this.populatedNodes = this.messages.slice();
 
-    // const msgs = this.populatedNodes.filter(x => !x['isVisible']);
-    // const msgs = [];
-
-    // for (const chunk of chunks(msgs, LAZY_LOAD_CHUNK_SIZE)) {
-    //   await this.renderChunk(chunk, msgs);
-    // }
-
     this.initialized = true;
   }
 
-  async renderChunk(chunk, msgs) {
+  async renderChunk(chunk) {
     chunk.forEach(x => x['isVisible'] = true);
 
     await sleep(600); // Wait for Angular to render SVG elements
@@ -221,9 +214,7 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
         this.loadedImages[url] = await this.getImageParam(url);
       }));
 
-    profile(`CHUNK init msgs: ${chunk.map(x => msgs.indexOf(x)).join(' ')}`,
-      () => this.initState(this.populatedNodes)
-    );
+    this.initState(this.populatedNodes);
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -606,32 +597,30 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
     this.subscription.add(this.diagramDragged.subscribe(async () => {
 
       const offset = this.diagram.getDiagramCoords();
-      const start = { x: Math.abs(offset.x), y: Math.abs(offset.y) };
+      const start = { x: -offset.x, y: -offset.y };
       const end = { x: start.x + window.innerWidth, y: start.y + window.innerHeight };
 
-      const nodes = this.populatedNodes.filter(x => !x['virtual'] && (
-        x.authoringX >= start.x && x.authoringX <= end.x &&
-        x.authoringY >= start.y && x.authoringY <= end.y
+      const visibleNodes = this.populatedNodes.filter(node => !node['virtual'] && (
+        node.authoringX >= start.x && node.authoringX <= end.x &&
+        node.authoringY >= start.y && node.authoringY <= end.y
       ));
 
-      const unvisibleNodes = this.populatedNodes.filter(n => !n['isVisible']);
-      const neighboursToRender = [];
-      for (const visibleNode of nodes.filter(n => n['isVisible'])) {
+      const closest = [];
+      const unvisibleNodes = this.populatedNodes.filter(node => !node['isVisible']);
+
+      for (const visibleNode of visibleNodes) {
         const neighbours = this.nodesManager.getClosestNodes(visibleNode, unvisibleNodes);
-        neighboursToRender.push(...neighbours);
+        closest.push(...neighbours);
       }
 
-      const neighbourIds = neighboursToRender.map(x => x.id);
-
-      const nodesToRender = [...neighboursToRender, ...nodes.filter(x => !neighbourIds.includes(x.id))];
-
-      for (const chunk of chunks(nodesToRender, LAZY_LOAD_CHUNK_SIZE)) {
-        await this.renderChunk(chunk, this.messages);
-      }
+      await this.renderChunk([...visibleNodes, ...closest]);
     }));
 
     this.diagram.initShapes(this.messages);
     this.initState(this.messages);
+    setTimeout(() => {
+      this.diagramService.drag();
+    }, 100);
   }
 
   filterOutputs(outputs: any[]) {

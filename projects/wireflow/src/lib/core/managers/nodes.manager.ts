@@ -65,9 +65,9 @@ export class NodesManager {
         );
       }
 
-      const predicate = x.authoringX >= 0 && x.authoringX <= window.innerWidth && x.authoringY >= 0 && x.authoringY <= window.innerHeight;
+      // const predicate = x.authoringX >= 0 && x.authoringX <= window.innerWidth && x.authoringY >= 0 && x.authoringY <= window.innerHeight;
 
-      return { ...x, outputs, inputs, ['isVisible']: !initializing || predicate };
+      return { ...x, outputs, inputs };
     });
 
     const msgs = messages.filter((m: any) => m[this.selector]);
@@ -114,15 +114,15 @@ export class NodesManager {
         }
       });
     });
-    // find neighbours for correct rendering first screen
-    const visibleMessages = result.filter(m => m['isVisible'] && !m['virtual']);
-    const unvisibleMessages = result.filter(m => !m['isVisible'] && !m['virtual']);
+    // // find neighbours for correct rendering first screen
+    // const visibleMessages = result.filter(m => m['isVisible'] && !m['virtual']);
+    // const unvisibleMessages = result.filter(m => !m['isVisible'] && !m['virtual']);
 
-    for (const visibleMessage of visibleMessages) {
-      const closest = this.getClosestNodes(visibleMessage, unvisibleMessages);
-      // console.log(visibleMessage, closest);
-      closest.forEach(element => element['isVisible'] = true);
-    }
+    // for (const visibleMessage of visibleMessages) {
+    //   const closest = this.getClosestNodes(visibleMessage, unvisibleMessages);
+    //   // console.log(visibleMessage, closest);
+    //   closest.forEach(element => element['isVisible'] = true);
+    // }
 
     return result;
   }
