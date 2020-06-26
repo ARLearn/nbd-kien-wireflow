@@ -11,6 +11,7 @@ import {
   ViewEncapsulation,
   DoCheck,
   AfterViewChecked,
+  ChangeDetectorRef,
 } from '@angular/core';
 import { Observable, Subject, Subscription } from 'rxjs';
 import { distinct, filter, map, skip } from 'rxjs/operators';
@@ -154,6 +155,7 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
   constructor(
     public ngxSmartModalService: NgxSmartModalService,
     private translate: TranslateService,
+    private changeDetectorRef: ChangeDetectorRef,
   ) {
     this.nodesManager = new NodesManager(this.selector);
 
@@ -201,7 +203,7 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
 
   async renderChunk(chunk) {
     chunk.forEach(x => x['isVisible'] = true);
-
+    this.changeDetectorRef.detectChanges();
     await sleep(600); // Wait for Angular to render SVG elements
     this.domContext.refreshShapeElements();
     this.diagram.initShapes(chunk);
@@ -213,7 +215,6 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
         const url = await backgroundPath.toPromise();
         this.loadedImages[url] = await this.getImageParam(url);
       }));
-
     this.initState(this.populatedNodes);
   }
 
@@ -597,7 +598,7 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
     this.subscription.add(this.diagramDragged.subscribe(async () => {
 
       const offset = this.diagram.getDiagramCoords();
-      const start = { x: -offset.x, y: -offset.y };
+      const start = { x: offset.x !== 0 ? -offset.x : 0, y: offset.y !== 0 ? -offset.y : 0 };
       const end = { x: start.x + window.innerWidth, y: start.y + window.innerHeight };
 
       const visibleNodes = this.populatedNodes.filter(node => !node['virtual'] && (
@@ -616,11 +617,9 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
       await this.renderChunk([...visibleNodes, ...closest]);
     }));
 
-    this.diagram.initShapes(this.messages);
-    this.initState(this.messages);
     setTimeout(() => {
       this.diagramService.drag();
-    }, 100);
+    }, 1000);
   }
 
   filterOutputs(outputs: any[]) {
