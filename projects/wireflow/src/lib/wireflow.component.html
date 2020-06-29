@@ -28,7 +28,7 @@
             <rect x="0" y="0" height="100%" width="100%" fill="transparent"
               (click)="selectedMessageId && onDiagramBackdropClick()" />
             <g *ngFor="let node of populatedNodes; let c = index">
-              <g class="node-container"
+              <g class="node-container node-container--new"
                 *ngIf="node['isVisible']"
                 [class.border--selected]="node.id.toString() === selectedMessageId" [attr.general-item-id]="node.id"
                 [attr.dependency-type]="node.type" (mouseenter)="onNodeMouseEnter($event)"

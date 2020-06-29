@@ -22,6 +22,7 @@ export class NodeShape extends BaseModelUiElement<NodeModel> implements Draggabl
     );
 
     nativeElement.setAttribute('data-drag', `${this.model.id}:shape`);
+    nativeElement.classList.remove('node-container--new');
 
     this.move(point);
 
