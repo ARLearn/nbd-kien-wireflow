@@ -162,7 +162,7 @@ export class Connector extends BaseModelUiElement<ConnectorModel> implements Dra
   }
 
   onDragEnd(port: NodePort) {
-    if (!port || port.parentNode.nativeElement === this.staticPort.parentNode.nativeElement) {
+    if (!port) {
       this.remove();
       return;
     }

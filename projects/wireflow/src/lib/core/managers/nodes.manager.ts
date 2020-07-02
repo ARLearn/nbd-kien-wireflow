@@ -114,15 +114,6 @@ export class NodesManager {
         }
       });
     });
-    // // find neighbours for correct rendering first screen
-    // const visibleMessages = result.filter(m => m['isVisible'] && !m['virtual']);
-    // const unvisibleMessages = result.filter(m => !m['isVisible'] && !m['virtual']);
-
-    // for (const visibleMessage of visibleMessages) {
-    //   const closest = this.getClosestNodes(visibleMessage, unvisibleMessages);
-    //   // console.log(visibleMessage, closest);
-    //   closest.forEach(element => element['isVisible'] = true);
-    // }
 
     return result;
   }

@@ -353,6 +353,7 @@ export class Diagram implements DraggableUiElement {
             this.target as Connector,
             hitShape,
           ) || ( !(this.target as Connector).isInputConnector && hitShape.inputs[0] ) );
+
           this.target.onDragEnd && this.target.onDragEnd(hitPort);
         }
         break;

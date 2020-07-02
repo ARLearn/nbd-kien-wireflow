@@ -760,7 +760,7 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
       return;
     }
     if (
-         this.lastAddedPort
+         (this.lastAddedPort || this.lastAddedNode)
       && this.populatedNodesPrev
       && this.populatedNodes
       && hasDeepDiff(
@@ -1053,7 +1053,7 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
               message[this.selector].type && message[this.selector].type.includes('ProximityDependency'))
           ) {
             if (!message['initConnectorDone'] && this.diagram.canInitConnector(message[this.selector], message)) {
-              this.diagram.initConnector(message[this.selector], message);
+              this.diagram.initConnector(message[this.selector], message).onDrag();
               message['initConnectorDone'] = true;
             }
           }
