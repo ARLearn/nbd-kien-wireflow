@@ -3,6 +3,7 @@ import { BaseService} from './base.service';
 import { NodeModel } from '../models';
 import { GameMessageCommon } from '../../models/core';
 import { Point, UniqueIdGenerator } from '../../utils';
+import { Injectable } from '@angular/core';
 
 export interface InputModel { generalItemId: string };
 export interface OutputModel { generalItemId: string, action: string };
@@ -24,6 +25,7 @@ export interface NodeSetCoordsArgs {
   messageId: string;
 }
 
+@Injectable()
 export class NodesService extends BaseService<NodeModel> {
   private nodeNew$ = new Subject<NodeShapeNewArgs>();
   private nodeInit$ = new Subject<NodeInitArgs>();

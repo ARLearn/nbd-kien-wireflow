@@ -3,6 +3,7 @@ import { BaseService } from './base.service';
 import { ConnectorModel, PortModel } from '../models';
 import { getNumberFromPixels, Point, UniqueIdGenerator } from '../../utils';
 import { DomContext } from '../dom-context';
+import { Injectable } from '@angular/core';
 
 export interface ConnectorArgs {
   connectorModel: ConnectorModel;
@@ -45,6 +46,7 @@ export interface ConnectorClickArgs {
   isSelected: boolean;
 }
 
+@Injectable()
 export class ConnectorsService extends BaseService<ConnectorModel> {
   private connectorCreate$ = new Subject<ConnectorArgs>();
   private connectorHover$ = new Subject<ConnectorArgs>();
@@ -71,16 +73,10 @@ export class ConnectorsService extends BaseService<ConnectorModel> {
   get changeDependencies() { return this.changeDependencies$.asObservable(); }
 
   constructor(
-    uniqueIdGenerator: UniqueIdGenerator,
+    public uniqueIdGenerator: UniqueIdGenerator,
     private domContext: DomContext,
-    models = []
   ) {
     super(uniqueIdGenerator);
-  }
-
-  // TODO: Move uniqueIDGenerator to Injector
-  generateUniqueId() {
-    return this.uniqueIdGenerator.generate();
   }
 
   createConnector(opts: ConnectorArgs) {
@@ -140,27 +136,12 @@ export class ConnectorsService extends BaseService<ConnectorModel> {
   }
 
   removeConnectorModel(id: string) {
+    const oldLen = this.models.length;
     this.models = this.models.filter(c => c.id !== id);
-  }
-
-  private getDiagramCoords() {
-    let x = 0;
-    let y = 0;
-
-    if (this.domContext.diagramElement['_gsap']) {
-      x = getNumberFromPixels(this.domContext.diagramElement['_gsap'].x);
-      y = getNumberFromPixels(this.domContext.diagramElement['_gsap'].y);
-    }
-
-    return { x, y };
+    return this.models.length !== oldLen;
   }
 
   getConnectorCoordinatesOffset(): Point {
-    const {offsetLeft, offsetTop} = this.domContext.svgElement.parentNode as HTMLElement;
-    const point = this.getDiagramCoords();
-    return {
-      x: offsetLeft + point.x,
-      y: offsetTop + point.y
-    } as Point;
+    return this.domContext.getOffsetCoordinates();
   }
 }

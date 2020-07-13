@@ -1,3 +1,4 @@
+import { getNumberFromPixels, Point } from '../utils';
 
 
 export class DomContext {
@@ -18,5 +19,27 @@ export class DomContext {
 
     public refreshShapeElements() {
         this._shapeElements = Array.from(document.querySelectorAll('.node-container'));
+    }
+
+    public getOffsetCoordinates(): Point {
+        const { offsetLeft, offsetTop } = this.svgElement.parentNode as HTMLElement;
+        const point = this.getDiagramCoords();
+
+        return {
+            x: offsetLeft + point.x,
+            y: offsetTop + point.y
+        };
+    }
+
+    private getDiagramCoords() {
+        let x = 0;
+        let y = 0;
+    
+        if (this.diagramElement['_gsap']) {
+          x = getNumberFromPixels(this.diagramElement['_gsap'].x);
+          y = getNumberFromPixels(this.diagramElement['_gsap'].y);
+        }
+    
+        return { x, y };
     }
 }

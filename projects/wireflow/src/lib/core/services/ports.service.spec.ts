@@ -1,7 +1,7 @@
 import { TestBed, fakeAsync, tick } from '@angular/core/testing';
 
 import { ServicesModule } from './services.module';
-import { PortsService, NodePortNewArgs } from './ports.service';
+import { PortsService, NodePortNewArgs, NodePortUpdateArgs } from './ports.service';
 import { PortModel } from '../models'
 import { Observable } from 'rxjs';
 import { UniqueIdGenerator } from '../../utils';
@@ -81,4 +81,31 @@ describe('PortsService', () => {
 
   });
 
+  describe('updatePort()', () => {
+    let emittedNodePortUpdate: NodePortUpdateArgs;
+
+    beforeEach(fakeAsync(() => {
+        service.nodePortUpdate.subscribe(x => emittedNodePortUpdate = x);
+        tick();
+    }));
+
+    ([
+      {action: 'action 1', generalItemId: 'generalItemId 1', isInput: false, connectors: [{}, {}]},
+      {action: 'action 2', generalItemId: 'generalItemId 1', isInput: false, connectors: []},
+      {action: 'action 3', generalItemId: 'generalItemId 2', isInput: true, connectors: []},
+    ] as PortModel[])
+    .forEach(args => {
+      it(`'nodePortUpdate' emits correct object for ${JSON.stringify(args)}`, fakeAsync(() => {
+        
+        service.updatePort(args);
+        tick();
+
+        expect(emittedNodePortUpdate.port.id).toBe(args.id);
+        expect(emittedNodePortUpdate.port.isInput).toBe(args.isInput);
+        expect(emittedNodePortUpdate.port.generalItemId).toBe(args.generalItemId);
+        expect(emittedNodePortUpdate.port.connectors).toBe(args.connectors);
+        expect(emittedNodePortUpdate.port.action).toBe(args.action);
+      }));
+    });
+  });
 });

@@ -4,6 +4,7 @@ import { MiddlePointModel } from '../models/MiddlePointModel';
 import { Dependency } from '../../models/core';
 import { ConnectorModel } from '../models';
 import { UniqueIdGenerator } from '../../utils';
+import { Injectable } from '@angular/core';
 
 export interface MiddlePointAddChildArgs {
   id: number;
@@ -26,6 +27,7 @@ export interface MiddlePointRemoveOutputConnectorArgs {
   removeDependency: boolean;
 }
 
+@Injectable()
 export class MiddlePointsService extends BaseService<MiddlePointModel> {
   private middlePointInit$ = new Subject<MiddlePointArgs>();
   private middlePointMove$ = new Subject<MiddlePointArgs>();
@@ -79,7 +81,11 @@ export class MiddlePointsService extends BaseService<MiddlePointModel> {
     this.middlePointRemoveOutputConnector$.next(opts);
   }
 
+  findMiddlePointModelIndex(id: string) {
+    return this.models.findIndex((x) => x.id === id);
+  }
+
   removeMiddlePointModel(id: string) {
-    this.models.splice(this.models.findIndex((x) => x.id === id), 1);
+    return this.models.splice(this.findMiddlePointModelIndex(id), 1).length > 0;
   }
 }
