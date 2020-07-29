@@ -1,12 +1,12 @@
-import { GameMessageCommon } from '../../models/core';
-import { MultipleChoiceScreen } from '../../models/core';
+import { GameMessageCommon, MultipleChoiceScreen } from '../../models/core';
+import has = Reflect.has;
 
 export class NodesManager {
 
   constructor(private selector: string) {
   }
 
-  getNodes(messages: GameMessageCommon[], initializing = true) {
+  getNodes(messages: GameMessageCommon[]) {
     const result = messages.map(x => {
 
       const inputs = [
@@ -121,15 +121,27 @@ export class NodesManager {
   // finds closest nodes
   getClosestNodes(node, unvisibleNodes) {
     return unvisibleNodes.filter(m => {
-      const deps = this.getAllDependenciesByCondition(
-        m[this.selector],
+      const hasInputs = this.getAllDependenciesByCondition(
+        node[this.selector],
         dependency => {
           return dependency && dependency.action && dependency.generalItemId &&
-            node.id.toString() === dependency.generalItemId.toString();
+            m.id.toString() === dependency.generalItemId.toString();
         }
-      );
+      ).length > 0;
 
-      return deps.length > 0;
+      let hasOutputs = false;
+
+      if (!hasInputs) {
+        hasOutputs = this.getAllDependenciesByCondition(
+          m[this.selector],
+          dependency => {
+            return dependency && dependency.action && dependency.generalItemId &&
+              node.id.toString() === dependency.generalItemId.toString();
+          }
+        ).length > 0;
+      }
+
+      return hasInputs || hasOutputs;
     });
   }
 
