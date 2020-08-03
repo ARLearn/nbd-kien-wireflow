@@ -261,7 +261,6 @@ export class WireflowManager {
       currentConnector.removeHandlers();
     }
 
-
     return currentConnector;
   }
 
@@ -418,6 +417,7 @@ export class WireflowManager {
 
       dep.generalItemId = lastOutput.generalItemId;
     }
+    console.log(lastAddedNode, currentMiddleConnector.shape, dep);
 
     this.createConnector(lastAddedNode, currentMiddleConnector, currentMiddleConnector.shape, dep);
   }

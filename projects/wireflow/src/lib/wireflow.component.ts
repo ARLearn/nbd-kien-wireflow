@@ -21,7 +21,20 @@ import { NgxSmartModalService } from 'ngx-smart-modal';
 import { Diagram } from './core/diagram';
 import { GameMessageCommon } from './models/core';
 import { Connector } from './core/connector';
-import { clone, diff, getDistance, Rectangle, minBy, Point, hasDeepDiff, UniqueIdGenerator, chunks, sleep, profile } from './utils';
+import {
+  clone,
+  diff,
+  getDistance,
+  Rectangle,
+  minBy,
+  Point,
+  hasDeepDiff,
+  UniqueIdGenerator,
+  chunks,
+  sleep,
+  profile,
+  GMapCircle, getStaticMapWithCircle
+} from './utils';
 import { NodeShape } from './core/node-shape';
 import { NodePort } from './core/node-port';
 import { NodesService } from './core/services/nodes.service';
@@ -34,8 +47,6 @@ import { NodesManager } from './core/managers/nodes.manager';
 import { DiagramService } from './core/services/diagram.service';
 import { CoreUIFactory } from './core/core-ui-factory';
 import { TweenLiteService } from './core/services/tween-lite.service';
-
-const LAZY_LOAD_CHUNK_SIZE = 2;
 
 interface MessageEditorStateModel {
   messages: GameMessageCommon[];
@@ -125,6 +136,11 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
   wireflowManager: WireflowManager;
 
   private initialized = false;
+  private lastAddedProximity: any;
+
+  get mapURL() {
+    return 'https://lh3.googleusercontent.com/Kf8WTct65hFJxBUDm5E-EpYsiDoLQiGGbnuyP6HBNax43YShXti9THPon1YKB6zPYpA';
+  }
 
   get dependenciesOutput() { return this.connectorsService.changeDependencies; }
   get coordinatesOutputSubject() { return this.nodesService.nodeCoordinatesChanged.pipe(distinct()); }
@@ -170,11 +186,11 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
         map((b: any) => {
           const a = this.state.messagesOld.filter((x: any) => !x.virtual);
           b = b.filter(x => !x.virtual);
-          return diff(b, a);
+
+          return diff(b, a, this._preChange);
         }),
         map(result => {
           const messages = clone(result);
-
 
           messages.forEach((message: any) => {
             const deps = this.nodesManager.getAllDependenciesByCondition(
@@ -236,6 +252,10 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
   }
 
   getHeight(node) {
+    if (node['virtual']) {
+      return 152;
+    }
+
     return Math.max(
       this.heightPoint * Math.max(node.inputs.length, node.outputs.length),
       this.minHeightMainBlock + this._heightTitle
@@ -605,7 +625,7 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
       const start = { x: offset.x !== 0 ? -offset.x : 0, y: offset.y !== 0 ? -offset.y : 0 };
       const end = { x: start.x + window.innerWidth, y: start.y + window.innerHeight };
 
-      const visibleNodes = this.populatedNodes.filter(node => !node['virtual'] && (
+      const visibleNodes = this.populatedNodes.filter(node => (
         node.authoringX >= start.x && node.authoringX <= end.x &&
         node.authoringY >= start.y && node.authoringY <= end.y
       ));
@@ -623,6 +643,8 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
 
     setTimeout(() => {
       this.diagramService.drag();
+
+      this.connectorsService.emitChangeDependencies();
     }, 1000);
   }
 
@@ -738,6 +760,20 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
     draggableElement && draggableElement.classList.remove('no-events');
   }
 
+  isAbleToAddProximity(node) {
+    const proximities = this.nodesManager.getAllDependenciesByCondition(node[this.selector], dep => {
+      return dep && dep.type && dep.type.includes('Proximity');
+    });
+
+    return !node.virtual && proximities.length === 0;
+  }
+
+  setProximity(event, node) {
+    event.stopPropagation();
+
+    this.ngxSmartModalService.getModal('proximityModal').setData({ nodeId: node.id }, true).open();
+  }
+
   onQrOutputSubmit(value) {
     const { data } = this.ngxSmartModalService.getModalData('actionQrOutputScanTagModal');
     const message = this.populatedNodes.find((x: any) => x.id && x.id.toString() === data.generalItemId.toString()) as any;
@@ -763,8 +799,9 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
     if (!this.initialized) {
       return;
     }
+
     if (
-         (this.lastAddedPort || this.lastAddedNode)
+         (this.lastAddedPort || this.lastAddedNode || this.lastAddedProximity)
       && this.populatedNodesPrev
       && this.populatedNodes
       && hasDeepDiff(
@@ -871,7 +908,14 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
   }
 
   private _initMiddleConnector(x: MiddlePointAddChildArgs) {
-    const model = this.connectorsService.createConnectorModel(x.dependency.type, x.dependency.subtype);
+    const proximity = x.dependency.type.includes('ProximityDependency') ? {
+      lat: x.dependency.lat,
+      lng: x.dependency.lng,
+      radius: x.dependency.radius,
+    } : undefined;
+
+    const model = this.connectorsService.createConnectorModel(x.dependency.type, x.dependency.subtype, proximity);
+
     this.currentMiddleConnector = new Connector(
       this.coreUiFactory,
       this.domContext,
@@ -887,7 +931,7 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
     this.lastGeneralItemId = x.dependency.generalItemId as any;
 
     const baseMp = this.diagram.getMiddlePoint(x.middlePointId);
-    baseMp.addOutputConnector(this.currentMiddleConnector.model);
+    baseMp && baseMp.addOutputConnector(this.currentMiddleConnector.model);
 
     this.currentMiddleConnector.onClick = (event: MouseEvent) => {
       event.stopPropagation();
@@ -913,10 +957,11 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
         });
 
         oldNodes = [...this.populatedNodes, message];
-
         const middlePoint = this.diagram.getMiddlePointByConnector(this.currentMiddleConnector.model);
 
-        middlePoint.dependency.dependencies.push(depend);
+        if (middlePoint) {
+          middlePoint.dependency.dependencies.push(depend);
+        }
       } else {
         if (!this.currentMiddleConnector.shape) {
           return;
@@ -965,6 +1010,20 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
   }
 
   private _handleNodesRender() {
+    if (this.lastAddedProximity) {
+      const conn = this.wireflowManager.createConnector(
+        this.lastAddedProximity.message,
+        this.currentMiddleConnector,
+        this.diagram.getShapeById(this.lastAddedProximity.message.id),
+        this.lastDependency,
+      );
+      const inputPort = this.diagram.getInputPortByGeneralItemId(this.lastAddedProximity.input);
+      conn.onDragEnd(inputPort);
+
+      this.lastAddedProximity = null;
+    }
+
+
     if (this.lastAddedNode) {
       this.wireflowManager.renderLastAddedNode(this.lastAddedNode, this.currentMiddleConnector, this.lastDependency);
 
@@ -1012,7 +1071,7 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
       data.dependency.radius = radius;
 
       this._initMiddleConnector(data);
-    } else {
+    } else if (data.connector) {
       const model = data.connector.model;
       model.proximity.lng = lng;
       model.proximity.lat = lat;
@@ -1029,7 +1088,90 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
       }
 
       this.connectorsService.emitChangeDependencies();
+    } else if (data.nodeId) {
+      const dependency = {
+        type: 'org.celstec.arlearn2.beans.dependencies.ProximityDependency',
+        lng,
+        lat,
+        radius,
+        generalItemId: Math.round(Math.random() * 10000000)
+      };
+      const message = this.messages.find(x => x.id === data.nodeId);
+
+      this._initProximityConnector({
+        id: data.nodeId,
+        dependency: dependency as any,
+        message: { authoringX: message.authoringX, authoringY: message.authoringY },
+        name: 'proximity'
+      });
     }
+  }
+
+  getProximityMap(node) {
+    if (this.diagram) {
+      const port = this.diagram.getOutputPortByGeneralItemId(node.outputs[0].generalItemId, node.outputs[0].action);
+
+      if (port && port.model.connectors && port.model.connectors[0] && port.model.connectors[0].proximity) {
+        const proximity = port.model.connectors[0].proximity;
+
+        return getStaticMapWithCircle(
+          proximity.lat,
+          proximity.lng,
+          proximity.radius,
+          'AIzaSyA4WMyvyHnKYNCk_4M8MHZgqhBUyg8zMjE'
+        );
+      }
+    }
+
+    return this.mapURL;
+  }
+
+  private _initProximityConnector(x) {
+    this.processing = true;
+    const model = this.connectorsService.createConnectorModel(x.dependency.type, x.dependency.subtype);
+    this.currentMiddleConnector = new Connector(
+      this.coreUiFactory,
+      this.domContext,
+      this.connectorsService,
+      this.tweenLiteService,
+      model,
+      { x: Math.floor(x.message.authoringX), y: Math.floor(x.message.authoringY) }
+    );
+    this.diagram.addConnector(this.currentMiddleConnector);
+    this.currentMiddleConnector.initCreating();
+    this.lastDependency = x.dependency;
+    this.lastGeneralItemId = x.dependency.generalItemId as any;
+
+    const inputMessage = this.messages.find(m => m.id === x.id);
+
+
+    const message = this.nodesManager.populateNode({
+      ...x.message,
+      id: x.dependency.generalItemId,
+      name: 'proximity',
+      type: x.dependency.type,
+      action: 'in range',
+      [this.selector]: {},
+      authoringX: inputMessage.authoringX - 250,
+      authoringY: inputMessage.authoringY,
+      virtual: true,
+      isVisible: true,
+    });
+
+    const inputMessagePopulated = this.populatedNodes.find(m => m.id === x.id);
+    if (inputMessage[this.selector] && inputMessage[this.selector].type) {
+
+      const [shapePort] = this.diagram.getShapeByGeneralItemId(inputMessage.id).inputs;
+      const [connector] = this.diagram.getConnectorsByPortId(shapePort.model.id);
+      connector.remove();
+      this.diagram.removeConnector(connector);
+    }
+
+    inputMessage[this.selector] = this.lastDependency;
+    inputMessagePopulated[this.selector] = this.lastDependency;
+
+    this.populatedNodes = [...this.populatedNodes, message];
+    this.lastAddedProximity = {message, input: inputMessage.id};
   }
 
   private _onTimeDependencySubmit(formValue: any) {
@@ -1092,6 +1234,10 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
 
   private _preDiff(input: GameMessageCommon) {
     return input['outputs']
+  }
+
+  private _preChange(input: GameMessageCommon) {
+    return { dependsOn: input.dependsOn, authoringX: input.authoringX, authoringY: input.authoringY };
   }
 
   ngOnDestroy() {

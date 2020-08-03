@@ -5,16 +5,14 @@ const equal = require('fast-deep-equal');
 export function diff<T>(
   baseArr: T[],
   changesArr: T[],
+  selector: (item: T) => any
 ) {
   const base = clone(baseArr);
 
   // Remove items
   for (let i = 0; i < base.length; i++) {
     if (changesArr.find((x) => {
-      const { lastModificationDate: date1, inputs: inputs1, outputs: outputs1, ...a } = x as any;
-      const { lastModificationDate: date2, inputs: inputs2, outputs: outputs2, ...b } = base[i] as any;
-
-      return equal(a, b);
+      return equal(selector(x), selector(base[i]));
     })) {
       base.splice(i, 1);
       i--;

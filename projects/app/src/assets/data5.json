@@ -9,6 +9,12 @@
     "name": "welkom boodschap",
     "description": "ga verder",
     "autoLaunch": false,
+    "dependsOn": {
+      "type":"org.celstec.arlearn2.beans.dependencies.ProximityDependency",
+      "lng":5.465985,
+      "lat":50.781279,
+      "radius":30
+    },
     "lng": 5.75727158261725,
     "lat": 51.00049742195146,
     "authoringX": -707,
@@ -99,6 +105,12 @@
     "name": "multiple options with image",
     "description": "",
     "autoLaunch": false,
+    "dependsOn": {
+      "type":"org.celstec.arlearn2.beans.dependencies.ProximityDependency",
+      "lng":5.465985,
+      "lat":50.781279,
+      "radius":30
+    },
     "fileReferences": {
       "background": "/game/5678053736841216/Resultaat F-Book fullscreen.png",
       "audgQ": "/game/5678053736841216/3A-Answer_A.png",

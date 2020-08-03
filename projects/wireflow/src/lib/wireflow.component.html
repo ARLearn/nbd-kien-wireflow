@@ -45,7 +45,7 @@
                   </feMerge>
                 </filter>
 
-                <defs>
+                <defs *ngIf="!node['virtual']">
                   <pattern *ngIf="(node.backgroundPath | async) as bg" id="img{{ c }}" patternUnits="userSpaceOnUse"
                     [attr.width]="(getHeight(node) + heightTitle) * 1.2"
                     [attr.height]="(getHeight(node) + heightTitle) * 1.5">
@@ -55,12 +55,21 @@
                   </pattern>
                 </defs>
 
+                <defs *ngIf="node['virtual']">
+                  <pattern id="img{{c}}" patternUnits="userSpaceOnUse"
+                           [attr.width]="getHeight(node)"
+                           [attr.height]="getHeight(node)">
+                    <image [attr.href]="getProximityMap(node)"
+                           [attr.width]="getHeight(node)"
+                           [attr.height]="getHeight(node)" />
+                  </pattern>
+                </defs>
 
-                <rect class="whole-rect" fill="#ffffff" width="152" [attr.height]="getHeight(node) + heightTitle"
+                <rect class="whole-rect" fill="#ffffff" width="152" [attr.height]="getHeight(node) + (!node['virtual'] ? heightTitle : 0)"
                   filter="url(#dropshadow)"></rect>
                 <g class="node-content">
                   <rect width="152" [attr.height]="getHeight(node)" fill="#D2D6D8" />
-                  <rect [attr.fill]="'url(#img' + c + ')'" width="152" [attr.height]="getHeight(node) + heightTitle" />
+                  <rect [attr.fill]="'url(#img' + c + ')'" width="152" [attr.height]="getHeight(node) + (!node['virtual'] ? heightTitle : 0)" />
 
                   <g class="inputs" *ngIf="!node.virtual">
                     <g class="input-field" *ngFor="let input of node.inputs; let i = index;"
@@ -80,7 +89,7 @@
                       [attr.general-item-id]="output.generalItemId" [attr.action]="output.action"
                       [attr.node-type]="output.type" (mouseenter)="onPortMouseEnter($event, output)"
                       (mouseleave)="onPortMouseLeave($event, output)">
-                      <rect width="124" height="19" fill="#EDEEEF" ry="4" />
+                      <rect width="124" height="19" fill="#EDEEEF" ry="4" [class.hide]="node['virtual']" />
                       <rect width="158" height="23" fill="transparent" />
                       <g class="port port-scrim" transform="translate(140, 4)">
                         <path
@@ -95,13 +104,13 @@
                         <rect x="10" y="0" [attr.width]="102" [attr.height]="19" />
                       </clipPath>
 
-                      <text class="port-label" x="10" y="12" fill="#000"
+                      <text class="port-label" x="10" y="12" fill="#000" [class.hide]="node['virtual']"
                         [attr.clip-path]="'url(#clip-port-text' + c + '' + i + ')'">{{ output.title || (output.action === 'read' ? 'next' : output.action) | translate }}</text>
                     </g>
                   </g>
                 </g>
 
-                <g class="node-content-hover">
+                <g class="node-content-hover" [class.hide]="node['virtual']">
                   <rect [attr.height]="getHeight(node)" opacity="0.4" fill="#000000" width="152"></rect>
 
                   <g class="font-awesome-pro" transform="translate(10, 26)">
@@ -122,14 +131,24 @@
 
                   </g>
                 </g>
-                <clipPath id="clip-text{{ c }}">
+                <clipPath id="clip-text{{ c }}" *ngIf="!node['virtual']">
                   <rect x="0" [attr.y]="getHeight(node)" [attr.width]="152 - (node.type.includes('Scan') ? 40 : 0)"
                     [attr.height]="heightTitle" />
                 </clipPath>
 
-                <rect class="title-rect" [attr.y]="getHeight(node)" width="152" [attr.height]="heightTitle"
+                <g *ngIf="isAbleToAddProximity(node)" class="proximity-icon" (click)="setProximity($event, node)">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="17" height="18" viewBox="0 0 17 18">
+                    <defs><style>.a{fill:#3ea3dc;}.b{fill:#fff;}</style></defs>
+                    <g transform="translate(-4.943)">
+                      <path class="a" d="M6,0H17a0,0,0,0,1,0,0V18a0,0,0,0,1,0,0H6a6,6,0,0,1-6-6V6A6,6,0,0,1,6,0Z" transform="translate(4.943)"/>
+                      <path class="b" d="M30.656,16.668a3.564,3.564,0,0,0-3.574,3.574c0,1.982,3.574,6.823,3.574,6.823s3.574-4.841,3.574-6.823A3.564,3.564,0,0,0,30.656,16.668Zm0,5.2a1.625,1.625,0,1,1,1.625-1.625A1.609,1.609,0,0,1,30.656,21.866Z" transform="translate(-16.936 -12.537)"/>
+                    </g>
+                  </svg>
+                </g>
+
+                <rect class="title-rect" *ngIf="!node['virtual']" [attr.y]="getHeight(node)" width="152" [attr.height]="heightTitle"
                   fill="#ffffff" />
-                <text class="title-label" x="10" [attr.y]="getHeight(node) + 24" font-size="18"
+                <text *ngIf="!node['virtual']" class="title-label" x="10" [attr.y]="getHeight(node) + 24" font-size="18"
                   [attr.clip-path]="'url(#clip-text' + c + ')'">{{ node.name }}</text>
 
                 <g class="cursor-pointer" *ngIf="node.type.includes('Scan')"

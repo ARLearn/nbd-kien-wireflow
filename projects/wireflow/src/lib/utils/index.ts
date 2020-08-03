@@ -2,6 +2,7 @@ export * from './array';
 export * from './async';
 export * from './unique-id-generator';
 export * from './geometry';
+export * from './google-map-circle';
 export * from './map';
 export * from './minBy';
 export * from './number';

@@ -206,5 +206,22 @@
   .node-container--new {
     display: none;
   }
+
+  .proximity-icon {
+    display: none;
+    cursor: pointer;
+    transform: translate(-17px, 0);
+  }
+
+  .node-container--hover {
+    .proximity-icon {
+      display: block;
+    }
+
+  }
+
+  .hide {
+    display: none !important;
+  }
 }
 
