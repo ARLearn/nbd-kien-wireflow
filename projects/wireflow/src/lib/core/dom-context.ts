@@ -21,14 +21,18 @@ export class DomContext {
         this._shapeElements = Array.from(document.querySelectorAll('.node-container'));
     }
 
-    public getOffsetCoordinates(): Point {
+    public getOffsetCoordinates() {
         const { offsetLeft, offsetTop } = this.svgElement.parentNode as HTMLElement;
         const point = this.getDiagramCoords();
 
         return {
             x: offsetLeft + point.x,
             y: offsetTop + point.y
-        };
+        } as Point;
+    }
+
+    public cloneNode(selector: string) {
+        return document.querySelector(selector).cloneNode(true) as HTMLElement;
     }
 
     private getDiagramCoords() {

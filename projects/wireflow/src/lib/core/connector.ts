@@ -10,10 +10,10 @@ import { ConnectorModel, PortModel } from './models';
 import { BaseModelUiElement } from './base-model-ui-element';
 import {ConnectorRemoveOptions, ConnectorsService} from './services/connectors.service';
 import { DomContext } from './dom-context';
+import { CoreUIFactory } from './core-ui-factory';
+import { TweenLiteService } from './services/tween-lite.service';
 
 export const bezierWeight = 0.675;
-
-declare const TweenLite;
 
 export interface ConnectorPathOptions {
   x;
@@ -52,12 +52,14 @@ export class Connector extends BaseModelUiElement<ConnectorModel> implements Dra
   private _connectionSide = 'left';
 
   constructor(
+    private coreUiFactory: CoreUIFactory,
     private domContext: DomContext,
     private service: ConnectorsService,
+    public tweenLiteService: TweenLiteService,
     model: ConnectorModel,
     point: Point = { x: -1, y: -1 }
   ) {
-    super(document.querySelector('.middle-connector').cloneNode(true) as HTMLElement, model);
+    super(document.querySelector('.middle-connector').cloneNode(true) as HTMLElement, model, tweenLiteService);
 
     // TODO: Move to client code
     this.nativeElement.style.display = 'block';
@@ -77,15 +79,15 @@ export class Connector extends BaseModelUiElement<ConnectorModel> implements Dra
     this.initViewState();
 
     if (point.x > -1 && point.y > -1) {
-      TweenLite.set(this.inputHandle, point);
+      this.tweenLiteService.set(this.inputHandle, point);
     }
 
     this.actionsCircle =
-      new ConnectorActionsCircle(this.nativeElement.querySelector('.base-middle-point'), `actions-point_${this.service.uniqueIdGenerator.generate()}`)
+      new ConnectorActionsCircle(this.nativeElement.querySelector('.base-middle-point'), `actions-point_${this.service.uniqueIdGenerator.generate()}`, tweenLiteService)
         .hide();
     this._subscription.add(this.actionsCircle.action.subscribe(action => this._onConnectorAction(action)));
 
-    this.connectorToolbar = new ConnectorToolbar(this.domContext);
+    this.connectorToolbar = new ConnectorToolbar(this.coreUiFactory, this.domContext, this.tweenLiteService);
     this._subscription.add(
       this.connectorToolbar.changeSingleDependencyType
         .subscribe(data => this._changeSingleDependencyType(data.targetType))
@@ -149,7 +151,7 @@ export class Connector extends BaseModelUiElement<ConnectorModel> implements Dra
     this.staticElement.setAttribute('data-drag', `${port.model.id}:port`);
     this.basePoint = port.global as Point;
 
-    TweenLite.set([this.inputHandle, this.outputHandle], {
+    this.tweenLiteService.set([this.inputHandle, this.outputHandle], {
       x: port.global.x,
       y: port.global.y,
     }, 0);
@@ -194,7 +196,7 @@ export class Connector extends BaseModelUiElement<ConnectorModel> implements Dra
       y: e.clientY - offset.y + window.scrollY,
     };
 
-    TweenLite.set(this.outputHandle, point);
+    this.tweenLiteService.set(this.outputHandle, point);
 
     this.service.moveConnector({ connectorModel: this.model, point });
   }
@@ -313,19 +315,19 @@ export class Connector extends BaseModelUiElement<ConnectorModel> implements Dra
   setBasePoint(point: Point) {
     this.basePoint = point;
 
-    TweenLite.set(this.inputHandle, this.basePoint);
+    this.tweenLiteService.set(this.inputHandle, this.basePoint);
 
     this.service.moveConnector({ connectorModel: this.model });
   }
 
   updateHandle(port: PortModel, allowedMoveEvent = true) { // TODO: Rename into update(isInput, point)
     if (this._inputPort && port.id === this._inputPort.model.id) {
-      TweenLite.set(this.inputHandle, {
+      this.tweenLiteService.set(this.inputHandle, {
         x: this._inputPort.global.x,
         y: this._inputPort.global.y
       });
     } else if (this._outputPort && port.id === this._outputPort.model.id) {
-      TweenLite.set(this.outputHandle, {
+      this.tweenLiteService.set(this.outputHandle, {
         x: this._outputPort.global.x,
         y: this._outputPort.global.y
       });
@@ -339,7 +341,7 @@ export class Connector extends BaseModelUiElement<ConnectorModel> implements Dra
   }
 
   moveOutputHandle(point: Point) {
-    TweenLite.set(this.outputHandle, point);
+    this.tweenLiteService.set(this.outputHandle, point);
   }
 
   private onHover(e: MouseEvent) {

@@ -13,8 +13,9 @@ export class ConnectorActionsCircle extends BaseUiElement {
   constructor(
     element: HTMLElement,
     public id: string,
+    tweenLiteService,
   ) {
-    super(element);
+    super(element, tweenLiteService);
 
     this.nativeElement.onclick = (e) => this._onClick(e);
   }

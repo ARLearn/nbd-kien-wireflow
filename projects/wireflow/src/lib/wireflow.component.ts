@@ -32,6 +32,8 @@ import { DomContext } from './core/dom-context';
 import { WireflowManager } from './core/managers/wireflow.manager';
 import { NodesManager } from './core/managers/nodes.manager';
 import { DiagramService } from './core/services/diagram.service';
+import { CoreUIFactory } from './core/core-ui-factory';
+import { TweenLiteService } from './core/services/tween-lite.service';
 
 const LAZY_LOAD_CHUNK_SIZE = 2;
 
@@ -109,12 +111,14 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
   private lastAddedPort: any;
 
   // services
+  coreUiFactory: CoreUIFactory;
   domContext: DomContext;
   nodesService: NodesService;
   portsService: PortsService;
   connectorsService: ConnectorsService;
   middlePointsService: MiddlePointsService;
   diagramService: DiagramService;
+  tweenLiteService: TweenLiteService;
 
   // managers
   nodesManager: NodesManager;
@@ -531,7 +535,7 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
             : `.output-field[general-item-id="${model.generalItemId}"][action="${model.action}"]`
           );
 
-      const port = new NodePort(this.domContext, this.portsService, shape, element, model);
+      const port = new NodePort(this.domContext, this.portsService, this.tweenLiteService, shape, element, model);
       if (model.isInput) {
         shape.inputs.push(port);
       } else {
@@ -545,7 +549,7 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
       const element = document.querySelector(`.node-container[general-item-id="${ message.id }"]`) as HTMLElement;
 
       if (!this.diagram.shapeExist(model.generalItemId)) {
-        const shape = new NodeShape(this.nodesService, element, model, point);
+        const shape = new NodeShape(this.nodesService, this.tweenLiteService, element, model, point);
         this.diagram.shapes.push(shape);
         shape.initChildren();
       }
@@ -824,6 +828,8 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
 
     this.nodesManager.generateCoordinates(this.messages);
 
+    this.coreUiFactory = new CoreUIFactory();
+
     this.domContext = new DomContext(
       this.diagramElement,
       this.shapeElements,
@@ -833,6 +839,7 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
     );
 
     const uniqueIdGenerator = new UniqueIdGenerator();
+    this.tweenLiteService = new TweenLiteService();
     this.nodesService = new NodesService(uniqueIdGenerator);
     this.portsService = new PortsService(uniqueIdGenerator);
     this.connectorsService = new ConnectorsService(uniqueIdGenerator, this.domContext);
@@ -840,20 +847,24 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
     this.diagramService = new DiagramService();
 
     this.diagram = new Diagram(
+      this.coreUiFactory,
       this.domContext,
       this.nodesService,
       this.portsService,
       this.connectorsService,
       this.middlePointsService,
       this.diagramService,
+      this.tweenLiteService,
     );
 
     this.wireflowManager = new WireflowManager(
+      this.coreUiFactory,
       this.domContext,
       this.nodesService,
       this.portsService,
       this.connectorsService,
       this.middlePointsService,
+      this.tweenLiteService,
       this.diagram,
       this.selector,
     );
@@ -862,8 +873,10 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
   private _initMiddleConnector(x: MiddlePointAddChildArgs) {
     const model = this.connectorsService.createConnectorModel(x.dependency.type, x.dependency.subtype);
     this.currentMiddleConnector = new Connector(
+      this.coreUiFactory,
       this.domContext,
       this.connectorsService,
+      this.tweenLiteService,
       model,
       { x: Math.floor(x.message.authoringX), y: Math.floor(x.message.authoringY) }
     );

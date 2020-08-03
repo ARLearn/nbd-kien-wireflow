@@ -6,7 +6,7 @@ import { UniqueIdGenerator, Point } from '../../utils';
 import { UniqueIdGeneratorMock } from '../../utils/unique-id-generator.mock';
 import { ConnectorsService, ConnectorArgs, ConnectorRemoveArgs, ConnectorRemoveOptions, ConnectorPortArgs, ConnectorMoveArgs, ConnectorClickArgs, ConnectorSingleDependencyArgs, ConnectorSingleDependencyWithNewDependencyArgs } from './connectors.service';
 import { DomContext } from '../../core/dom-context';
-import { DomContextMock } from '../../utils/dom-context.mock';
+import { DomContextMock } from '../../core/dom-context.mock';
 import { ConnectorModel, PortModel } from '../models';
 
 describe('ConnectorsService', () => {

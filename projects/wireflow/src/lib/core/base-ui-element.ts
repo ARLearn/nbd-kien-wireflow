@@ -1,7 +1,6 @@
 import { Subscription, Observable } from 'rxjs';
 import { Point } from '../utils';
-
-declare const TweenLite;
+import { TweenLiteService } from './services/tween-lite.service';
 
 export class BaseUiElement {
   protected _unsubscriber = new Subscription();
@@ -10,6 +9,7 @@ export class BaseUiElement {
 
   constructor(
     public nativeElement: HTMLElement,
+    public tweenLiteService: TweenLiteService,
   ) {}
 
   get coordinates() { return this._point; }
@@ -42,7 +42,7 @@ export class BaseUiElement {
   }
 
   move(point: Point) {
-    TweenLite.set(this.nativeElement, point);
+    this.tweenLiteService.set(this.nativeElement, point);
     this._point = point;
     return this;
   }

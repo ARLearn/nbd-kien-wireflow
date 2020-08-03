@@ -1,7 +1,9 @@
 import { Subject } from 'rxjs';
+
 import { BaseModelUiElement } from '../base-model-ui-element';
 import { ToolbarItem } from '../models';
 import { BaseModelEvent } from '../base-model-event';
+import { TweenLiteService } from '../services/tween-lite.service';
 
 export class ToolbarButton extends BaseModelUiElement<ToolbarItem> {
 
@@ -10,10 +12,12 @@ export class ToolbarButton extends BaseModelUiElement<ToolbarItem> {
   constructor(
     nativeElement: HTMLElement,
     opts: ToolbarItem,
+    tweenLiteService: TweenLiteService,
   ) {
     super(
       nativeElement,
       opts,
+      tweenLiteService,
     );
 
     this.nativeElement.onclick = (e) => this._onClick(e);

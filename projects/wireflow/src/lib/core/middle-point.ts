@@ -8,6 +8,8 @@ import { BaseModelUiElement } from './base-model-ui-element';
 import { MiddlePointModel } from './models/MiddlePointModel';
 import { MiddlePointsService } from './services/middle-points.service';
 import { DomContext } from './dom-context';
+import { CoreUIFactory } from './core-ui-factory';
+import { TweenLiteService } from './services/tween-lite.service';
 
 export class MiddlePoint extends BaseModelUiElement<MiddlePointModel> implements DraggableUiElement {
   inputPort: NodePort;
@@ -24,18 +26,20 @@ export class MiddlePoint extends BaseModelUiElement<MiddlePointModel> implements
   private pencilIcon: any;
 
   constructor(
+    private coreUiFactory: CoreUIFactory,
     private domContext: DomContext,
     private service: MiddlePointsService,
+    tweenLiteService: TweenLiteService,
     opts: MiddlePointModel,
     private _generalItemId: number,
     private _dependency: Dependency,
   ) {
-    super(document.querySelector('svg .middle-point').cloneNode(true) as HTMLElement, opts);
+    super(document.querySelector('svg .middle-point').cloneNode(true) as HTMLElement, opts, tweenLiteService);
 
     this.mainIcon = this.nativeElement.querySelector('.middle-point-font');
     this.pencilIcon = this.nativeElement.querySelector('.middle-point-pencil');
 
-    this.actionToolbar = new MiddlePointToolbar(this.domContext);
+    this.actionToolbar = new MiddlePointToolbar(this.domContext, this.coreUiFactory, this.tweenLiteService);
     this._unsubscriber.add(this.actionToolbar.addChild.subscribe(data => this.addChild(data)));
 
     this.show();

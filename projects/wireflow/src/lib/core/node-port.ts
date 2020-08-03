@@ -3,6 +3,7 @@ import { BaseModelUiElement } from './base-model-ui-element';
 import { PortModel } from './models';
 import { PortsService } from './services/ports.service';
 import { DomContext } from './dom-context';
+import { TweenLiteService } from './services/tween-lite.service';
 
 (SVGElement.prototype as any).getTransformToElement = (SVGElement.prototype as any).getTransformToElement || function(toElement) {
   return toElement.getScreenCTM().inverse().multiply(this.getScreenCTM());
@@ -20,6 +21,7 @@ export class NodePort extends BaseModelUiElement<PortModel> implements Draggable
   constructor(
     private domContext: DomContext,
     private service: PortsService,
+    public tweenLiteService: TweenLiteService,
     parentNode: BaseModelUiElement<any>,
     nativeElement: HTMLElement,
     opts: PortModel
@@ -27,7 +29,8 @@ export class NodePort extends BaseModelUiElement<PortModel> implements Draggable
 
     super(
       nativeElement,
-      opts
+      opts,
+      tweenLiteService,
     );
 
     this.parentNode = parentNode;

@@ -11,6 +11,9 @@ import {
   DependencyTypeProximity
 } from '../../models/core';
 import { DomContext } from '../dom-context';
+import { CoreUIFactory } from '../core-ui-factory';
+import { Injectable } from '@angular/core';
+import { TweenLiteService } from '../services/tween-lite.service';
 
 export interface ChangeSingleDependencyTypeAction {
   targetType:
@@ -29,6 +32,7 @@ export interface ChangeSingleDependencyWithDependencyAction {
   | DependencyTypeOr;
 }
 
+@Injectable()
 export class ConnectorToolbar extends BaseUiElement {
 
   // Models
@@ -64,16 +68,21 @@ export class ConnectorToolbar extends BaseUiElement {
   private _changeSingleDependencyType = new Subject<ChangeSingleDependencyTypeAction>();
   private _changeSingleDependencyTypeWithDependency = new Subject<ChangeSingleDependencyWithDependencyAction>();
 
-  constructor(private domContext: DomContext) {
+  constructor(
+    private coreUiFactory: CoreUIFactory,
+    private domContext: DomContext,
+    public tweenLiteService: TweenLiteService,
+  ) {
     super(
-      document.querySelector('#diagram > .dependency-type-toolbar').cloneNode(true) as HTMLElement
+      domContext.cloneNode('#diagram > .dependency-type-toolbar'),
+      tweenLiteService,
     );
 
-    this._btnAnd = new ToolbarButton(this.nativeElement.querySelector('.connector-toolbar__btn--and'), this._itemAdd);
-    this._btnOr = new ToolbarButton(this.nativeElement.querySelector('.connector-toolbar__btn--or'), this._itemOr);
-    this._btnTime = new ToolbarButton(this.nativeElement.querySelector('.connector-toolbar__btn--time'), this._itemTime);
-    this._btnQrScan = new ToolbarButton(this.nativeElement.querySelector('.connector-toolbar__btn--qr-scan'), this._itemQrScan);
-    this._btnLocation = new ToolbarButton(this.nativeElement.querySelector('.connector-toolbar__btn--location'), this._itemLocation);
+    this._btnAnd = this.coreUiFactory.createToolbarButton(this.nativeElement.querySelector('.connector-toolbar__btn--and'), this._itemAdd, this.tweenLiteService);
+    this._btnOr = this.coreUiFactory.createToolbarButton(this.nativeElement.querySelector('.connector-toolbar__btn--or'), this._itemOr, this.tweenLiteService);
+    this._btnTime = this.coreUiFactory.createToolbarButton(this.nativeElement.querySelector('.connector-toolbar__btn--time'), this._itemTime, this.tweenLiteService);
+    this._btnQrScan = this.coreUiFactory.createToolbarButton(this.nativeElement.querySelector('.connector-toolbar__btn--qr-scan'), this._itemQrScan, this.tweenLiteService);
+    this._btnLocation = this.coreUiFactory.createToolbarButton(this.nativeElement.querySelector('.connector-toolbar__btn--location'), this._itemLocation, this.tweenLiteService);
 
     this.when(merge(
       this._btnAnd.action,
@@ -85,8 +94,6 @@ export class ConnectorToolbar extends BaseUiElement {
       this._btnQrScan.action,
       this._btnLocation.action,
     ), e => this._onActionDependency(e.source));
-
-    this.hide();
 
     // TODO: replace with this.connectorsService.appendToConnectorLayer()
     this.domContext.connectorLayer.appendChild(this.nativeElement);

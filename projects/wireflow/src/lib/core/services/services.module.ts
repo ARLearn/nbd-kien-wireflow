@@ -5,6 +5,7 @@ import { NodesService } from './nodes.service';
 import { PortsService } from './ports.service';
 import { MiddlePointsService } from './middle-points.service';
 import { ConnectorsService } from './connectors.service';
+import { TweenLiteService } from './tween-lite.service';
 
 @NgModule({
   providers: [
@@ -13,6 +14,7 @@ import { ConnectorsService } from './connectors.service';
     PortsService,
     MiddlePointsService,
     ConnectorsService,
+    TweenLiteService,
   ],
 })
 export class ServicesModule { }

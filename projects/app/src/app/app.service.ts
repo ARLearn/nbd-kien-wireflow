@@ -18,7 +18,7 @@ export class AppService {
   }
 
   private _getData() {
-    // return this.http.get<any[]>('assets/data_100.json');
+    return this.http.get<any[]>('assets/data_100.json');
     // return this.http.get<any[]>('assets/data.json');
     // return this.http.get<any[]>('assets/data2.json');
     // return this.http.get<any[]>('assets/data3.json');

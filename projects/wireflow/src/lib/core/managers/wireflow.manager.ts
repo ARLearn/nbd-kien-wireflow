@@ -10,15 +10,19 @@ import { Connector } from '../connector';
 import { MiddlePoint } from '../middle-point';
 import { NodeShape } from '../node-shape';
 import { clone } from '../../utils/object';
+import { CoreUIFactory } from '../core-ui-factory';
+import { TweenLiteService } from '../services/tween-lite.service';
 
 export class WireflowManager {
 
   constructor(
+    private coreUiFactory: CoreUIFactory,
     private domContext: DomContext,
     private nodesService: NodesService,
     private portsService: PortsService,
     private connectorsService: ConnectorsService,
     private middlePointsService: MiddlePointsService,
+    private tweenLiteService: TweenLiteService,
     private diagram: Diagram,
     private selector: string,
   ) { }
@@ -103,8 +107,10 @@ export class WireflowManager {
 
         const newMiddlePoint =
           new MiddlePoint(
+            this.coreUiFactory,
             this.domContext,
             this.middlePointsService,
+            this.tweenLiteService,
             this.middlePointsService.createMiddlePoint(),
             message.id,
             dep
@@ -174,8 +180,10 @@ export class WireflowManager {
 
       const mp =
         new MiddlePoint(
+          this.coreUiFactory,
           this.domContext,
           this.middlePointsService,
+          this.tweenLiteService,
           this.middlePointsService.createMiddlePoint(),
           message.id,
           dependency
@@ -258,9 +266,9 @@ export class WireflowManager {
   }
 
   canInitMiddlePointGroup(message: GameMessageCommon, outputs: any[]) {
-    
+
     let result = this.diagram.canCreateInputConnector(message);
-    
+
     if (outputs && outputs.length) {
       for (const dep of outputs) {
         if (dep.generalItemId && !dep.type.includes('Proximity')) {
@@ -291,8 +299,10 @@ export class WireflowManager {
       if (dep.dependencies || dep.offset) {
         const newMp =
           new MiddlePoint(
+            this.coreUiFactory,
             this.domContext,
             this.middlePointsService,
+            this.tweenLiteService,
             this.middlePointsService.createMiddlePoint(),
             message.id,
             dep
@@ -319,7 +329,7 @@ export class WireflowManager {
       if (!dep.type.includes('Proximity') && !portExists) { return; }
 
       const model = this.connectorsService.createConnectorModel(dep.type, dep.subtype);
-      const connector = new Connector(this.domContext, this.connectorsService, model);
+      const connector = new Connector(this.coreUiFactory, this.domContext, this.connectorsService, this.tweenLiteService, model);
       this.diagram.addConnector(connector);
       connector.initCreating();
 
@@ -365,8 +375,10 @@ export class WireflowManager {
   initNodeMessage(message: GameMessageCommon) {
     const mp =
       new MiddlePoint(
+        this.coreUiFactory,
         this.domContext,
         this.middlePointsService,
+        this.tweenLiteService,
         this.middlePointsService.createMiddlePoint(),
         message.id,
         message[this.selector]

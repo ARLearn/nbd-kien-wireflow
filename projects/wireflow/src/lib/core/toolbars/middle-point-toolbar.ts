@@ -5,6 +5,9 @@ import { ToolbarButton } from './toolbar-button';
 import { ToolbarItem } from '../models';
 import { DependencyTypeAction, DependencyTypeProximity } from '../../models/core';
 import { DomContext } from '../dom-context';
+import { Injectable } from '@angular/core';
+import { CoreUIFactory } from '../core-ui-factory';
+import { TweenLiteService } from '../services/tween-lite.service';
 
 export interface AddChildAction {
   targetType:
@@ -13,6 +16,7 @@ export interface AddChildAction {
   subtype?: 'scantag';
 }
 
+@Injectable()
 export class MiddlePointToolbar extends BaseUiElement {
 
   // Models
@@ -30,15 +34,18 @@ export class MiddlePointToolbar extends BaseUiElement {
 
   constructor(
     private domContext: DomContext,
+    private coreUiFactory: CoreUIFactory,
+    public tweenLiteService: TweenLiteService,
   ) {
 
     super(
-      document.querySelector('#diagram > .middle-point-toolbar').cloneNode(true) as HTMLElement
+      domContext.cloneNode('#diagram > .middle-point-toolbar'),
+      tweenLiteService,
     );
 
-    this._btnActionDependency = new ToolbarButton(this.nativeElement.querySelector('.connector-toolbar__btn--action-dependency'), this._itemActionDependency);
-    this._btnLocation = new ToolbarButton(this.nativeElement.querySelector('.connector-toolbar__btn--location'), this._itemLocation);
-    this._btnQrScan = new ToolbarButton(this.nativeElement.querySelector('.connector-toolbar__btn--qr-scan'), this._itemQrScan);
+    this._btnActionDependency = this.coreUiFactory.createToolbarButton(this.nativeElement.querySelector('.connector-toolbar__btn--action-dependency'), this._itemActionDependency, this.tweenLiteService);
+    this._btnLocation = this.coreUiFactory.createToolbarButton(this.nativeElement.querySelector('.connector-toolbar__btn--location'), this._itemLocation, this.tweenLiteService);
+    this._btnQrScan = this.coreUiFactory.createToolbarButton(this.nativeElement.querySelector('.connector-toolbar__btn--qr-scan'), this._itemQrScan, this.tweenLiteService);
 
     this.when(merge(
       this._btnActionDependency.action,

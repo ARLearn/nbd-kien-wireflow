@@ -12,6 +12,8 @@ import { MiddlePointsService } from './services/middle-points.service';
 import { DomContext } from './dom-context';
 import { GameMessageCommon } from '../models/core';
 import { DiagramService } from './services/diagram.service';
+import { CoreUIFactory } from './core-ui-factory';
+import { TweenLiteService } from './services/tween-lite.service';
 
 declare const TweenLite;
 declare const Draggable;
@@ -39,12 +41,14 @@ export class Diagram implements DraggableUiElement {
   }
 
   constructor(
+    private coreUiFactory: CoreUIFactory,
     private domContext: DomContext,
     private nodesService: NodesService,
     private portsService: PortsService,
     private connectorsService: ConnectorsService,
     private middlePointsService: MiddlePointsService,
     private diagramService: DiagramService,
+    private tweenLiteService: TweenLiteService,
   ) {
     this.target = null;
     this.dragType = null;
@@ -158,7 +162,7 @@ export class Diagram implements DraggableUiElement {
   createInputConnector(message: GameMessageCommon, coords: Point, inputMiddlePoint: MiddlePoint): Connector {
 
     const model = this.connectorsService.createConnectorModel(null);
-    const connector = new Connector(this.domContext, this.connectorsService, model, coords);
+    const connector = new Connector(this.coreUiFactory, this.domContext, this.connectorsService, this.tweenLiteService, model, coords);
     this.addConnector(connector);
     connector
       .initCreating()
@@ -203,7 +207,7 @@ export class Diagram implements DraggableUiElement {
 
     if (inputPort && outputPort) {
       const model = this.connectorsService.createConnectorModel(null);
-      const con = new Connector(this.domContext, this.connectorsService, model);
+      const con = new Connector(this.coreUiFactory, this.domContext, this.connectorsService, this.tweenLiteService, model);
       this.addConnector(con);
       con
         .initCreating()
@@ -291,7 +295,7 @@ export class Diagram implements DraggableUiElement {
 
       case 'port':
         const port = this.getPortById(id);
-        const con = new Connector(this.domContext, this.connectorsService, this.connectorsService.createConnectorModel(null));
+        const con = new Connector(this.coreUiFactory, this.domContext, this.connectorsService, this.tweenLiteService, this.connectorsService.createConnectorModel(null));
         this.addConnector(con);
         con
           .initCreating()

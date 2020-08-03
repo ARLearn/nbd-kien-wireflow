@@ -4,6 +4,7 @@ import { DraggableUiElement } from './draggable-ui-element';
 import { BaseModelUiElement } from './base-model-ui-element';
 import { NodeModel } from './models';
 import { NodesService } from './services/nodes.service';
+import { TweenLiteService } from './services/tween-lite.service';
 
 export class NodeShape extends BaseModelUiElement<NodeModel> implements DraggableUiElement {
   id: string;
@@ -12,13 +13,15 @@ export class NodeShape extends BaseModelUiElement<NodeModel> implements Draggabl
 
   constructor(
     private service: NodesService,
+    public tweenLiteService: TweenLiteService,
     nativeElement: HTMLElement,
     opts: NodeModel,
     point: Point,
   ) {
     super(
       nativeElement,
-      opts
+      opts,
+      tweenLiteService,
     );
 
     nativeElement.setAttribute('data-drag', `${this.model.id}:shape`);
