@@ -1,4 +1,4 @@
-import { NgModule } from '@angular/core';
+import { ModuleWithProviders, NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NgxSmartModalModule } from 'ngx-smart-modal';
@@ -9,6 +9,11 @@ import { WireflowComponent } from './wireflow.component';
 import { ActionModalComponent } from './shared/action-modal/action-modal.component';
 import { TimeDependencyModalComponent } from './shared/time-dependency-modal/time-dependency-modal.component';
 import { ProximityDependencyModalComponent } from './shared/proximity-dependency-modal/proximity-dependency-modal.component';
+
+
+export interface IWireflowModuleData {
+  gMapKey: string;
+}
 
 export function HttpLoaderFactory(http: HttpClient) {
   return new TranslateHttpLoader(http);
@@ -34,4 +39,13 @@ export function HttpLoaderFactory(http: HttpClient) {
     ProximityDependencyModalComponent,
   ]
 })
-export class WireflowModule { }
+export class WireflowModule {
+  static forRoot(data: IWireflowModuleData): ModuleWithProviders {
+    return {
+      ngModule: WireflowModule,
+      providers: [
+        { provide: 'moduleData', useValue: data }
+      ]
+    };
+  }
+}

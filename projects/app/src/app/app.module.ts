@@ -8,6 +8,7 @@ import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { WireflowModule } from 'wireflow';
 import { AppService } from './app.service';
 import { AppComponent } from './app.component';
+import { environment } from '../environments/environment';
 
 export function HttpLoaderFactory(http: HttpClient) {
   return new TranslateHttpLoader(http);
@@ -21,7 +22,9 @@ export function HttpLoaderFactory(http: HttpClient) {
     BrowserModule,
     BrowserAnimationsModule,
     HttpClientModule,
-    WireflowModule,
+    WireflowModule.forRoot({
+      gMapKey: environment.gMapKey,
+    }),
     TranslateModule.forRoot({
       loader: {
         provide: TranslateLoader,

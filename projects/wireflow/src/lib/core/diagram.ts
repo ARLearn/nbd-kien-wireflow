@@ -60,7 +60,7 @@ export class Diagram implements DraggableUiElement {
       onDrag: () => this._dragTarget(),
       onDragEnd: e => this._stopDragging(this._getDragArgs(e)),
       onPress: e => this._onDragStart(this._getDragArgs(e)),
-      onClick: () => this._onDragClick()
+      onClick: (event) => this._onDragClick(event)
     });
   }
 
@@ -393,9 +393,18 @@ export class Diagram implements DraggableUiElement {
     }
   }
 
-  private _onDragClick() {
+  private _onDragClick(event) {
     this.dragging = false;
     this._cleanupOpenedConnector();
+
+
+    const target = event.target;
+    const isToolbarPoint = target.classList.contains('base-middle-point');
+
+    if (!isToolbarPoint) {
+      this.connectors.forEach(c => !c.connectorToolbar.isHidden() && c.connectorToolbar.hide());
+      this.middlePoints.forEach(c => !c.actionToolbar.isHidden() && c.actionToolbar.hide());
+    }
   }
 
   private _cleanupOpenedConnector() {

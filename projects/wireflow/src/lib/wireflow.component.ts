@@ -11,7 +11,7 @@ import {
   ViewEncapsulation,
   DoCheck,
   AfterViewChecked,
-  ChangeDetectorRef,
+  ChangeDetectorRef, Inject,
 } from '@angular/core';
 import { Observable, Subject, Subscription } from 'rxjs';
 import { distinct, filter, map, skip } from 'rxjs/operators';
@@ -30,10 +30,8 @@ import {
   Point,
   hasDeepDiff,
   UniqueIdGenerator,
-  chunks,
   sleep,
-  profile,
-  GMapCircle, getStaticMapWithCircle
+  getStaticMapWithCircle
 } from './utils';
 import { NodeShape } from './core/node-shape';
 import { NodePort } from './core/node-port';
@@ -47,6 +45,7 @@ import { NodesManager } from './core/managers/nodes.manager';
 import { DiagramService } from './core/services/diagram.service';
 import { CoreUIFactory } from './core/core-ui-factory';
 import { TweenLiteService } from './core/services/tween-lite.service';
+import { IWireflowModuleData } from './wireflow.module';
 
 interface MessageEditorStateModel {
   messages: GameMessageCommon[];
@@ -173,6 +172,7 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
   }
 
   constructor(
+    @Inject('moduleData') private moduleData: IWireflowModuleData,
     public ngxSmartModalService: NgxSmartModalService,
     private translate: TranslateService,
     private changeDetectorRef: ChangeDetectorRef,
@@ -1118,7 +1118,7 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
           proximity.lat,
           proximity.lng,
           proximity.radius,
-          'AIzaSyA4WMyvyHnKYNCk_4M8MHZgqhBUyg8zMjE'
+          this.moduleData.gMapKey,
         );
       }
     }
