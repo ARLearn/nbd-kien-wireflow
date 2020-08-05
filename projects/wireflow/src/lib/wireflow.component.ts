@@ -624,10 +624,9 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
       const offset = this.diagram.getDiagramCoords();
       const start = { x: offset.x !== 0 ? -offset.x : 0, y: offset.y !== 0 ? -offset.y : 0 };
       const end = { x: start.x + window.innerWidth, y: start.y + window.innerHeight };
-
       const visibleNodes = this.populatedNodes.filter(node => (
-        node.authoringX >= start.x && node.authoringX <= end.x &&
-        node.authoringY >= start.y && node.authoringY <= end.y
+        (node.authoringX >= start.x && node.authoringX <= end.x &&
+        node.authoringY >= start.y && node.authoringY <= end.y) || node['virtual']
       ));
 
       const closest = [];

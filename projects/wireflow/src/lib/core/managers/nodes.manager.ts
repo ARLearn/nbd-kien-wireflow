@@ -131,11 +131,13 @@ export class NodesManager {
 
       let hasOutputs = false;
 
+
+
       if (!hasInputs) {
         hasOutputs = this.getAllDependenciesByCondition(
           m[this.selector],
           dependency => {
-            return dependency && dependency.action && dependency.generalItemId &&
+            return dependency && dependency.generalItemId &&
               node.id.toString() === dependency.generalItemId.toString();
           }
         ).length > 0;
