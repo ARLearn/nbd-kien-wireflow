@@ -9,6 +9,7 @@ import { WireflowComponent } from './wireflow.component';
 import { ActionModalComponent } from './shared/action-modal/action-modal.component';
 import { TimeDependencyModalComponent } from './shared/time-dependency-modal/time-dependency-modal.component';
 import { ProximityDependencyModalComponent } from './shared/proximity-dependency-modal/proximity-dependency-modal.component';
+import { GeolocationService } from './core/services/geolocation.service';
 
 
 export interface IWireflowModuleData {
@@ -33,6 +34,7 @@ export function HttpLoaderFactory(http: HttpClient) {
     FormsModule,
   ],
   exports: [WireflowComponent],
+  providers: [GeolocationService],
   entryComponents: [
     ActionModalComponent,
     TimeDependencyModalComponent,

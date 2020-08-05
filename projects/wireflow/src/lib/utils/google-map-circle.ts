@@ -45,10 +45,9 @@ export function getStaticMapWithCircle(lat, lng, radius, accessKey) {
 
   const smallCenterCircleFill = 'd80e7b';
 
-  const mainMarkerColor = 'd80e7b';
+  const mainMarkerColor = 'd3107f';
 
-
-  const mainMarker = encodeURI('markers=color:0x' + mainMarkerColor + '|label:S|' + lat + ',' + lng);
+  const mainMarker = encodeURI('markers=color:0x' + mainMarkerColor + '|' + lat + ',' + lng);
 
   const endC = calculateCoordinatesOnCircle(lat, lng, radius, 90 * Math.PI / 180);
 

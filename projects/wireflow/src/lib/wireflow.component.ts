@@ -46,6 +46,7 @@ import { DiagramService } from './core/services/diagram.service';
 import { CoreUIFactory } from './core/core-ui-factory';
 import { TweenLiteService } from './core/services/tween-lite.service';
 import { IWireflowModuleData } from './wireflow.module';
+import { GeolocationService } from './core/services/geolocation.service';
 
 interface MessageEditorStateModel {
   messages: GameMessageCommon[];
@@ -176,6 +177,7 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
     public ngxSmartModalService: NgxSmartModalService,
     private translate: TranslateService,
     private changeDetectorRef: ChangeDetectorRef,
+    private geolocationService: GeolocationService,
   ) {
     this.nodesManager = new NodesManager(this.selector);
 
@@ -771,6 +773,41 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
     event.stopPropagation();
 
     this.ngxSmartModalService.getModal('proximityModal').setData({ nodeId: node.id }, true).open();
+  }
+
+  setProximityCurrentLocation(event, node) {
+    event.stopPropagation();
+
+    this.geolocationService.getCurrentPosition().then((coords) => {
+      if (coords) {
+        const [port] = this.diagram.getPortsBy(p => p.model.generalItemId === node.id.toString());
+        const [ lat, lng ] = coords;
+
+        if (port && port.model && port.model.connectors[0]) {
+          const connector = port.model.connectors[0];
+
+          const mp = this.diagram.getMiddlePointByConnector(connector);
+
+          if (connector.proximity) {
+            connector.proximity.lat = lat;
+            connector.proximity.lng = lng;
+          }
+
+          if (mp) {
+            const dep = mp.dependency.dependencies.find(x => x.generalItemId && x.generalItemId.toString() === node.id.toString());
+
+            dep.lng = lng;
+            dep.lat = lat;
+          }
+
+          if (connector.proximity || mp) {
+            this.connectorsService.emitChangeDependencies();
+          }
+        }
+      }
+    });
+
+    console.log(this.geolocationService, 'current location', node, );
   }
 
   onQrOutputSubmit(value) {

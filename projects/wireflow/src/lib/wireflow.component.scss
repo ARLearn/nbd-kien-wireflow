@@ -223,5 +223,15 @@
   .hide {
     display: none !important;
   }
+
+  .сrosshair {
+    cursor: pointer;
+
+    &:hover {
+      rect {
+        fill: #f1f1f1;
+      }
+    }
+  }
 }
 
