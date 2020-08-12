@@ -1,0 +1,432 @@
+[
+  {
+    "type": "org.celstec.arlearn2.beans.generalItem.VideoObject",
+    "gameId": 5634472569470976,
+    "deleted": false,
+    "lastModificationDate": 1596621562867,
+    "id": 5631832271880192,
+    "scope": "user",
+    "name": "Video boodschap - 1",
+    "description": "Ga verder",
+    "label": "video",
+    "autoLaunch": false,
+    "authoringX": -149,
+    "authoringY": 301,
+    "fileReferences": {
+      "video": "/game/5634472569470976/video.mp4"
+    },
+    "primaryColor": "#faf6c0",
+    "message": true,
+    "showFeedback": false
+  },
+  {
+    "type": "org.celstec.arlearn2.beans.generalItem.SingleChoiceImageTest",
+    "gameId": 5634472569470976,
+    "deleted": false,
+    "lastModificationDate": 1596621562243,
+    "id": 5641978091929600,
+    "scope": "user",
+    "name": "single choice image",
+    "description": "",
+    "autoLaunch": false,
+    "authoringX": 126,
+    "authoringY": 177,
+    "fileReferences": {
+      "L4eDh": "/game/5634472569470976/1A-Answer_A.png",
+      "eUWRK": "/game/5634472569470976/2A-Answer_B.png"
+    },
+    "answers": [
+      {
+        "type": "org.celstec.arlearn2.beans.generalItem.MultipleChoiceAnswerItem",
+        "isCorrect": true,
+        "feedback": "juist",
+        "answer": "",
+        "id": "L4eDh"
+      },
+      {
+        "type": "org.celstec.arlearn2.beans.generalItem.MultipleChoiceAnswerItem",
+        "isCorrect": false,
+        "feedback": "fout",
+        "answer": "",
+        "id": "eUWRK"
+      }
+    ],
+    "text": "",
+    "showFeedback": true,
+    "columns": 3,
+    "message": true
+  },
+  {
+    "type": "org.celstec.arlearn2.beans.generalItem.MultipleChoiceImageTest",
+    "gameId": 5634472569470976,
+    "deleted": false,
+    "lastModificationDate": 1596621562348,
+    "id": 5645612305350656,
+    "scope": "user",
+    "name": "Meer keuze met figuur",
+    "description": "",
+    "autoLaunch": false,
+    "authoringX": 399,
+    "authoringY": -159,
+    "fileReferences": {
+      "video": "/game/5634472569470976/video.mp4",
+      "background": "/game/5634472569470976/background4.jpg",
+      "p1VyC": "/game/5634472569470976/3B-Answer_A.png",
+      "aDlmE": "/game/5634472569470976/3D-Answer_B.png",
+      "correct": "/game/5634472569470976/Resultaat A-Book fullscreen.png",
+      "wrong": "/game/5634472569470976/Resultaat E-Book fullscreen.png"
+    },
+    "answers": [
+      {
+        "type": "org.celstec.arlearn2.beans.generalItem.MultipleChoiceAnswerItem",
+        "isCorrect": true,
+        "feedback": "Jan Terlouw",
+        "answer": "test",
+        "id": "p1VyC"
+      },
+      {
+        "type": "org.celstec.arlearn2.beans.generalItem.MultipleChoiceAnswerItem",
+        "isCorrect": false,
+        "feedback": "De heksen!",
+        "answer": "optie 3",
+        "id": "aDlmE"
+      }
+    ],
+    "text": "vraagje",
+    "showFeedback": false,
+    "columns": 3,
+    "message": true,
+    "backgroundPath": {
+      "_isScalar": false
+    }
+  },
+  {
+    "type": "org.celstec.arlearn2.beans.generalItem.PictureQuestion",
+    "gameId": 5634472569470976,
+    "deleted": false,
+    "lastModificationDate": 1596621574756,
+    "id": 5661854663704576,
+    "scope": "user",
+    "name": "reply with picture test",
+    "description": "proceed",
+    "label": "",
+    "autoLaunch": false,
+    "authoringX": 744,
+    "authoringY": 156,
+    "fileReferences": {
+      "background": "/game/5634472569470976/Resultaat A-Book fullscreen.png"
+    },
+    "richText": "Take some pictures",
+    "message": true,
+    "showFeedback": false,
+    "backgroundPath": {
+      "_isScalar": false
+    }
+  },
+  {
+    "type": "org.celstec.arlearn2.beans.generalItem.MultipleChoiceImageTest",
+    "gameId": 5634472569470976,
+    "deleted": false,
+    "lastModificationDate": 1596621562868,
+    "id": 5670249378611200,
+    "scope": "user",
+    "name": "multiple image",
+    "description": "",
+    "autoLaunch": false,
+    "authoringX": 50,
+    "authoringY": -109,
+    "fileReferences": {
+      "background": "/game/5634472569470976/4G-Answer_A.png",
+      "y5bPF": "/game/5634472569470976/1A-Answer_B.png",
+      "mAJlM": "/game/5634472569470976/3A-Answer_B.png",
+      "correct": "/game/5634472569470976/4G-Answer_A.png",
+      "wrong": "/game/5634472569470976/Resultaat E-Book fullscreen.png"
+    },
+    "answers": [
+      {
+        "type": "org.celstec.arlearn2.beans.generalItem.MultipleChoiceAnswerItem",
+        "isCorrect": true,
+        "feedback": "goed zo",
+        "answer": "",
+        "id": "y5bPF"
+      },
+      {
+        "type": "org.celstec.arlearn2.beans.generalItem.MultipleChoiceAnswerItem",
+        "isCorrect": false,
+        "feedback": "fout",
+        "answer": "",
+        "id": "mAJlM"
+      }
+    ],
+    "text": "kies verschillende figuren",
+    "showFeedback": false,
+    "columns": 3,
+    "message": true,
+    "backgroundPath": {
+      "_isScalar": false
+    }
+  },
+  {
+    "type": "org.celstec.arlearn2.beans.generalItem.MultipleChoiceTest",
+    "gameId": 5634472569470976,
+    "deleted": false,
+    "lastModificationDate": 1596621576868,
+    "id": 5670698806673408,
+    "scope": "user",
+    "name": "meerkeuze test",
+    "description": "",
+    "dependsOn": {
+      "type": "org.celstec.arlearn2.beans.dependencies.AndDependency",
+      "dependencies": [
+        {
+          "type": "org.celstec.arlearn2.beans.dependencies.OrDependency",
+          "dependencies": [
+            {
+              "type": "org.celstec.arlearn2.beans.dependencies.OrDependency",
+              "dependencies": [
+                {
+                  "type": "org.celstec.arlearn2.beans.dependencies.ActionDependency",
+                  "action": "read",
+                  "generalItemId": "5661854663704576"
+                },
+                {
+                  "type": "org.celstec.arlearn2.beans.dependencies.ActionDependency",
+                  "action": "read",
+                  "generalItemId": "5694038866919424"
+                }
+              ]
+            },
+            {
+              "type": "org.celstec.arlearn2.beans.dependencies.ProximityDependency",
+              "lng": 4.89707,
+              "lat": 52.377956,
+              "radius": 4,
+              "generalItemId": 539266
+            }
+          ]
+        }
+      ]
+    },
+    "autoLaunch": false,
+    "authoringX": 1289,
+    "authoringY": 354,
+    "fileReferences": {
+      "tFC1L": "/game/5634472569470976//Schermafbeelding 2020-02-05 om 20.44.54.png",
+      "wrong": "/game/5634472569470976/correct.jpg",
+      "TufHL": "/game/5634472569470976//Schermafbeelding 2020-02-05 om 20.45.03.png",
+      "correct": "/game/5634472569470976//background4.jpg",
+      "background": "/game/5634472569470976/icon.png"
+    },
+    "answers": [
+      {
+        "type": "org.celstec.arlearn2.beans.generalItem.MultipleChoiceAnswerItem",
+        "isCorrect": true,
+        "feedback": "Answer correct",
+        "answer": "1",
+        "id": "tFC1L"
+      },
+      {
+        "type": "org.celstec.arlearn2.beans.generalItem.MultipleChoiceAnswerItem",
+        "isCorrect": false,
+        "feedback": "answer is false",
+        "answer": "2",
+        "id": "TufHL"
+      }
+    ],
+    "text": "",
+    "showFeedback": false,
+    "message": true,
+    "backgroundPath": {
+      "_isScalar": false
+    }
+  },
+  {
+    "type": "org.celstec.arlearn2.beans.generalItem.PictureQuestion",
+    "gameId": 5634472569470976,
+    "deleted": false,
+    "lastModificationDate": 1596621562767,
+    "id": 5685349879644160,
+    "scope": "user",
+    "name": "reply picture",
+    "description": "VERD",
+    "autoLaunch": false,
+    "authoringX": 304,
+    "authoringY": 347,
+    "fileReferences": {
+      "background": "/game/5634472569470976/Resultaat E-Book fullscreen.png"
+    },
+    "richText": "maak een foto",
+    "message": true,
+    "showFeedback": false,
+    "backgroundPath": {
+      "_isScalar": false
+    }
+  },
+  {
+    "type": "org.celstec.arlearn2.beans.generalItem.NarratorItem",
+    "gameId": 5634472569470976,
+    "deleted": false,
+    "lastModificationDate": 1596621562341,
+    "id": 5694038866919424,
+    "scope": "user",
+    "name": "You found me",
+    "description": "",
+    "dependsOn": {
+      "type": "org.celstec.arlearn2.beans.dependencies.ActionDependency",
+      "action": "answer_incorrect",
+      "generalItemId": 5641978091929600
+    },
+    "autoLaunch": false,
+    "authoringX": 595,
+    "authoringY": 378,
+    "fileReferences": {
+      "background": "/game/5634472569470976/1A-Answer_A.png"
+    },
+    "richText": "You found the QR code and scanned it, now this message is unlocked",
+    "message": true,
+    "showFeedback": false,
+    "backgroundPath": {
+      "_isScalar": false
+    }
+  },
+  {
+    "type": "org.celstec.arlearn2.beans.generalItem.AudioQuestion",
+    "gameId": 5634472569470976,
+    "deleted": false,
+    "lastModificationDate": 1596621562680,
+    "id": 5706235600961536,
+    "scope": "user",
+    "name": "geluid fragement opnemen",
+    "description": "",
+    "autoLaunch": false,
+    "authoringX": 1010,
+    "authoringY": -54,
+    "richText": "make audio recording",
+    "message": true,
+    "fileReferences": {},
+    "showFeedback": false
+  },
+  {
+    "type": "org.celstec.arlearn2.beans.generalItem.TextQuestion",
+    "gameId": 5634472569470976,
+    "deleted": false,
+    "lastModificationDate": 1596621562759,
+    "id": 5731601040277504,
+    "scope": "user",
+    "name": "geef een text boodschap",
+    "description": "",
+    "dependsOn": {
+      "type": "org.celstec.arlearn2.beans.dependencies.ActionDependency",
+      "action": "read",
+      "generalItemId": 5685349879644160
+    },
+    "autoLaunch": false,
+    "authoringX": 640,
+    "authoringY": -144,
+    "richText": "voorzie uw tekst",
+    "message": true,
+    "fileReferences": {},
+    "showFeedback": false
+  },
+  {
+    "type": "org.celstec.arlearn2.beans.generalItem.NarratorItem",
+    "gameId": 5634472569470976,
+    "deleted": false,
+    "lastModificationDate": 1596621562354,
+    "id": 5736201084469248,
+    "scope": "user",
+    "name": "narrator",
+    "description": "kaart::toMap",
+    "autoLaunch": false,
+    "authoringX": 786,
+    "authoringY": -95,
+    "message": true,
+    "fileReferences": {},
+    "showFeedback": false
+  },
+  {
+    "type": "org.celstec.arlearn2.beans.generalItem.SingleChoiceTest",
+    "gameId": 5634472569470976,
+    "deleted": false,
+    "lastModificationDate": 1596621562867,
+    "id": 5737833507586048,
+    "scope": "user",
+    "name": "plain sc",
+    "description": "",
+    "autoLaunch": false,
+    "authoringX": 743,
+    "authoringY": 614,
+    "fileReferences": {
+      "background": "/game/5634472569470976/background4.jpg"
+    },
+    "primaryColor": "#4d2019",
+    "answers": [
+      {
+        "type": "org.celstec.arlearn2.beans.generalItem.MultipleChoiceAnswerItem",
+        "isCorrect": true,
+        "feedback": "",
+        "answer": "optie1",
+        "id": "n1zfw"
+      },
+      {
+        "type": "org.celstec.arlearn2.beans.generalItem.MultipleChoiceAnswerItem",
+        "isCorrect": true,
+        "feedback": "",
+        "answer": "optie 2",
+        "id": "UBkZS"
+      }
+    ],
+    "showFeedback": false,
+    "message": true
+  },
+  {
+    "type": "org.celstec.arlearn2.beans.generalItem.SingleChoiceTest",
+    "gameId": 5634472569470976,
+    "deleted": false,
+    "lastModificationDate": 1596621562763,
+    "id": 5748531532922880,
+    "scope": "user",
+    "name": "single choice",
+    "description": "",
+    "label": "",
+    "autoLaunch": false,
+    "authoringX": 1018,
+    "authoringY": 400,
+    "answers": [
+      {
+        "type": "org.celstec.arlearn2.beans.generalItem.MultipleChoiceAnswerItem",
+        "isCorrect": true,
+        "feedback": "juist",
+        "answer": "dat is 1",
+        "id": "98GW2"
+      },
+      {
+        "type": "org.celstec.arlearn2.beans.generalItem.MultipleChoiceAnswerItem",
+        "isCorrect": false,
+        "feedback": "fout",
+        "answer": "dat is 2",
+        "id": "53zMV"
+      }
+    ],
+    "text": "Hoeveel is 1 + 1 - 1",
+    "showFeedback": true,
+    "message": true,
+    "fileReferences": {}
+  },
+  {
+    "type": "org.celstec.arlearn2.beans.generalItem.ScanTag",
+    "gameId": 5634472569470976,
+    "deleted": false,
+    "lastModificationDate": 1596621562349,
+    "id": 5763503788916736,
+    "scope": "user",
+    "name": "scan a code",
+    "description": "",
+    "autoLaunch": false,
+    "authoringX": 228,
+    "authoringY": 534,
+    "message": true,
+    "fileReferences": {},
+    "showFeedback": false
+  }
+]

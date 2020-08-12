@@ -160,7 +160,6 @@ export class Diagram implements DraggableUiElement {
   }
   // TODO: Move to connectorsService
   createInputConnector(message: GameMessageCommon, coords: Point, inputMiddlePoint: MiddlePoint): Connector {
-
     const model = this.connectorsService.createConnectorModel(null);
     const connector = new Connector(this.coreUiFactory, this.domContext, this.connectorsService, this.tweenLiteService, model, coords);
     this.addConnector(connector);
@@ -168,12 +167,13 @@ export class Diagram implements DraggableUiElement {
       .initCreating()
       .setIsInput(true);
 
+
     if (!inputMiddlePoint.parentMiddlePoint) {
       const input = this.getInputPortByGeneralItemId(message.id);
       connector.setOutputPort(input);
       connector.updateHandle(input.model);
     } else {
-      connector.moveOutputHandle(inputMiddlePoint.parentMiddlePoint.coordinates);
+      connector.moveOutputHandle(inputMiddlePoint.parentMiddlePoint.coordinates || {x: 0, y: 0});
     }
 
     connector.nativeElement.classList.remove('middle-connector--new');

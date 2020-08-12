@@ -338,7 +338,6 @@ export class WireflowManager {
         shape, dep
       );
     }).filter(x => !!x);
-
     const inputPort = this.diagram.getInputPortByGeneralItemId(message.id);
     const outputPort = this.diagram.getOutputPortByGeneralItemId(dependency.generalItemId || '', dependency.action || '');
 
@@ -353,6 +352,9 @@ export class WireflowManager {
       coords = { x: (inputX + outputX) / 2, y: (inputY + outputY) / 2 };
     } else if (input.inputPort) {
       coords = { x: input.inputPort.global.x - 75, y: input.inputPort.global.y };
+    } else if (input.childrenMiddlePoints[0]) {
+      const tempCoords = input.childrenMiddlePoints[0].coordinates;
+      coords = { x: tempCoords.x + 100, y: tempCoords.y + 50 };
     }
 
     const inpConn = this.diagram.createInputConnector(message, coords, input);
@@ -363,6 +365,7 @@ export class WireflowManager {
     input.setOutputConnectors(outConns.map(c => c.model));
 
     this.diagram.middlePoints.push(input);
+
 
     return input;
   }
@@ -384,6 +387,7 @@ export class WireflowManager {
       )
         .setInputPort(this.diagram.getInputPortByGeneralItemId(message.id))
         .move({ x: 0, y: 0 });
+
     this.initMiddlePointGroup(message, mp, message[this.selector].dependencies || [message[this.selector].offset]);
 
     this.diagram.middlePoints.forEach(mpo => mpo.init());
@@ -417,7 +421,6 @@ export class WireflowManager {
 
       dep.generalItemId = lastOutput.generalItemId;
     }
-    console.log(lastAddedNode, currentMiddleConnector.shape, dep);
 
     this.createConnector(lastAddedNode, currentMiddleConnector, currentMiddleConnector.shape, dep);
   }

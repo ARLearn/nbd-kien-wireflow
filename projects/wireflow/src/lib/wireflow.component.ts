@@ -806,8 +806,6 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
         }
       }
     });
-
-    console.log(this.geolocationService, 'current location', node, );
   }
 
   onQrOutputSubmit(value) {
