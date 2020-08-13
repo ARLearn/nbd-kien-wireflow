@@ -5,19 +5,6 @@
   <div class="modal-body">
     <div class="mt-2">
       <div class="form-group">
-        <label for="longitudeInput">{{ 'wireflow.proximity-modal.longitude' | translate }}</label>
-        <input
-          id="longitudeInput"
-          placeholder="{{ 'wireflow.proximity-modal.longitudePlaceholder' | translate }}"
-          type="number"
-          class="form-control"
-          name="lng"
-          [(ngModel)]="marker.lng"
-          required
-        />
-      </div>
-
-      <div class="form-group">
         <label for="latitudeInput">{{ 'wireflow.proximity-modal.latitude' | translate }}</label>
         <input
           id="latitudeInput"
@@ -26,6 +13,19 @@
           class="form-control"
           name="lat"
           [(ngModel)]="marker.lat"
+          required
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="longitudeInput">{{ 'wireflow.proximity-modal.longitude' | translate }}</label>
+        <input
+          id="longitudeInput"
+          placeholder="{{ 'wireflow.proximity-modal.longitudePlaceholder' | translate }}"
+          type="number"
+          class="form-control"
+          name="lng"
+          [(ngModel)]="marker.lng"
           required
         />
       </div>
