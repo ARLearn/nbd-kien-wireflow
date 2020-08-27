@@ -16,11 +16,11 @@ export class ActionModalComponent implements AfterViewInit, OnDestroy {
 
   action: string;
   isValidAction: boolean;
-
-  private subscription: Subscription;
   private duplicates: string[];
 
-  constructor(public ngxSmartModalService: NgxSmartModalService) {
+  private subscription: Subscription;
+
+  constructor(private ngxSmartModalService: NgxSmartModalService) {
     this.submitForm = new Subject<any>();
     this.cancel = new Subject<void>();
   }

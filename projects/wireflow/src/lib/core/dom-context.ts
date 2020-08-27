@@ -35,15 +35,19 @@ export class DomContext {
         return document.querySelector(selector).cloneNode(true) as HTMLElement;
     }
 
+    public querySelectorAll(selector: string) {
+      return document.querySelectorAll(selector);
+    }
+
     private getDiagramCoords() {
         let x = 0;
         let y = 0;
-    
+
         if (this.diagramElement['_gsap']) {
           x = getNumberFromPixels(this.diagramElement['_gsap'].x);
           y = getNumberFromPixels(this.diagramElement['_gsap'].y);
         }
-    
+
         return { x, y };
     }
 }

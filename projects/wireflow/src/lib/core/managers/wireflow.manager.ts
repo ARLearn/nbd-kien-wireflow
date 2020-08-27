@@ -28,28 +28,34 @@ export class WireflowManager {
   ) { }
 
   populateOutputMessages(messages: any[]) {
-    const mainMiddlePoints: MiddlePoint[] = this.diagram.middlePoints.filter(mp => !mp.parentMiddlePoint);
+    const mainMiddlePoints: MiddlePoint[] = this.diagram.middlePoints.filter(mp => !mp.parentMiddlePoint); // TODO [refactor]: extract method "diagram.getMainMiddlePoints"
 
     return clone(messages)
     .map(x => {
-      const message = { ...x };
+
+      /* TODO [refactor]: Extract method "getOutputDependency". 
+      Example:
+        message[this.selector] = getOutputDependency(x) // <-- move all if's here 
+      */
+
+      const message = { ...x }; // TODO: clone() above already created new object. unnecessary "{...x}"? 
       try {
         const currentMiddlePoint = mainMiddlePoints.find(mp => Number(mp.generalItemId) === x.id);
 
         if (currentMiddlePoint) {
           message[this.selector] = currentMiddlePoint.dependency;
         } else {
-          const singleConnector = this.diagram.connectors.find(
+          const singleConnector = this.diagram.connectors.find( 
             c => {
               const middlePoint = this.diagram.getMiddlePointByConnector(c.model);
 
               return !middlePoint && c.inputPort.model.generalItemId === x.id.toString();
-            }
-          );
+            } 
+          ); // TODO [refactor]: extract method "getSingleConnector"
 
           if (singleConnector) {
             if (singleConnector.outputPort && singleConnector.outputPort.nodeType &&
-              singleConnector.outputPort.nodeType.includes('ProximityDependency') && singleConnector.model.proximity) {
+              singleConnector.outputPort.nodeType.includes('ProximityDependency') && singleConnector.model.proximity) { // TODO [refactor]: extract method "isProximityConnector"
               message[this.selector] = {
                 type: singleConnector.outputPort.nodeType,
                 ...singleConnector.model.proximity,
@@ -82,6 +88,8 @@ export class WireflowManager {
       const coords = connector.getCenterCoordinates();
 
       if (connector.isInputConnector && middlePoint.parentMiddlePoint) {
+
+        // TODO [refactor]: start new method from here...
         const parentMiddlePoint = middlePoint.parentMiddlePoint;
 
         const dep: any = { type };
@@ -144,6 +152,7 @@ export class WireflowManager {
         return newMiddlePoint;
       }
 
+      // TODO [refactor]: extact 2nd method from here
       let dependency;
 
       if (middlePoint.dependency.type.includes('TimeDependency')) {
@@ -205,6 +214,7 @@ export class WireflowManager {
     } else {
       const message: any = messages.find(r => r.id.toString() === connector.inputPort.model.generalItemId.toString());
 
+      // TODO [refactor]: extact 3nd method from here
       const dependencySingle: any = { ...message[this.selector] };
 
       if (!dependencySingle.action) {

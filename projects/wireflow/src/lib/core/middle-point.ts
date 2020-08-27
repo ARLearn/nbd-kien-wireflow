@@ -34,7 +34,7 @@ export class MiddlePoint extends BaseModelUiElement<MiddlePointModel> implements
     private _generalItemId: number,
     private _dependency: Dependency,
   ) {
-    super(document.querySelector('svg .middle-point').cloneNode(true) as HTMLElement, opts, tweenLiteService);
+    super(domContext.cloneNode('svg .middle-point'), opts, tweenLiteService);
 
     this.mainIcon = this.nativeElement.querySelector('.middle-point-font');
     this.pencilIcon = this.nativeElement.querySelector('.middle-point-pencil');
@@ -183,7 +183,7 @@ export class MiddlePoint extends BaseModelUiElement<MiddlePointModel> implements
         break;
       }
     }
-    this.typeIcon = document.querySelector('.connector-middle-point-' + type).cloneNode(true);
+    this.typeIcon = this.domContext.cloneNode('.connector-middle-point-' + type);
 
     this.typeIcon.style.display = 'block';
     if (!this.nativeElement.contains(this.typeIcon)) {
@@ -245,7 +245,7 @@ export class MiddlePoint extends BaseModelUiElement<MiddlePointModel> implements
   }
 
   private _updateToolbars(): void {
-    const toolbars: any = document.querySelectorAll(`.${this.actionToolbar.nativeElement.classList.value.split(' ').join('.')}`);
+    const toolbars: any = this.domContext.querySelectorAll(`.${this.actionToolbar.nativeElement.classList.value.split(' ').join('.')}`);
 
     Array.from(toolbars).forEach((t: any) => {
       if (t !== this.actionToolbar.nativeElement) {

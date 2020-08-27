@@ -14,8 +14,7 @@ export class TimeDependencyModalComponent implements OnInit, OnDestroy {
 
   private subscription: Subscription;
 
-
-  constructor(public ngxSmartModalService: NgxSmartModalService) {
+  constructor(private ngxSmartModalService: NgxSmartModalService) {
     this.cancel = new Subject<void>();
   }
 
@@ -46,6 +45,4 @@ export class TimeDependencyModalComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.subscription && this.subscription.unsubscribe();
   }
-
-
 }

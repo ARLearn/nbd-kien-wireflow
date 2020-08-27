@@ -1,6 +1,7 @@
 import { Component, OnDestroy, OnInit, Output } from '@angular/core';
 import { NgxSmartModalService } from 'ngx-smart-modal';
 import { Subject, Subscription } from 'rxjs';
+import { GeolocationService } from '../../core/services/geolocation.service';
 
 @Component({
   selector: 'lib-proximity-dependency-modal',
@@ -19,15 +20,16 @@ export class ProximityDependencyModalComponent implements OnInit, OnDestroy {
   private subscription: Subscription;
 
   constructor(
-    public ngxSmartModalService: NgxSmartModalService,
+    private ngxSmartModalService: NgxSmartModalService,
+    private geolocationService: GeolocationService,
   ) {
     this.submitForm = new Subject<any>();
     this.cancel = new Subject<void>();
   }
 
-  ngOnInit() {
+  async ngOnInit() {
     // set current position
-    this.setCurrentPosition();
+    await this.setCurrentPosition();
 
     const modal = this.ngxSmartModalService.getModal('proximityModal');
 
@@ -48,11 +50,11 @@ export class ProximityDependencyModalComponent implements OnInit, OnDestroy {
     }));
   }
 
-  onFormKeyDown($event: KeyboardEvent) {
-    $event.stopPropagation();
+  onFormKeyDown(event: KeyboardEvent) {
+    event.stopPropagation();
 
-    if ($event.code.includes('Enter')) {
-      $event.preventDefault();
+    if (event.code.includes('Enter')) {
+      event.preventDefault();
     }
   }
 
@@ -60,12 +62,14 @@ export class ProximityDependencyModalComponent implements OnInit, OnDestroy {
     this.subscription && this.subscription.unsubscribe();
   }
 
-  private setCurrentPosition() {
-    if ('geolocation' in navigator) {
-      navigator.geolocation.getCurrentPosition((position) => {
-        this.defLat = position.coords.latitude;
-        this.defLng = position.coords.longitude;
-      });
-    }
+  private async setCurrentPosition() {
+    try {
+      const position = await this.geolocationService.getCurrentPosition();
+
+      if (position) {
+        this.defLat = position[0];
+        this.defLng = position[1];
+      }
+    } catch (err) {}
   }
 }

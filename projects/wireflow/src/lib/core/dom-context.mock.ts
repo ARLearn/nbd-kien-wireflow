@@ -30,10 +30,49 @@ export class DomContextMock {
         return this.fakeNode;
     }
 
+  public querySelectorAll() {
+    return [ this.fakeNode ];
+  }
+
 }
 
 export class DomNodeMock {
-    public querySelector() {return undefined;}
-    public onclick() {return undefined;}
-    public appendChild() {return undefined;}
+  public onclick;
+  public classList = {
+      add(cls) {},
+      remove(cls) {},
+      contains(cls) {},
+      value: '',
+    };
+
+    public style = {};
+
+    public _gsap = {
+      x: '0px',
+      y: '0px',
+    };
+
+
+    public querySelector(selector) { return new DomNodeMock(); }
+    public querySelectorAll(selector) { return [ new DomNodeMock(), new DomNodeMock(), new DomNodeMock() ]; }
+    public prepend() { return undefined; }
+    public append() { return undefined; }
+    public appendChild() { return undefined; }
+    public getAttribute(attribute) { return undefined; }
+    public setAttribute(attribute, value) { return undefined; }
+    public remove() { return undefined; }
+    public removeChild() { return undefined; }
+    public contains() { return false; }
+
+
+    public getBBox() {  return { x: 0, y: 0, height: 100, width: 100 }; }
+    public createSVGPoint() {  return new DomNodeMock(); }
+    public getTransformToElement(el) { return {}; }
+    public matrixTransform() { return {}; }
 }
+
+export class DomNodeMockFactory {
+  static portElement = new DomNodeMock();
+  static toolbarElement = new DomNodeMock();
+}
+

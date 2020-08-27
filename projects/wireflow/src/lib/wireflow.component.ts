@@ -47,6 +47,7 @@ import { CoreUIFactory } from './core/core-ui-factory';
 import { TweenLiteService } from './core/services/tween-lite.service';
 import { IWireflowModuleData } from './wireflow.module';
 import { GeolocationService } from './core/services/geolocation.service';
+import { DraggableService } from './core/services/draggable.service';
 
 interface MessageEditorStateModel {
   messages: GameMessageCommon[];
@@ -130,6 +131,7 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
   middlePointsService: MiddlePointsService;
   diagramService: DiagramService;
   tweenLiteService: TweenLiteService;
+  draggableService: DraggableService;
 
   // managers
   nodesManager: NodesManager;
@@ -911,6 +913,7 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
 
     const uniqueIdGenerator = new UniqueIdGenerator();
     this.tweenLiteService = new TweenLiteService();
+    this.draggableService = new DraggableService();
     this.nodesService = new NodesService(uniqueIdGenerator);
     this.portsService = new PortsService(uniqueIdGenerator);
     this.connectorsService = new ConnectorsService(uniqueIdGenerator, this.domContext);
@@ -926,6 +929,7 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
       this.middlePointsService,
       this.diagramService,
       this.tweenLiteService,
+      this.draggableService,
     );
 
     this.wireflowManager = new WireflowManager(

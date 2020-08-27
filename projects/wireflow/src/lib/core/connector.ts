@@ -59,7 +59,7 @@ export class Connector extends BaseModelUiElement<ConnectorModel> implements Dra
     model: ConnectorModel,
     point: Point = { x: -1, y: -1 }
   ) {
-    super(document.querySelector('.middle-connector').cloneNode(true) as HTMLElement, model, tweenLiteService);
+    super(domContext.cloneNode('.middle-connector'), model, tweenLiteService);
 
     // TODO: Move to client code
     this.nativeElement.style.display = 'block';
@@ -375,7 +375,6 @@ export class Connector extends BaseModelUiElement<ConnectorModel> implements Dra
       const prevLength = length;
       const prevDX = prevCoords.x4 - prevCoords.x1;
       const prevDY = prevCoords.y4 - prevCoords.y1;
-
       const l = .33 * bezierWeight * this.getLength();
       const dx = l * prevDX / prevLength;
       const dy = l * prevDY / prevLength;

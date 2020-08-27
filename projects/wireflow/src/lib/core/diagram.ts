@@ -14,9 +14,8 @@ import { GameMessageCommon } from '../models/core';
 import { DiagramService } from './services/diagram.service';
 import { CoreUIFactory } from './core-ui-factory';
 import { TweenLiteService } from './services/tween-lite.service';
+import { DraggableService } from './services/draggable.service';
 
-declare const TweenLite;
-declare const Draggable;
 
 export class Diagram implements DraggableUiElement {
   shapes: NodeShape[] = [];
@@ -49,12 +48,13 @@ export class Diagram implements DraggableUiElement {
     private middlePointsService: MiddlePointsService,
     private diagramService: DiagramService,
     private tweenLiteService: TweenLiteService,
+    private draggableService: DraggableService,
   ) {
     this.target = null;
     this.dragType = null;
     this.dragging = false;
 
-    this.draggable = new Draggable(this.domContext.dragProxy, {
+    this.draggable = this.draggableService.create(this.domContext.dragProxy, {
       allowContextMenu: true,
       trigger: this.domContext.svgElement,
       onDrag: () => this._dragTarget(),
@@ -316,7 +316,7 @@ export class Diagram implements DraggableUiElement {
 
   private _dragTarget() {
     if (this.target) {
-      TweenLite.set(this.target.dragElement, {
+      this.tweenLiteService.set(this.target.dragElement, {
         x: `+=${this.draggable.deltaX}`,
         y: `+=${this.draggable.deltaY}`,
       });
@@ -377,7 +377,7 @@ export class Diagram implements DraggableUiElement {
 
   private _getHitShape({ dragElement }: Connector, shapes: NodeShape[]) {
     for (const shape of shapes) {
-      if (Draggable.hitTest(dragElement, shape.nativeElement)) {
+      if (this.draggableService.hitTest(dragElement, shape.nativeElement)) {
         return shape;
       }
     }
@@ -387,7 +387,7 @@ export class Diagram implements DraggableUiElement {
     const shapePorts = isInput ? shape.outputs : shape.inputs;
     for (const port of shapePorts) {
 
-      if (Draggable.hitTest(dragElement, port.portElement)) {
+      if (this.draggableService.hitTest(dragElement, port.portElement)) {
         return port;
       }
     }

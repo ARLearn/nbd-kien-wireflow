@@ -14,7 +14,7 @@ export class CoreUIFactoryMock {
         opts: ToolbarItem,
         tweenLiteService: TweenLiteService,
     ) {
-      return undefined;
+      return this.fakeToolbarButton;
     }
 
 }
