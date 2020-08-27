@@ -27,7 +27,8 @@ export class AppService {
     // return this.http.get<any[]>('assets/data6.json');
     // return this.http.get<any[]>('assets/data7.json');
     // return this.http.get<any[]>('assets/data8_self.json');
-    return this.http.get<any[]>('assets/data_9_bug_middle-point.json');
+    // return this.http.get<any[]>('assets/data_9_bug_middle-point.json');
+    return this.http.get<any[]>('assets/data_10_text-question.json');
   }
 
   private _populateNodes(nodes: GameMessageCommon[]) {

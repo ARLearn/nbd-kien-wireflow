@@ -13,20 +13,43 @@ export interface AddChildAction {
   targetType:
     DependencyTypeAction
   | DependencyTypeProximity;
-  subtype?: 'scantag';
+  subtype?: 'scantag' | 'textquestion';
 }
 
 @Injectable()
 export class MiddlePointToolbar extends BaseUiElement {
 
   // Models
-  private _itemActionDependency = { data: { targetType: 'org.celstec.arlearn2.beans.dependencies.ActionDependency' } } as ToolbarItem<AddChildAction>;
-  private _itemLocation = { data: { targetType: 'org.celstec.arlearn2.beans.dependencies.ProximityDependency' } } as ToolbarItem<AddChildAction>;
-  private _itemQrScan = { data: { targetType: 'org.celstec.arlearn2.beans.dependencies.ActionDependency', subtype: 'scantag' } } as ToolbarItem<AddChildAction>;
+  private _itemActionDependency = {
+    data: {
+      targetType: 'org.celstec.arlearn2.beans.dependencies.ActionDependency'
+    }
+  } as ToolbarItem<AddChildAction>;
+
+  private _itemLocation = {
+    data: {
+      targetType: 'org.celstec.arlearn2.beans.dependencies.ProximityDependency'
+    }
+  } as ToolbarItem<AddChildAction>;
+
+  private _itemTextQuestion = {
+    data: {
+      targetType: 'org.celstec.arlearn2.beans.dependencies.ActionDependency',
+      subtype: 'textquestion'
+    }
+  } as ToolbarItem<AddChildAction>;
+
+  private _itemQrScan = {
+    data: {
+      targetType: 'org.celstec.arlearn2.beans.dependencies.ActionDependency',
+      subtype: 'scantag'
+    }
+  } as ToolbarItem<AddChildAction>;
 
   // Child UI components
   private _btnActionDependency: ToolbarButton;
   private _btnLocation: ToolbarButton;
+  private _btnTextQuestion: ToolbarButton;
   private _btnQrScan: ToolbarButton;
 
   // Events
@@ -45,12 +68,14 @@ export class MiddlePointToolbar extends BaseUiElement {
 
     this._btnActionDependency = this.coreUiFactory.createToolbarButton(this.nativeElement.querySelector('.connector-toolbar__btn--action-dependency'), this._itemActionDependency, this.tweenLiteService);
     this._btnLocation = this.coreUiFactory.createToolbarButton(this.nativeElement.querySelector('.connector-toolbar__btn--location'), this._itemLocation, this.tweenLiteService);
+    this._btnTextQuestion = this.coreUiFactory.createToolbarButton(this.nativeElement.querySelector('.connector-toolbar__btn--text-question'), this._itemTextQuestion, this.tweenLiteService);
     this._btnQrScan = this.coreUiFactory.createToolbarButton(this.nativeElement.querySelector('.connector-toolbar__btn--qr-scan'), this._itemQrScan, this.tweenLiteService);
 
     this.when(merge(
       this._btnActionDependency.action,
       this._btnLocation.action,
-      this._btnQrScan.action
+      this._btnTextQuestion.action,
+      this._btnQrScan.action,
     ), e => this._onAction(e.source));
 
     this.domContext.connectorLayer.appendChild(this.nativeElement);
@@ -60,7 +85,7 @@ export class MiddlePointToolbar extends BaseUiElement {
 
   move({x, y}: Point) {
     super.move({
-      x: x - 48,
+      x: x - 60,
       y: y + 16
     });
     return this;

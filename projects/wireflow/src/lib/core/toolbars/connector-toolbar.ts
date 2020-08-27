@@ -49,6 +49,15 @@ export class ConnectorToolbar extends BaseUiElement {
       }
   } as ToolbarItem<ChangeSingleDependencyWithDependencyAction>;
 
+  private _itemTextQuestion = {
+    data:
+      {
+        targetType: 'org.celstec.arlearn2.beans.dependencies.ActionDependency',
+        type: 'org.celstec.arlearn2.beans.dependencies.AndDependency',
+        subtype: 'textquestion'
+      }
+  } as ToolbarItem<ChangeSingleDependencyWithDependencyAction>;
+
   private _itemLocation = {
     data:
       {
@@ -62,6 +71,7 @@ export class ConnectorToolbar extends BaseUiElement {
   private _btnOr: ToolbarButton;
   private _btnTime: ToolbarButton;
   private _btnQrScan: ToolbarButton;
+  private _btnTextQuestion: ToolbarButton;
   private _btnLocation: ToolbarButton;
 
   // Events
@@ -82,6 +92,7 @@ export class ConnectorToolbar extends BaseUiElement {
     this._btnOr = this.coreUiFactory.createToolbarButton(this.nativeElement.querySelector('.connector-toolbar__btn--or'), this._itemOr, this.tweenLiteService);
     this._btnTime = this.coreUiFactory.createToolbarButton(this.nativeElement.querySelector('.connector-toolbar__btn--time'), this._itemTime, this.tweenLiteService);
     this._btnQrScan = this.coreUiFactory.createToolbarButton(this.nativeElement.querySelector('.connector-toolbar__btn--qr-scan'), this._itemQrScan, this.tweenLiteService);
+    this._btnTextQuestion = this.coreUiFactory.createToolbarButton(this.nativeElement.querySelector('.connector-toolbar__btn--text-question'), this._itemTextQuestion, this.tweenLiteService);
     this._btnLocation = this.coreUiFactory.createToolbarButton(this.nativeElement.querySelector('.connector-toolbar__btn--location'), this._itemLocation, this.tweenLiteService);
 
     this.when(merge(
@@ -92,6 +103,7 @@ export class ConnectorToolbar extends BaseUiElement {
 
     this.when(merge(
       this._btnQrScan.action,
+      this._btnTextQuestion.action,
       this._btnLocation.action,
     ), e => this._onActionDependency(e.source));
 

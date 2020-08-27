@@ -78,7 +78,8 @@ export class NodesManager {
         x[this.selector],
         (d: any) => {
           return d.subtype && d.subtype.length > 0 || (
-            (messages.find(m => d.generalItemId && m.id.toString() === d.generalItemId.toString()) || DEFAULT_TYPE).type.includes('ScanTag')
+            (messages.find(m => d.generalItemId && m.id.toString() === d.generalItemId.toString()) || DEFAULT_TYPE).type.includes('ScanTag') ||
+            (messages.find(m => d.generalItemId && m.id.toString() === d.generalItemId.toString()) || DEFAULT_TYPE).type.includes('TextQuestion')
           );
         }
       );

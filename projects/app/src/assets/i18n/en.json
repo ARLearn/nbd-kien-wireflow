@@ -6,8 +6,8 @@
       "cancel": "Cancel"
     },
     "action-modal": {
-      "title": "Provide an QR label",
-      "namePlaceholder": "QR label"
+      "title": "Provide a label",
+      "namePlaceholder": "Action label"
     },
     "proximity-modal": {
       "title": "Proximity",

@@ -90,12 +90,18 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
   private icons = {
     'org.celstec.arlearn2.beans.generalItem.NarratorItem': '&#xf4a6;',
     'org.celstec.arlearn2.beans.generalItem.ScanTag': '&#xf029;',
+    'org.celstec.arlearn2.beans.generalItem.TextQuestion': '&#xf059;',
     'org.celstec.arlearn2.beans.generalItem.ScanTagTest': '&#xf029;',
     'org.celstec.arlearn2.beans.generalItem.VideoObject': '&#xf008;',
     'org.celstec.arlearn2.beans.generalItem.MultipleChoiceImageTest': '&#xf059;',
     'org.celstec.arlearn2.beans.generalItem.SingleChoiceImageTest': '&#xf059;',
     'org.celstec.arlearn2.beans.generalItem.SingleChoiceTest': '&#xf737;',
     'org.celstec.arlearn2.beans.generalItem.MultipleChoiceTest': '&#xf737;',
+  };
+
+  private subtypesNodes = {
+    scantag: 'org.celstec.arlearn2.beans.generalItem.ScanTag',
+    textquestion: 'org.celstec.arlearn2.beans.generalItem.TextQuestion',
   };
 
   private stateSubject = new Subject<MessageEditorStateModel>();
@@ -288,6 +294,7 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
         const mess = messages.find(r => r.id.toString() === x.messageId.toString());
         const messPN = this.populatedNodes.find(r => r.id.toString() === x.messageId.toString());
 
+
         if (mess && messPN) {
           mess.authoringX = Math.floor(x.coords.x || 0);
           mess.authoringY = Math.floor(x.coords.y || 0);
@@ -320,7 +327,9 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
     }));
 
     this.subscription.add(this.middlePointAddChild.subscribe(x => {
-      if (x.dependency.type === 'org.celstec.arlearn2.beans.dependencies.ActionDependency' && x.dependency.subtype === 'scantag') {
+      if (x.dependency.type === 'org.celstec.arlearn2.beans.dependencies.ActionDependency' &&
+        (x.dependency.subtype === 'scantag' || x.dependency.subtype === 'textquestion')
+      ) {
         this.ngxSmartModalService.getModal('actionQrModal').setData(x, true).open();
       } else if (x.dependency.type === 'org.celstec.arlearn2.beans.dependencies.ProximityDependency') {
         this.ngxSmartModalService.getModal('proximityModal').setData(x, true).open();
@@ -710,8 +719,8 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
       const generalItemId = event.target.getAttribute('general-item-id');
       const shape = this.diagram.getShapeByGeneralItemId(generalItemId);
 
-      if (this.currentMiddleConnector.model.subType === 'scantag') {
-        if (shape.model.dependencyType.includes('ScanTag')) {
+      if (this.currentMiddleConnector.model.subType === 'scantag' || this.currentMiddleConnector.model.subType === 'textquestion') {
+        if (shape.model.dependencyType.includes('ScanTag') || shape.model.dependencyType.includes('TextQuestion')) {
           event.target.classList.add('border--success');
 
           this.currentMiddleConnector.setShape(shape);
@@ -740,7 +749,10 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
     if (this.currentMiddleConnector && this.lastDependency) {
       if (this.currentMiddleConnector.model.dependencyType.includes('ProximityDependency')) { return; }
 
-      if (!this.currentMiddleConnector.model.subType || !this.currentMiddleConnector.model.subType.includes('scantag')) {
+      if (!this.currentMiddleConnector.model.subType ||
+        !this.currentMiddleConnector.model.subType.includes('scantag') ||
+        !this.currentMiddleConnector.model.subType.includes('textquestion')
+      ) {
         this.lastDependency.action = output.action;
       }
 
@@ -753,7 +765,10 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
     if (this.currentMiddleConnector && !this.processing) {
       if (this.currentMiddleConnector.model.dependencyType.includes('ProximityDependency')) { return; }
 
-      if (!this.currentMiddleConnector.model.subType || !this.currentMiddleConnector.model.subType.includes('scantag')) {
+      if (!this.currentMiddleConnector.model.subType ||
+        !this.currentMiddleConnector.model.subType.includes('scantag') ||
+        !this.currentMiddleConnector.model.subType.includes('textquestion')
+      ) {
         this.lastDependency.action = 'read';
       }
 
@@ -983,12 +998,16 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
         depend.subtype = 'scantag';
       }
 
+      if (this.currentMiddleConnector.shape && this.currentMiddleConnector.shape.model.dependencyType.includes('TextQuestion')) {
+        depend.subtype = 'textquestion';
+      }
+
       if (!this.currentMiddleConnector.shape && (depend.subtype || x.dependency.type.includes('ProximityDependency'))) {
         message = this.nodesManager.populateNode({
           ...x.message,
           id: x.dependency.generalItemId,
           name: x.dependency.type.includes('ProximityDependency') ? 'proximity' : x.name,
-          type: x.dependency.type,
+          type: this.subtypesNodes[depend.subtype] || x.dependency.type,
           action: x.dependency.type.includes('ProximityDependency') ? 'in range' : x.dependency.action,
           [this.selector]: {},
           virtual: x.dependency.type.includes('ProximityDependency'),
@@ -1282,7 +1301,7 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
     this.subscription.unsubscribe();
   }
 
-  openQrOutputScanTagModal(node: GameMessageCommon) {
+  openOutputActionModal(node: GameMessageCommon) {
     const duplicates = (node as any).outputs.map(output => output.action);
     this.ngxSmartModalService.getModal('actionQrOutputScanTagModal')
       .setData({data: { generalItemId: node.id, duplicates } }, true)
