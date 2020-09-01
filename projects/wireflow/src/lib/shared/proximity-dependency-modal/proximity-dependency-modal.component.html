@@ -4,6 +4,37 @@
   </div>
   <div class="modal-body">
     <div class="mt-2">
+      <agm-map
+        #AgmMap
+        [latitude]="marker.lat"
+        [longitude]="marker.lng"
+        [zoom]="zoom"
+        [disableDefaultUI]="false"
+        [streetViewControl]="false"
+        [zoomControl]="true"
+        (mapClick)="setMarkerCoordinates($event)">
+
+        <agm-marker
+          *ngIf="marker"
+          [latitude]="marker.lat"
+          [longitude]="marker.lng"
+          [label]="marker.label"
+          [markerDraggable]="marker.draggable"
+          (dragEnd)="setMarkerCoordinates($event)">
+        </agm-marker>
+
+        <agm-circle
+          [latitude]="marker.lat" [longitude]="marker.lng"
+          [radius]="marker.radius"
+          [fillColor]="'red'"
+          [circleDraggable]="true"
+          (radiusChange)="radiusChange($event)"
+          (dragEnd)="setMarkerCoordinates($event)"
+          [editable]="true">
+        </agm-circle>
+      </agm-map>
+
+
       <div class="form-group">
         <label for="latitudeInput">{{ 'wireflow.proximity-modal.latitude' | translate }}</label>
         <input

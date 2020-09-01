@@ -6,12 +6,15 @@ import { ProximityDependencyModalComponent } from './proximity-dependency-modal.
 import { NgxSmartModalServiceMock } from '../../core/services/ngx-smart-modal.service.mock';
 import { GeolocationServiceMock } from '../../core/services/geolocation.service.mock';
 import { GeolocationService } from '../../core/services/geolocation.service';
+import { GoogleMapServiceMock } from '../../core/services/google-map.service.mock';
+import { GoogleMapService } from '../../core/services/google-map.service';
 
 
 describe('ProximityDependencyModalComponent', () => {
   let component: ProximityDependencyModalComponent,
     geolocationServiceMock,
-    ngxSmartModalServiceMock;
+    ngxSmartModalServiceMock,
+    googleMapServiceMock;
 
   beforeEach(() => {
 
@@ -20,14 +23,17 @@ describe('ProximityDependencyModalComponent', () => {
       providers: [
         NgxSmartModalServiceMock,
         GeolocationServiceMock,
+        GoogleMapServiceMock,
         { provide: NgxSmartModalService, useExisting: NgxSmartModalServiceMock },
         { provide: GeolocationService, useExisting: GeolocationServiceMock },
+        { provide: GoogleMapService, useExisting: GoogleMapServiceMock },
       ]
     });
 
     ngxSmartModalServiceMock = TestBed.get(NgxSmartModalServiceMock);
     geolocationServiceMock = TestBed.get(GeolocationServiceMock);
-    component = new ProximityDependencyModalComponent(ngxSmartModalServiceMock, geolocationServiceMock);
+    googleMapServiceMock = TestBed.get(GoogleMapServiceMock);
+    component = new ProximityDependencyModalComponent(ngxSmartModalServiceMock, geolocationServiceMock, googleMapServiceMock);
 
     ngxSmartModalServiceMock.setData({ initialData: { lat: 1, lng: 1, radius: 1 } });
   });
@@ -49,7 +55,7 @@ describe('ProximityDependencyModalComponent', () => {
     it('should not has initialized another fields', () => {
       expect(component.defLat).toBe(52.377956);
       expect(component.defLng).toBe(4.897070);
-      expect(component.marker).toEqual({ lat: component.defLat, lng: component.defLng, radius: 4 });
+      expect(component.marker).toEqual({ lat: component.defLat, lng: component.defLng, radius: 4, label: '', draggable: true });
     });
   });
 
@@ -103,6 +109,16 @@ describe('ProximityDependencyModalComponent', () => {
       expect(component.marker.lat).toBe(52.377956);
       expect(component.marker.lng).toBe(4.897070);
       expect(component.marker.radius).toBe(4);
+    }));
+
+    it('should call googleMapService.fitMapWithCircle on onOpenFinished event', fakeAsync(async () => {
+      const spy = spyOn(googleMapServiceMock, 'fitMapWithCircle');
+      await component.ngOnInit();
+
+      ngxSmartModalServiceMock.onOpenFinished.next();
+      tick();
+
+      expect(spy).toHaveBeenCalled();
     }));
 
     it('should set default values on onCloseFinished event', fakeAsync(async () => {
@@ -213,5 +229,22 @@ describe('ProximityDependencyModalComponent', () => {
       expect(component.defLat).toBe(52.377956);
       expect(component.defLng).toBe(4.89707);
     }));
+  });
+
+  describe('setMarkerCoordinates', () => {
+    it('should set lat & lng for marker', () => {
+      component.setMarkerCoordinates({ coords: { lat: 10, lng: 20 } });
+
+      expect(component.marker.lat).toBe(10);
+      expect(component.marker.lng).toBe(20);
+    });
+  });
+
+  describe('radiusChange', () => {
+    it('should set lat & lng for marker', () => {
+      component.radiusChange(40);
+
+      expect(component.marker.radius).toBe(40);
+    });
   });
 });

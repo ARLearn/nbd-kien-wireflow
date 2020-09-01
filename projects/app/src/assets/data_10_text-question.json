@@ -200,7 +200,7 @@
               "type": "org.celstec.arlearn2.beans.dependencies.ProximityDependency",
               "lng": 4.89707,
               "lat": 52.377956,
-              "radius": 4,
+              "radius": 40,
               "generalItemId": 539266
             }
           ]

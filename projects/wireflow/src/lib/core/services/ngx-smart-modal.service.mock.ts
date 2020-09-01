@@ -2,12 +2,14 @@ import { Subject } from 'rxjs';
 
 export class NgxSmartModalServiceMock {
   onOpen = new Subject();
+  onOpenFinished = new Subject();
   onCloseFinished = new Subject();
 
   data = {};
 
   modal = {
     onOpen: this.onOpen.asObservable(),
+    onOpenFinished: this.onOpenFinished.asObservable(),
     onCloseFinished: this.onCloseFinished.asObservable(),
     getData: this.getData.bind(this),
   };

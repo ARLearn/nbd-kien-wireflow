@@ -1,7 +1,9 @@
-import { Component, OnDestroy, OnInit, Output } from '@angular/core';
+import { AfterViewInit, Component, OnDestroy, OnInit, Output, ViewChild } from '@angular/core';
 import { NgxSmartModalService } from 'ngx-smart-modal';
 import { Subject, Subscription } from 'rxjs';
 import { GeolocationService } from '../../core/services/geolocation.service';
+import { AgmCircle, AgmMap } from '@agm/core';
+import { GoogleMapService } from '../../core/services/google-map.service';
 
 @Component({
   selector: 'lib-proximity-dependency-modal',
@@ -15,13 +17,18 @@ export class ProximityDependencyModalComponent implements OnInit, OnDestroy {
   // google maps zoom level
   defLat = 52.377956;
   defLng = 4.897070;
-  marker = { lat: this.defLat, lng: this.defLng, radius: 4 };
+  marker = { lat: this.defLat, lng: this.defLng, radius: 4, draggable: true, label: '' };
+  zoom = 15;
 
   private subscription: Subscription;
+
+  @ViewChild('AgmMap', { static: false }) agmMap: AgmMap;
+  @ViewChild(AgmCircle, { static: false }) circle;
 
   constructor(
     private ngxSmartModalService: NgxSmartModalService,
     private geolocationService: GeolocationService,
+    private googleMapService: GoogleMapService,
   ) {
     this.submitForm = new Subject<any>();
     this.cancel = new Subject<void>();
@@ -43,6 +50,10 @@ export class ProximityDependencyModalComponent implements OnInit, OnDestroy {
       }
     });
 
+    modal.onOpenFinished.subscribe(() => {
+      this.googleMapService.fitMapWithCircle(this.agmMap, this.circle);
+    });
+
     this.subscription.add(modal.onCloseFinished.subscribe(() => {
       this.marker.lat = this.defLat;
       this.marker.lng = this.defLng;
@@ -60,6 +71,15 @@ export class ProximityDependencyModalComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.subscription && this.subscription.unsubscribe();
+  }
+
+  setMarkerCoordinates(event) {
+    this.marker.lat = event.coords.lat;
+    this.marker.lng = event.coords.lng;
+  }
+
+  radiusChange($event) {
+    this.marker.radius = $event;
   }
 
   private async setCurrentPosition() {
