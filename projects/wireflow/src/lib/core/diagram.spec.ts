@@ -15,8 +15,6 @@ import { DiagramService } from './services/diagram.service';
 import { DraggableServiceMock } from './services/draggable.service.mock';
 import { DraggableService } from './services/draggable.service';
 import { Connector } from './connector';
-import { NodeShape } from './node-shape';
-import { MiddlePoint } from './middle-point';
 
 describe('Diagram', () => {
 

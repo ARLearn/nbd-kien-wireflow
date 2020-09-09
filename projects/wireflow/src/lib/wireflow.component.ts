@@ -210,7 +210,6 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
           });
           return messages;
         }),
-        skip(1),
         filter(x => x.length > 0),
       );
 
@@ -282,7 +281,8 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
     this.subscription.add(this
       .dependenciesOutput
       .subscribe(() => {
-        this.messages = this.wireflowManager.populateOutputMessages(this.messages);
+        const visibleIds = this.populatedNodes.filter(x => x['isVisible']).map(x => x.id);
+        this.messages = this.wireflowManager.populateOutputMessages(this.messages, visibleIds, true);
 
         this._emitMessages(this.messages);
       }));
@@ -290,7 +290,8 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
     this.subscription.add(this
       .coordinatesOutputSubject
       .subscribe(x => {
-        const messages = this.wireflowManager.populateOutputMessages(this.messages);
+        const visibleIds = this.populatedNodes.filter(x => x['isVisible']).map(x => x.id);
+        const messages = this.wireflowManager.populateOutputMessages(this.messages, visibleIds, false);
         const mess = messages.find(r => r.id.toString() === x.messageId.toString());
         const messPN = this.populatedNodes.find(r => r.id.toString() === x.messageId.toString());
 
@@ -655,8 +656,8 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
 
     setTimeout(() => {
       this.diagramService.drag();
-
-      this.connectorsService.emitChangeDependencies();
+      this.state.messages = clone(this.messages);
+      this.state.messagesOld = clone(this.messages);
     }, 1000);
   }
 
@@ -1274,8 +1275,6 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
         console.debug('initState:', err);
       }
     });
-
-    this.connectorsService.emitChangeDependencies();
   }
 
   private _preHash(input: GameMessageCommon) {

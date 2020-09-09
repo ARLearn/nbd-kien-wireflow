@@ -225,6 +225,27 @@ export class Diagram implements DraggableUiElement {
     }
   }
 
+  getSingleConnector(id: string) {
+    return this.connectors.find(
+      c => {
+        const middlePoint = this.getMiddlePointByConnector(c.model);
+
+        return !middlePoint && c.inputPort.model.generalItemId === id;
+      }
+    );
+  }
+
+  isProximityConnector(connector: Connector) {
+    return connector.outputPort &&
+      connector.outputPort.nodeType &&
+      connector.outputPort.nodeType.includes('ProximityDependency') &&
+      connector.model.proximity;
+  }
+
+  getMainMiddlePoints() {
+    return this.middlePoints.filter(mp => !mp.parentMiddlePoint);
+  }
+
   getMiddlePoint(id: string): MiddlePoint {
     return this.middlePoints.find(mp => mp.model.id === id);
   }

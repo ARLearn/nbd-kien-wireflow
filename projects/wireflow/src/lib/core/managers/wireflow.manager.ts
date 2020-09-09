@@ -27,56 +27,201 @@ export class WireflowManager {
     private selector: string,
   ) { }
 
-  populateOutputMessages(messages: any[]) {
-    const mainMiddlePoints: MiddlePoint[] = this.diagram.middlePoints.filter(mp => !mp.parentMiddlePoint); // TODO [refactor]: extract method "diagram.getMainMiddlePoints"
-
+  populateOutputMessages(messages: any[], visibleIds, needToRecalculateDependency) {
     return clone(messages)
-    .map(x => {
-
-      /* TODO [refactor]: Extract method "getOutputDependency". 
-      Example:
-        message[this.selector] = getOutputDependency(x) // <-- move all if's here 
-      */
-
-      const message = { ...x }; // TODO: clone() above already created new object. unnecessary "{...x}"? 
-      try {
-        const currentMiddlePoint = mainMiddlePoints.find(mp => Number(mp.generalItemId) === x.id);
-
-        if (currentMiddlePoint) {
-          message[this.selector] = currentMiddlePoint.dependency;
-        } else {
-          const singleConnector = this.diagram.connectors.find( 
-            c => {
-              const middlePoint = this.diagram.getMiddlePointByConnector(c.model);
-
-              return !middlePoint && c.inputPort.model.generalItemId === x.id.toString();
-            } 
-          ); // TODO [refactor]: extract method "getSingleConnector"
-
-          if (singleConnector) {
-            if (singleConnector.outputPort && singleConnector.outputPort.nodeType &&
-              singleConnector.outputPort.nodeType.includes('ProximityDependency') && singleConnector.model.proximity) { // TODO [refactor]: extract method "isProximityConnector"
-              message[this.selector] = {
-                type: singleConnector.outputPort.nodeType,
-                ...singleConnector.model.proximity,
-                generalItemId: x[this.selector].generalItemId
-              };
-            } else {
-              message[this.selector] = {
-                type: singleConnector.outputPort.nodeType,
-                action: singleConnector.outputPort.model.action,
-                generalItemId: singleConnector.outputPort.model.generalItemId
-              };
-            }
-          } else {
-            message[this.selector] = {};
-          }
-        }
-      } catch (err) {
-        console.debug('populateOutputMessages:', err);
+    .map(message => {
+      if (needToRecalculateDependency && visibleIds.includes(message.id)) {
+        message[this.selector] = this.getOutputDependency(message);
       }
+
       return message;
     });
+  }
+
+  getOutputDependency(message: GameMessageCommon) {
+    try {
+      const mainMiddlePoints = this.diagram.getMainMiddlePoints();
+
+      const currentMiddlePoint = mainMiddlePoints.find(mp => Number(mp.generalItemId) === message.id);
+
+      if (currentMiddlePoint) {
+        return currentMiddlePoint.dependency;
+      } else {
+        const singleConnector = this.diagram.getSingleConnector(message.id.toString());
+
+        if (singleConnector) {
+          if (this.diagram.isProximityConnector(singleConnector)) {
+            return {
+              type: singleConnector.outputPort.nodeType,
+              ...singleConnector.model.proximity,
+              generalItemId: message[this.selector].generalItemId
+            };
+          } else {
+            return {
+              type: singleConnector.outputPort.nodeType,
+              action: singleConnector.outputPort.model.action,
+              generalItemId: Number(singleConnector.outputPort.model.generalItemId)
+            };
+          }
+        } else {
+          return {};
+        }
+      }
+    } catch (err) {
+      console.debug('populateOutputMessages:', err);
+    }
+  }
+
+  createChildMiddlePointForInputConnector(message, type, connector: Connector, middlePoint: MiddlePoint, coords, options, notifyChanges) {
+    const parentMiddlePoint = middlePoint.parentMiddlePoint;
+
+    const dep: any = { type };
+    if (type.includes('TimeDependency') && options) {
+      dep.offset = middlePoint.dependency;
+      dep.timeDelta = options.timeDelta;
+    } else {
+      dep.dependencies = [middlePoint.dependency];
+    }
+
+    if (parentMiddlePoint.dependency.type.includes('TimeDependency')) {
+      parentMiddlePoint.dependency.offset = dep;
+    } else {
+      const idx = parentMiddlePoint
+        .dependency
+        .dependencies
+        .indexOf(middlePoint.dependency);
+
+      if (idx > -1) {
+        parentMiddlePoint.dependency.dependencies[idx] = dep;
+      }
+    }
+
+    const newMiddlePoint =
+      new MiddlePoint(
+        this.coreUiFactory,
+        this.domContext,
+        this.middlePointsService,
+        this.tweenLiteService,
+        this.middlePointsService.createMiddlePoint(),
+        message.id,
+        dep
+      )
+        .move(coords)
+        .setParentMiddlePoint(parentMiddlePoint);
+
+    parentMiddlePoint
+      .removeChildMiddlePoint(middlePoint)
+      .addChildMiddlePoint(newMiddlePoint);
+
+    middlePoint.setParentMiddlePoint(newMiddlePoint);
+    newMiddlePoint.addChildMiddlePoint(middlePoint);
+
+    const conn = this.diagram.getConnectorById(middlePoint.inputConnector.id);
+    conn.moveOutputHandle(newMiddlePoint.coordinates);
+
+    const inpConn = this.diagram.createInputConnector(message, coords, newMiddlePoint);
+
+    newMiddlePoint.setInputConnector(inpConn.model)
+      .init()
+      .show();
+
+    connector.actionsCircle.hide();
+    connector.connectorToolbar.hide();
+
+    this.diagram.middlePoints.push(newMiddlePoint);
+
+    notifyChanges && this.connectorsService.emitChangeDependencies();
+
+    return newMiddlePoint;
+  }
+
+  createChildMiddlePointForOutputConnector(message, type, connector: Connector, middlePoint: MiddlePoint, coords, options, notifyChanges) {
+    let dependency;
+
+    if (middlePoint.dependency.type.includes('TimeDependency')) {
+      dependency = middlePoint.dependency.offset;
+    } else {
+      dependency = middlePoint
+        .dependency
+        .dependencies
+        .find(x =>
+          (x.action === connector.outputPort.model.action ||
+            (connector.model.proximity &&
+              connector.model.proximity.lat === x.lat &&
+              connector.model.proximity.lng === x.lng &&
+              connector.model.proximity.radius === x.radius))
+        );
+    }
+
+    const newDep = { ...dependency };
+
+    dependency.type = type;
+    delete dependency.action;
+    delete dependency.generalItemId;
+    delete dependency.subtype;
+    delete dependency.lng;
+    delete dependency.lat;
+    delete dependency.radius;
+
+    if (type.includes('TimeDependency') && options) {
+      dependency.offset = newDep;
+      dependency.timeDelta = options.timeDelta;
+    } else {
+      dependency.dependencies = [newDep];
+    }
+
+    const mp =
+      new MiddlePoint(
+        this.coreUiFactory,
+        this.domContext,
+        this.middlePointsService,
+        this.tweenLiteService,
+        this.middlePointsService.createMiddlePoint(),
+        message.id,
+        dependency
+      )
+        .setInputPort(this.diagram.getInputPortByGeneralItemId(message.id))
+        .setParentMiddlePoint(middlePoint);
+
+    middlePoint.addChildMiddlePoint(mp);
+
+    connector.remove({ removeDependency: false, removeVirtualNode: false });
+    this.initMiddlePointGroup(message, mp, dependency.dependencies || [dependency.offset]);
+
+    mp.move(coords)
+      .init();
+
+    notifyChanges && this.connectorsService.emitChangeDependencies();
+
+    return mp;
+  }
+
+  initMiddlePointForConnector(message, type, connector: Connector, middlePoint: MiddlePoint, options, notifyChanges) {
+    const dependencySingle: any = { ...message[this.selector] };
+
+    if (!dependencySingle.action) {
+      dependencySingle.type = 'org.celstec.arlearn2.beans.dependencies.ActionDependency';
+      dependencySingle.action = connector.outputPort.model.action;
+      dependencySingle.generalItemId = connector.outputPort.model.generalItemId;
+      delete dependencySingle.dependencies;
+    }
+
+    message[this.selector] = { type };
+
+    if (type.includes('TimeDependency') && options) {
+      message[this.selector].timeDelta = options.timeDelta;
+      message[this.selector].offset = dependencySingle;
+    } else {
+      message[this.selector].dependencies = [dependencySingle];
+    }
+
+    connector.detachOutputPort();
+    connector.remove();
+
+    const mp = this.initNodeMessage(message);
+    notifyChanges && this.connectorsService.emitChangeDependencies();
+
+    return mp;
   }
 
   changeSingleDependency(messages, type, connector: Connector, options = null, notifyChanges = true) {
@@ -88,158 +233,14 @@ export class WireflowManager {
       const coords = connector.getCenterCoordinates();
 
       if (connector.isInputConnector && middlePoint.parentMiddlePoint) {
-
-        // TODO [refactor]: start new method from here...
-        const parentMiddlePoint = middlePoint.parentMiddlePoint;
-
-        const dep: any = { type };
-        if (type.includes('TimeDependency') && options) {
-          dep.offset = middlePoint.dependency;
-          dep.timeDelta = options.timeDelta;
-        } else {
-          dep.dependencies = [middlePoint.dependency];
-        }
-
-        if (parentMiddlePoint.dependency.type.includes('TimeDependency')) {
-          parentMiddlePoint.dependency.offset = dep;
-        } else {
-          const idx = parentMiddlePoint
-            .dependency
-            .dependencies
-            .indexOf(middlePoint.dependency);
-
-          if (idx > -1) {
-            parentMiddlePoint.dependency.dependencies[idx] = dep;
-          }
-        }
-
-        const newMiddlePoint =
-          new MiddlePoint(
-            this.coreUiFactory,
-            this.domContext,
-            this.middlePointsService,
-            this.tweenLiteService,
-            this.middlePointsService.createMiddlePoint(),
-            message.id,
-            dep
-          )
-            .move(coords)
-            .setParentMiddlePoint(parentMiddlePoint);
-
-        parentMiddlePoint
-          .removeChildMiddlePoint(middlePoint)
-          .addChildMiddlePoint(newMiddlePoint);
-
-        middlePoint.setParentMiddlePoint(newMiddlePoint);
-        newMiddlePoint.addChildMiddlePoint(middlePoint);
-
-        const conn = this.diagram.getConnectorById(middlePoint.inputConnector.id);
-        conn.moveOutputHandle(newMiddlePoint.coordinates);
-
-        const inpConn = this.diagram.createInputConnector(message, coords, newMiddlePoint);
-
-        newMiddlePoint.setInputConnector(inpConn.model)
-          .init()
-          .show();
-
-        connector.actionsCircle.hide();
-        connector.connectorToolbar.hide();
-
-        this.diagram.middlePoints.push(newMiddlePoint);
-
-        notifyChanges && this.connectorsService.emitChangeDependencies();
-
-        return newMiddlePoint;
+        return this.createChildMiddlePointForInputConnector(message, type, connector, middlePoint, coords, options, notifyChanges);
       }
 
-      // TODO [refactor]: extact 2nd method from here
-      let dependency;
-
-      if (middlePoint.dependency.type.includes('TimeDependency')) {
-        dependency = middlePoint.dependency.offset;
-      } else {
-        dependency = middlePoint
-          .dependency
-          .dependencies
-          .find(x =>
-            (x.action === connector.outputPort.model.action ||
-              (connector.model.proximity &&
-                connector.model.proximity.lat === x.lat &&
-                connector.model.proximity.lng === x.lng &&
-                connector.model.proximity.radius === x.radius))
-          );
-      }
-
-      const newDep = { ...dependency };
-
-      dependency.type = type;
-      delete dependency.action;
-      delete dependency.generalItemId;
-      delete dependency.subtype;
-      delete dependency.lng;
-      delete dependency.lat;
-      delete dependency.radius;
-
-      if (type.includes('TimeDependency') && options) {
-        dependency.offset = newDep;
-        dependency.timeDelta = options.timeDelta;
-      } else {
-        dependency.dependencies = [newDep];
-      }
-
-      const mp =
-        new MiddlePoint(
-          this.coreUiFactory,
-          this.domContext,
-          this.middlePointsService,
-          this.tweenLiteService,
-          this.middlePointsService.createMiddlePoint(),
-          message.id,
-          dependency
-        )
-          .setInputPort(this.diagram.getInputPortByGeneralItemId(message.id))
-          .setParentMiddlePoint(middlePoint);
-
-      middlePoint.addChildMiddlePoint(mp);
-
-      connector.remove({ removeDependency: false, removeVirtualNode: false });
-      this.initMiddlePointGroup(message, mp, dependency.dependencies || [dependency.offset]);
-
-      mp.move(coords)
-        .init();
-
-      notifyChanges && this.connectorsService.emitChangeDependencies();
-
-      return mp;
+      return this.createChildMiddlePointForOutputConnector(message, type, connector, middlePoint, coords, options, notifyChanges);
     } else {
       const message: any = messages.find(r => r.id.toString() === connector.inputPort.model.generalItemId.toString());
 
-      // TODO [refactor]: extact 3nd method from here
-      const dependencySingle: any = { ...message[this.selector] };
-
-      if (!dependencySingle.action) {
-        dependencySingle.type = 'org.celstec.arlearn2.beans.dependencies.ActionDependency';
-        dependencySingle.action = connector.outputPort.model.action;
-        dependencySingle.generalItemId = connector.outputPort.model.generalItemId;
-        delete dependencySingle.dependencies;
-      }
-
-      message[this.selector] = { type };
-
-      if (type.includes('TimeDependency') && options) {
-        message[this.selector].timeDelta = options.timeDelta;
-        message[this.selector].offset = dependencySingle;
-      } else {
-        message[this.selector].dependencies = [dependencySingle];
-      }
-
-      connector.detachOutputPort();
-      connector.remove();
-
-      const mp = this.initNodeMessage(message);
-      notifyChanges && this.connectorsService.emitChangeDependencies();
-
-      return mp;
+      return this.initMiddlePointForConnector(message, type, connector, middlePoint, options, notifyChanges);
     }
   }
 
@@ -275,7 +276,6 @@ export class WireflowManager {
   }
 
   canInitMiddlePointGroup(message: GameMessageCommon, outputs: any[]) {
-
     let result = this.diagram.canCreateInputConnector(message);
 
     if (outputs && outputs.length) {
@@ -376,7 +376,6 @@ export class WireflowManager {
 
     this.diagram.middlePoints.push(input);
 
-
     return input;
   }
 
@@ -421,13 +420,14 @@ export class WireflowManager {
 
       if (shapeOutputPort) {
         port = shapeOutputPort;
-        port.model.connectors.push(currentMiddleConnector.model); // TODO: Replace with con.setOutputPort(port)?
+
+        currentMiddleConnector.setOutputPort(port);
       } else {
         const { action, generalItemId } = lastOutput;
         await this.portsService.createPort(action, generalItemId, currentMiddleConnector.shape.model, false);
       }
 
-      dep = lastDependency || {};
+      dep = lastDependency;
 
       dep.generalItemId = lastOutput.generalItemId;
     }

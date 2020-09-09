@@ -1,5 +1,4 @@
 import { GameMessageCommon, MultipleChoiceScreen } from '../../models/core';
-import has = Reflect.has;
 
 export class NodesManager {
 
@@ -9,114 +8,142 @@ export class NodesManager {
   getNodes(messages: GameMessageCommon[]) {
     const result = messages.map(x => {
 
-      const inputs = [
-        {
-          generalItemId: x.id,
-          title: 'Input',
-          type: (x[this.selector] && x[this.selector].type) || 'org.celstec.arlearn2.beans.dependencies.ActionDependency'
-        }
-      ];
-      const outputs = [];
-
-      outputs.push(
-        {
-          type: 'org.celstec.arlearn2.beans.dependencies.ActionDependency',
-          generalItemId: x.id,
-          action: 'read'
-        },
-        {
-          type: 'org.celstec.arlearn2.beans.dependencies.ActionDependency',
-          generalItemId: x.id,
-          action: 'next'
-        }
-      );
-
-      if (x.type === 'org.celstec.arlearn2.beans.generalItem.VideoObject'
-        || x.type === 'org.celstec.arlearn2.beans.generalItem.AudioObject') {
-        outputs.push(
-          {
-            type: 'org.celstec.arlearn2.beans.dependencies.ActionDependency',
-            generalItemId: x.id,
-            action: 'complete'
-          }
-        );
-      }
-
-      if (x.type.includes('SingleChoice') || x.type.includes('MultipleChoice')) {
-        outputs.push(
-          {
-            type: 'org.celstec.arlearn2.beans.dependencies.ActionDependency',
-            generalItemId: x.id,
-            action: 'answer_correct',
-            title: 'Correct'
-          },
-          {
-            type: 'org.celstec.arlearn2.beans.dependencies.ActionDependency',
-            generalItemId: x.id,
-            action: 'answer_incorrect',
-            title: 'Wrong'
-          },
-          ...(x as MultipleChoiceScreen).answers.map((a, n) => ({
-            type: 'org.celstec.arlearn2.beans.dependencies.ActionDependency',
-            generalItemId: x.id,
-            action: `answer_${a.id}`,
-            title: a.answer || `option ${n + 1}`
-          }))
-        );
-      }
-
-      // const predicate = x.authoringX >= 0 && x.authoringX <= window.innerWidth && x.authoringY >= 0 && x.authoringY <= window.innerHeight;
+      const inputs = this.getNodeInputs(x);
+      const outputs = this.getNodeOutputs(x);
 
       return { ...x, outputs, inputs };
     });
 
-    const msgs = messages.filter((m: any) => m[this.selector]);
-    const DEFAULT_TYPE = { type: '' };
-
-    msgs.forEach(x => {
-      const depends = this.getAllDependenciesByCondition(
-        x[this.selector],
-        (d: any) => {
-          return d.subtype && d.subtype.length > 0 || (
-            (messages.find(m => d.generalItemId && m.id.toString() === d.generalItemId.toString()) || DEFAULT_TYPE).type.includes('ScanTag') ||
-            (messages.find(m => d.generalItemId && m.id.toString() === d.generalItemId.toString()) || DEFAULT_TYPE).type.includes('TextQuestion')
-          );
-        }
-      );
-
-      const proximities = this.getAllDependenciesByCondition(x[this.selector], (d: any) => d.type && d.type.includes('ProximityDependency'));
-
-      if (proximities.length > 0) {
-        proximities.forEach(p => {
-          const nId = Math.floor(Math.random() * 10000000);
-          p.generalItemId = nId;
-
-          result.push(this.populateNode({
-            name: 'proximity',
-            virtual: true,
-            id: nId,
-            type: p.type,
-            action: 'in range',
-            authoringX: Math.floor(x.authoringX - 350),
-            authoringY: Math.floor(x.authoringY)
-          }));
-        });
-      }
-
-      depends.forEach((d: any) => {
-        const node = result.find(n => n.id.toString() === d.generalItemId.toString());
-
-        if (node.outputs.findIndex(output => output.action === d.action) === -1) {
-          node.outputs.push({
-            type: d.type,
-            generalItemId: d.generalItemId,
-            action: d.action
-          });
-        }
-      });
-    });
+    this.prepareMessages(messages, result);
 
     return result;
+  }
+
+  getNodeInputs(message) {
+    return [
+      {
+        generalItemId: message.id,
+        title: 'Input',
+        type: (message[this.selector] && message[this.selector].type) || 'org.celstec.arlearn2.beans.dependencies.ActionDependency'
+      }
+    ];
+  }
+
+  getNodeOutputs(message) {
+    const outputs = [];
+
+    outputs.push(
+      {
+        type: 'org.celstec.arlearn2.beans.dependencies.ActionDependency',
+        generalItemId: message.id,
+        action: 'read'
+      },
+      {
+        type: 'org.celstec.arlearn2.beans.dependencies.ActionDependency',
+        generalItemId: message.id,
+        action: 'next'
+      }
+    );
+
+    if (message.type === 'org.celstec.arlearn2.beans.generalItem.VideoObject'
+      || message.type === 'org.celstec.arlearn2.beans.generalItem.AudioObject') {
+      outputs.push(
+        {
+          type: 'org.celstec.arlearn2.beans.dependencies.ActionDependency',
+          generalItemId: message.id,
+          action: 'complete'
+        }
+      );
+    }
+
+    if (message.type.includes('SingleChoice') || message.type.includes('MultipleChoice')) {
+      outputs.push(
+        {
+          type: 'org.celstec.arlearn2.beans.dependencies.ActionDependency',
+          generalItemId: message.id,
+          action: 'answer_correct',
+          title: 'Correct'
+        },
+        {
+          type: 'org.celstec.arlearn2.beans.dependencies.ActionDependency',
+          generalItemId: message.id,
+          action: 'answer_incorrect',
+          title: 'Wrong'
+        },
+        ...(message as MultipleChoiceScreen).answers.map((a, n) => ({
+          type: 'org.celstec.arlearn2.beans.dependencies.ActionDependency',
+          generalItemId: message.id,
+          action: `answer_${a.id}`,
+          title: a.answer || `option ${n + 1}`
+        }))
+      );
+    }
+
+    return outputs;
+  }
+
+  prepareMessages(messages, result) {
+    const msgs = messages.filter((m: any) => m[this.selector]);
+
+    msgs.forEach(x => {
+      this.prepareOutputs(messages, x, result);
+      this.prepareProximityNodes(x, result);
+    });
+  }
+
+  prepareOutputs(messages, message, result) {
+
+    const depends = this.getAllDependenciesByCondition(
+      message[this.selector],
+      (d: any) => {
+        
+        if (d.subtype && d.subtype.length > 0) {
+          return true;
+        }
+
+        const found = messages.find(m => d.generalItemId && m.id.toString() === d.generalItemId.toString());
+
+        return found
+            && found.type
+            && (found.type.includes('ScanTag') || found.type.includes('TextQuestion'));
+
+      }
+    );
+
+    depends.forEach((d: any) => {
+      const node = result.find(n => n.id.toString() === d.generalItemId.toString());
+
+      if (node.outputs.findIndex(output => output.action === d.action) === -1) {
+        node.outputs.push({
+          type: d.type,
+          generalItemId: d.generalItemId,
+          action: d.action
+        });
+      }
+    });
+  }
+
+  prepareProximityNodes(message, result) {
+    const proximities = this.getAllDependenciesByCondition(message[this.selector],
+      (d: any) => d.type && d.type.includes('ProximityDependency')
+    );
+
+    if (proximities.length > 0) {
+      proximities.forEach(p => {
+        const nId = Math.floor(Math.random() * 10000000);
+        p.generalItemId = nId;
+
+        result.push(this.populateNode({
+          name: 'proximity',
+          virtual: true,
+          id: nId,
+          type: p.type,
+          action: 'in range',
+          authoringX: Math.floor(message.authoringX - 350),
+          authoringY: Math.floor(message.authoringY)
+        }));
+      });
+    }
   }
 
   // finds closest nodes
@@ -212,5 +239,4 @@ export class NodesManager {
       }
     }
   }
-
 }
