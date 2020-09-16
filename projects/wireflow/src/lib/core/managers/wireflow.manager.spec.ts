@@ -96,9 +96,17 @@ describe('WireflowManager', () => {
     it('should return new array with mapped selector', () => {
       spyOn(manager, 'getOutputDependency').and.returnValue({ generalItemId: 1 });
 
-      const result = manager.populateOutputMessages([{ dependsOn: {} }]);
+      const result = manager.populateOutputMessages([{ id: 2, dependsOn: {} }], [2], true);
 
-      expect(result).toEqual([{ dependsOn: { generalItemId: 1 } }]);
+      expect(result).toEqual([{ id: 2, dependsOn: { generalItemId: 1 } }]);
+    });
+
+    it('should return array with not mapped selector', () => {
+      spyOn(manager, 'getOutputDependency').and.returnValue({ generalItemId: 1 });
+
+      const result = manager.populateOutputMessages([{ id: 2, dependsOn: {} }], [2], false);
+
+      expect(result).toEqual([{ id: 2, dependsOn: {} }]);
     });
   });
 

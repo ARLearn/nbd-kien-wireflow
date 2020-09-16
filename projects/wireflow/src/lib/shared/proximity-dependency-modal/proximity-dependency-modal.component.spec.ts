@@ -112,13 +112,12 @@ describe('ProximityDependencyModalComponent', () => {
     }));
 
     it('should call googleMapService.fitMapWithCircle on onOpenFinished event', fakeAsync(async () => {
-      const spy = spyOn(googleMapServiceMock, 'fitMapWithCircle');
       await component.ngOnInit();
 
       ngxSmartModalServiceMock.onOpenFinished.next();
       tick();
 
-      expect(spy).toHaveBeenCalled();
+      expect(googleMapServiceMock.flag).toBeTruthy();
     }));
 
     it('should set default values on onCloseFinished event', fakeAsync(async () => {

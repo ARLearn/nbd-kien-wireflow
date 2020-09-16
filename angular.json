@@ -155,7 +155,15 @@
           "options": {
             "main": "projects/wireflow/src/test.ts",
             "tsConfig": "projects/wireflow/tsconfig.spec.json",
-            "karmaConfig": "projects/wireflow/karma.conf.js"
+            "karmaConfig": "projects/wireflow/karma.conf.js",
+            "codeCoverageExclude": [
+              "projects/wireflow/src/lib/core/dom-context.ts",
+              "projects/wireflow/src/lib/core/services/google-map.service.ts",
+              "projects/wireflow/src/lib/core/services/tween-lite.service.ts",
+              "projects/wireflow/src/lib/core/services/ports.service.mock.ts",
+              "projects/wireflow/src/lib/core/services/geolocation.service.ts",
+              "projects/wireflow/src/lib/core/services/draggable.service.ts"
+            ]
           }
         },
         "lint": {

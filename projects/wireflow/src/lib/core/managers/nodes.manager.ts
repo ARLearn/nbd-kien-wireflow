@@ -2,8 +2,7 @@ import { GameMessageCommon, MultipleChoiceScreen } from '../../models/core';
 
 export class NodesManager {
 
-  constructor(private selector: string) {
-  }
+  constructor(private selector: string) {}
 
   getNodes(messages: GameMessageCommon[]) {
     const result = messages.map(x => {
@@ -96,7 +95,7 @@ export class NodesManager {
     const depends = this.getAllDependenciesByCondition(
       message[this.selector],
       (d: any) => {
-        
+
         if (d.subtype && d.subtype.length > 0) {
           return true;
         }

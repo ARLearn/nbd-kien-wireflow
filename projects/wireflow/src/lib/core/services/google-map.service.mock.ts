@@ -1,3 +1,7 @@
 export class GoogleMapServiceMock {
-  fitMapWithCircle() {}
+  flag = false;
+
+  fitMapWithCircle() {
+    this.flag = true;
+  }
 }
