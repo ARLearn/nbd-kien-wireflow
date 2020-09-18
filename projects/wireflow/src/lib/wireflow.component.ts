@@ -96,6 +96,7 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
     'org.celstec.arlearn2.beans.generalItem.MultipleChoiceImageTest': '&#xf059;',
     'org.celstec.arlearn2.beans.generalItem.SingleChoiceImageTest': '&#xf059;',
     'org.celstec.arlearn2.beans.generalItem.SingleChoiceTest': '&#xf737;',
+    'org.celstec.arlearn2.beans.generalItem.CombinationLock': '&#xf737;',
     'org.celstec.arlearn2.beans.generalItem.MultipleChoiceTest': '&#xf737;',
   };
 

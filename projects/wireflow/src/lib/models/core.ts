@@ -8,6 +8,7 @@ export type MessageTypeMultipleChoiceImageTest = 'org.celstec.arlearn2.beans.gen
 export type MessageTypeNarratorItem = 'org.celstec.arlearn2.beans.generalItem.NarratorItem';
 export type MessageTypeMultipleChoiceTest = 'org.celstec.arlearn2.beans.generalItem.MultipleChoiceTest';
 export type MessageTypeSingleChoiceTest = 'org.celstec.arlearn2.beans.generalItem.SingleChoiceTest';
+export type MessageTypeCombinationLock = 'org.celstec.arlearn2.beans.generalItem.CombinationLock';
 export type MessageTypeScanTagTest = 'org.celstec.arlearn2.beans.generalItem.ScanTagTest';
 export type MessageTypeVideoObject = 'org.celstec.arlearn2.beans.generalItem.VideoObject';
 
@@ -18,6 +19,7 @@ export interface GameMessageCommon {
     | MessageTypeNarratorItem
     | MessageTypeMultipleChoiceTest
     | MessageTypeSingleChoiceTest
+    | MessageTypeCombinationLock
     | MessageTypeScanTagTest
     | MessageTypeVideoObject;
   id?: number;

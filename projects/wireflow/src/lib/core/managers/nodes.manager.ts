@@ -55,7 +55,7 @@ export class NodesManager {
       );
     }
 
-    if (message.type.includes('SingleChoice') || message.type.includes('MultipleChoice')) {
+    if (message.type.includes('SingleChoice') || message.type.includes('CombinationLock') || message.type.includes('MultipleChoice')) {
       outputs.push(
         {
           type: 'org.celstec.arlearn2.beans.dependencies.ActionDependency',
