@@ -693,6 +693,69 @@ describe('Diagram', () => {
     });
   });
 
+  describe('getSingleConnector()', () => {
+    beforeEach(() => {
+      diagram.connectors = [
+        { model: { id: 'connector_1' }, isSelected: false, inputPort: { model: { generalItemId: '123456789' } } },
+        { model: { id: 'connector_2' }, isSelected: false, inputPort: { model: { generalItemId: '789078907' } } },
+        { model: { id: 'connector_3' }, isSelected: true , inputPort: { model: { generalItemId: '678906789' } } },
+        { model: { id: 'connector_4' }, isSelected: false, inputPort: { model: { generalItemId: '456789056' } } },
+      ];
+    });
+
+    it('should return single connector', () => {
+      const connector = diagram.getSingleConnector('123456789');
+      expect(connector).toBeTruthy();
+      expect(connector).toEqual(
+        {
+          model: { id: 'connector_1' },
+          isSelected: false,
+          inputPort: {
+            model: {
+              generalItemId: '123456789'
+            }
+          }
+        }
+      );
+    });
+  });
+
+  describe('isProximityConnector()', () => {
+    it('should return true', () => {
+      const connector = {
+        outputPort: {
+          nodeType: 'ProximityDependency'
+        },
+        model: {
+          proximity: {
+            lat: 0,
+            lng: 0,
+            radius: 10,
+          }
+        }
+      };
+
+      expect(diagram.isProximityConnector(connector as any)).toBeTruthy();
+    });
+  });
+
+  describe('getMainMiddlePoints()', () => {
+    beforeEach(() => {
+      diagram.middlePoints = [
+        { parentMiddlePoint: {}, id: 1 },
+        { id: 2, },
+        { id: 3, },
+        { parentMiddlePoint: {}, id: 4 },
+      ];
+    });
+
+    it('should return 2 items', () => {
+      const result = diagram.getMainMiddlePoints();
+
+      expect(result.length).toBe(2);
+    });
+  });
+
   describe('getMiddlePoint()', () => {
     beforeEach(() => {
       diagram.middlePoints = [

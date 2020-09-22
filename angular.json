@@ -158,6 +158,7 @@
             "karmaConfig": "projects/wireflow/karma.conf.js",
             "codeCoverageExclude": [
               "projects/wireflow/src/lib/core/dom-context.ts",
+              "projects/wireflow/src/lib/core/dom-context.mock.ts",
               "projects/wireflow/src/lib/core/services/google-map.service.ts",
               "projects/wireflow/src/lib/core/services/tween-lite.service.ts",
               "projects/wireflow/src/lib/core/services/ports.service.mock.ts",

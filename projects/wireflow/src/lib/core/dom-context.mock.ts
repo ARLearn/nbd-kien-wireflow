@@ -17,11 +17,6 @@ export class DomContextMock {
     get dragProxy() { return this._dragProxy; }
     get connectorLayer() { return this._connectorLayer; }
 
-
-    public refreshShapeElements() {
-        this._shapeElements = [];
-    }
-
     public getOffsetCoordinates() {
         return { x: 0, y: 0 } as Point;
     }
@@ -54,19 +49,19 @@ export class DomNodeMock {
 
 
     public querySelector(selector) { return new DomNodeMock(); }
-    public querySelectorAll(selector) { return [ new DomNodeMock(), new DomNodeMock(), new DomNodeMock() ]; }
+    public querySelectorAll(selector) {}
     public prepend() { return undefined; }
     public append() { return undefined; }
     public appendChild() { return undefined; }
     public getAttribute(attribute) { return undefined; }
     public setAttribute(attribute, value) { return undefined; }
     public remove() { return undefined; }
-    public removeChild() { return undefined; }
+    public removeChild() {}
     public contains() { return false; }
 
 
     public getBBox() {  return { x: 0, y: 0, height: 100, width: 100 }; }
-    public createSVGPoint() {  return new DomNodeMock(); }
+    public createSVGPoint() {}
     public getTransformToElement(el) { return {}; }
     public matrixTransform() { return {}; }
 }
