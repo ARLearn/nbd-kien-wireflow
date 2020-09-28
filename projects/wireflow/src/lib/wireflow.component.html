@@ -50,8 +50,8 @@
                     [attr.width]="(getHeight(node) + heightTitle) * 1.2"
                     [attr.height]="(getHeight(node) + heightTitle) * 1.5">
                     <image *ngIf="loadedImages[bg]" [attr.href]="bg"
-                      [attr.width]="getImageWidth(node.backgroundPath|async, 152)"
-                      [attr.height]="getImageHeight(node.backgroundPath|async, (getHeight(node) + heightTitle))" />
+                      [attr.width]="getNumberBasedOnImageWidth(node.backgroundPath|async, 152)"
+                      [attr.height]="getNumberBasedOnImageHeight(node.backgroundPath|async, (getHeight(node) + heightTitle))" />
                   </pattern>
                 </defs>
 

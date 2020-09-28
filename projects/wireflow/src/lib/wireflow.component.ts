@@ -1330,7 +1330,7 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
     this.emitNoneSelectEvent();
   }
 
-  getImageWidth(key: string, number: number) {
+  getNumberBasedOnImageWidth(key: string, number: number) {
     if (this.loadedImages[key]) {
       const { width, height } = this.loadedImages[key];
 
@@ -1341,7 +1341,7 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
     return undefined;
   }
 
-  getImageHeight(key: string, number: number) {
+  getNumberBasedOnImageHeight(key: string, number: number) {
     if (this.loadedImages[key]) {
       const { width, height } = this.loadedImages[key];
 
