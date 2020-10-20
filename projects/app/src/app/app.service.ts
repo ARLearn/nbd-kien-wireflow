@@ -29,7 +29,8 @@ export class AppService {
     // return this.http.get<any[]>('assets/data8_self.json');
     // return this.http.get<any[]>('assets/data_9_bug_middle-point.json');
     // return this.http.get<any[]>('assets/data_10_text-question.json');
-    return this.http.get<any[]>('assets/data_11_combination-lock.json');
+    // return this.http.get<any[]>('assets/data_11_combination-lock.json');
+    return this.http.get<{ entities: any[] }>('assets/mediaquest-messages.json').pipe(map(response => Object.values(response.entities)));
   }
 
   private _populateNodes(nodes: GameMessageCommon[]) {

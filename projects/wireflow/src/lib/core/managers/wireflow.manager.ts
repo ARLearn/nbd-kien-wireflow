@@ -12,6 +12,7 @@ import { NodeShape } from '../node-shape';
 import { clone } from '../../utils/object';
 import { CoreUIFactory } from '../core-ui-factory';
 import { TweenLiteService } from '../services/tween-lite.service';
+import {DataService} from '../services/data.service';
 
 export class WireflowManager {
 
@@ -24,6 +25,7 @@ export class WireflowManager {
     private middlePointsService: MiddlePointsService,
     private tweenLiteService: TweenLiteService,
     private diagram: Diagram,
+    private dataService: DataService,
     private selector: string,
   ) { }
 
@@ -41,7 +43,6 @@ export class WireflowManager {
   getOutputDependency(message: GameMessageCommon) {
     try {
       const mainMiddlePoints = this.diagram.getMainMiddlePoints();
-
       const currentMiddlePoint = mainMiddlePoints.find(mp => Number(mp.generalItemId) === message.id);
 
       if (currentMiddlePoint) {
@@ -64,7 +65,11 @@ export class WireflowManager {
             };
           }
         } else {
-          return {};
+          if (!this.dataService.hasConnectorGeneralItemId(message[this.selector].generalItemId)) {
+            return {};
+          }
+
+          return message[this.selector];
         }
       }
     } catch (err) {

@@ -1,5 +1,4 @@
 import { TestBed } from '@angular/core/testing';
-import { of } from 'rxjs';
 
 import { WireflowManager } from './wireflow.manager';
 import { CoreUIFactoryMock } from '../core-ui-factory.mock';
@@ -20,7 +19,7 @@ import { Diagram } from '../diagram';
 import { Connector } from '../connector';
 import { Dependency } from '../../models/core';
 import { MiddlePoint } from '../middle-point';
-import { NodeShape } from '../node-shape';
+import { DataService } from '../services/data.service';
 
 
 describe('WireflowManager', () => {
@@ -32,7 +31,8 @@ describe('WireflowManager', () => {
     connectorsService,
     middlePointsService,
     diagramService,
-    draggableService;
+    draggableService,
+    dataService: DataService;
 
   let diagram, manager;
 
@@ -49,6 +49,7 @@ describe('WireflowManager', () => {
         MiddlePointsService,
         DiagramService,
         DraggableServiceMock,
+        DataService,
         { provide: CoreUIFactory, useExisting: CoreUIFactoryMock },
         { provide: DomContext, useExisting: DomContextMock },
         { provide: TweenLiteService, useExisting: TweenLiteServiceMock },
@@ -65,6 +66,7 @@ describe('WireflowManager', () => {
     middlePointsService = TestBed.get(MiddlePointsService);
     diagramService = TestBed.get(DiagramService);
     draggableService = TestBed.get(DraggableServiceMock);
+    dataService = TestBed.get(DataService);
 
     diagram = new Diagram(
       coreUIFactoryMock,
@@ -87,6 +89,7 @@ describe('WireflowManager', () => {
       middlePointsService,
       tweenLiteServiceMock,
       diagram,
+      dataService,
       'dependsOn'
     );
   });
@@ -124,6 +127,9 @@ describe('WireflowManager', () => {
         id: 123456789,
         gameId: 12345,
         lastModificationDate: 123123123123,
+        dependsOn: {
+          generalItemId: 123,
+        } as any,
         label: 'label',
         type: 'org.celstec.arlearn2.beans.generalItem.NarratorItem',
         name: 'message',
@@ -145,6 +151,9 @@ describe('WireflowManager', () => {
         id: 888,
         gameId: 12345,
         lastModificationDate: 123123123123,
+        dependsOn: {
+          generalItemId: 123,
+        } as any,
         label: 'label',
         type: 'org.celstec.arlearn2.beans.generalItem.NarratorItem',
         name: 'message',
@@ -161,6 +170,9 @@ describe('WireflowManager', () => {
         id: 123456789,
         gameId: 12345,
         lastModificationDate: 123123123123,
+        dependsOn: {
+          generalItemId: 123,
+        } as any,
         label: 'label',
         type: 'org.celstec.arlearn2.beans.generalItem.NarratorItem',
         name: 'message',
@@ -262,6 +274,51 @@ describe('WireflowManager', () => {
       });
 
       expect(spy).toHaveBeenCalled();
+    });
+
+    it('should check connector id and return empty dependency if is not in data service', () => {
+      getSingleConnectorSpy.and.returnValue(undefined);
+
+      const dependency = manager.getOutputDependency({
+        id: 123456789,
+        gameId: 12345,
+        lastModificationDate: 123123123123,
+        label: 'label',
+        dependsOn: {
+          generalItemId: 22222
+        } as any,
+        type: 'org.celstec.arlearn2.beans.generalItem.NarratorItem',
+        name: 'message',
+        richText: 'description',
+        authoringX: 100,
+        authoringY: 100,
+      });
+
+      expect(dependency).toEqual({});
+    });
+
+    it('should check connector id and return input dependency if is in data service', () => {
+      getSingleConnectorSpy.and.returnValue(undefined);
+      dataService.addConnectorGeneralItemId(22222);
+
+      const dependency = manager.getOutputDependency({
+        id: 123456789,
+        gameId: 12345,
+        lastModificationDate: 123123123123,
+        label: 'label',
+        dependsOn: {
+          generalItemId: 22222
+        } as any,
+        type: 'org.celstec.arlearn2.beans.generalItem.NarratorItem',
+        name: 'message',
+        richText: 'description',
+        authoringX: 100,
+        authoringY: 100,
+      });
+
+      expect(dependency).toEqual({
+        generalItemId: 22222
+      });
     });
 
   });

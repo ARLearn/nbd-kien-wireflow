@@ -1,10 +1,11 @@
 import { NodesManager } from './nodes.manager';
+import {DataService} from '../services/data.service';
 
 describe('NodesManager()', () => {
   let manager: NodesManager;
 
   beforeEach(() => {
-    manager = new NodesManager('dependsOn');
+    manager = new NodesManager('dependsOn', new DataService());
   });
 
   describe('getNodes()', () => {

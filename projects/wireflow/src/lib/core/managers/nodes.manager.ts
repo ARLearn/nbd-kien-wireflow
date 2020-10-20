@@ -1,8 +1,12 @@
 import { GameMessageCommon, MultipleChoiceScreen } from '../../models/core';
+import {DataService} from '../services/data.service';
 
 export class NodesManager {
 
-  constructor(private selector: string) {}
+  constructor(
+    private selector: string,
+    private dataService: DataService,
+  ) {}
 
   getNodes(messages: GameMessageCommon[]) {
     const result = messages.map(x => {
@@ -14,6 +18,11 @@ export class NodesManager {
     });
 
     this.prepareMessages(messages, result);
+
+    result.forEach(x => {
+      x[this.selector] && this.getAllDependenciesByCondition(x[this.selector], dep => !!dep.generalItemId)
+        .forEach(item => this.dataService.addConnectorGeneralItemId(item.generalItemId));
+    });
 
     return result;
   }

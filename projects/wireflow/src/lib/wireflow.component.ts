@@ -48,6 +48,7 @@ import { TweenLiteService } from './core/services/tween-lite.service';
 import { IWireflowModuleData } from './wireflow.module';
 import { GeolocationService } from './core/services/geolocation.service';
 import { DraggableService } from './core/services/draggable.service';
+import {DataService} from './core/services/data.service';
 
 interface MessageEditorStateModel {
   messages: GameMessageCommon[];
@@ -140,6 +141,8 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
   tweenLiteService: TweenLiteService;
   draggableService: DraggableService;
 
+  dataService: DataService;
+
   // managers
   nodesManager: NodesManager;
   wireflowManager: WireflowManager;
@@ -188,7 +191,8 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
     private changeDetectorRef: ChangeDetectorRef,
     private geolocationService: GeolocationService,
   ) {
-    this.nodesManager = new NodesManager(this.selector);
+    this.dataService = new DataService();
+    this.nodesManager = new NodesManager(this.selector, this.dataService);
 
     translate.setDefaultLang(this.lang);
     this.messagesChange = this.stateSubject
@@ -531,6 +535,8 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
         this.connectorsService.detachConnector({ connectorModel, port: port.model });
       });
 
+      this.dataService.removeConnectorGeneralItemId(Number(connector.outputPort.model.generalItemId));
+
       const isInput = connector && ((connector.outputPort && connector.outputPort.model.isInput) || connector.isInputConnector);
       const middlePoint = this.diagram.getMiddlePointByConnector(connectorModel);
 
@@ -864,10 +870,12 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
     ) {
       try {
         this._handleRenderNodesNeeded = true;
+
       } catch (err) {
         console.error('ngDoCheck error', err);
       }
     }
+
     this.populatedNodesPrev = clone(this.populatedNodes);
   }
 
@@ -958,6 +966,7 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
       this.middlePointsService,
       this.tweenLiteService,
       this.diagram,
+      this.dataService,
       this.selector,
     );
   }
