@@ -14,7 +14,7 @@ import {
   ChangeDetectorRef, Inject,
 } from '@angular/core';
 import { Observable, Subject, Subscription } from 'rxjs';
-import { distinct, filter, map, skip } from 'rxjs/operators';
+import {distinct, filter, first, map, skip} from 'rxjs/operators';
 import { TranslateService } from '@ngx-translate/core';
 
 import { NgxSmartModalService } from 'ngx-smart-modal';
@@ -57,7 +57,7 @@ interface MessageEditorStateModel {
 
 interface CustomEvent {
   type: string;
-  nodeType: string;
+  nodeType?: string;
   payload: any;
 }
 
@@ -129,6 +129,9 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
   private lastGeneralItemId: string;
   private processing = false;
   private lastAddedPort: any;
+
+  private chunkLoadingStarted$ = new Subject<boolean>();
+  private chunkLoaded$ = new Subject<boolean>();
 
   // services
   coreUiFactory: CoreUIFactory;
@@ -223,6 +226,24 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
     this.noneSelected = new Subject<void>();
     this.onEvent = new Subject<CustomEvent>();
 
+    this.subscription.add(
+      this.chunkLoadingStarted$.pipe(first()).subscribe(() => {
+        this.onEvent.next({
+          type: 'FIRST_CHUNK_LOADING',
+          payload: true
+        });
+      })
+    );
+
+    this.subscription.add(
+      this.chunkLoaded$.pipe(first()).subscribe(() => {
+        this.onEvent.next({
+          type: 'FIRST_CHUNK_LOADING',
+          payload: false
+        });
+      })
+    );
+
     this.subscription.add(this.stateSubject.subscribe(x => {
       this.state = { ...x, messages: clone(x.messages), messagesOld: this.state.messages };
     }));
@@ -236,6 +257,7 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
   }
 
   async renderChunk(chunk) {
+    this.chunkLoadingStarted$.next(true);
     chunk.forEach(x => x['isVisible'] = true);
     this.changeDetectorRef.detectChanges();
     await sleep(600); // Wait for Angular to render SVG elements
@@ -249,7 +271,9 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
         const url = await backgroundPath.toPromise();
         this.loadedImages[url] = await this.getImageParam(url);
       }));
+
     this.initState(this.populatedNodes);
+    this.chunkLoaded$.next(true);
   }
 
   ngOnChanges(changes: SimpleChanges): void {
