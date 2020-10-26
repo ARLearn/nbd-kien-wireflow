@@ -12,6 +12,8 @@ export class NgxSmartModalServiceMock {
     onOpenFinished: this.onOpenFinished.asObservable(),
     onCloseFinished: this.onCloseFinished.asObservable(),
     getData: this.getData.bind(this),
+    setData: this.setData.bind(this),
+    open: () => {},
   };
 
   getModal(identifier: string) {
@@ -28,5 +30,7 @@ export class NgxSmartModalServiceMock {
 
   setData(data) {
     this.data = data;
+
+    return this.modal;
   }
 }
