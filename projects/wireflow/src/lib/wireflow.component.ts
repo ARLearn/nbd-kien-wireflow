@@ -49,6 +49,7 @@ import { IWireflowModuleData } from './wireflow.module';
 import { GeolocationService } from './core/services/geolocation.service';
 import { DraggableService } from './core/services/draggable.service';
 import {DataService} from './core/services/data.service';
+import {ServiceResolver} from './core/services/service-resolver';
 
 interface MessageEditorStateModel {
   messages: GameMessageCommon[];
@@ -193,6 +194,7 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
     private translate: TranslateService,
     private changeDetectorRef: ChangeDetectorRef,
     private geolocationService: GeolocationService,
+    private serviceResolver: ServiceResolver,
   ) {
     this.dataService = new DataService();
     this.nodesManager = new NodesManager(this.selector, this.dataService);
@@ -950,9 +952,9 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
 
     this.nodesManager.generateCoordinates(this.messages);
 
-    this.coreUiFactory = new CoreUIFactory();
+    this.coreUiFactory = this.serviceResolver.createCoreUIFactory();
 
-    this.domContext = new DomContext(
+    this.domContext = this.serviceResolver.createDomContext(
       this.diagramElement,
       this.shapeElements,
       this.svg,
@@ -960,14 +962,13 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
       this.connectorLayer,
     );
 
-    const uniqueIdGenerator = new UniqueIdGenerator();
-    this.tweenLiteService = new TweenLiteService();
-    this.draggableService = new DraggableService();
-    this.nodesService = new NodesService(uniqueIdGenerator);
-    this.portsService = new PortsService(uniqueIdGenerator);
-    this.connectorsService = new ConnectorsService(uniqueIdGenerator, this.domContext);
-    this.middlePointsService = new MiddlePointsService(uniqueIdGenerator);
-    this.diagramService = new DiagramService();
+    this.tweenLiteService = this.serviceResolver.createTweenLiteService();
+    this.draggableService = this.serviceResolver.createDraggableService();
+    this.nodesService = this.serviceResolver.createNodesService();
+    this.portsService = this.serviceResolver.createPortsService();
+    this.connectorsService = this.serviceResolver.createConnectorsService(this.domContext);
+    this.middlePointsService = this.serviceResolver.createMiddlePointsService();
+    this.diagramService = this.serviceResolver.createDiagramService();
 
     this.diagram = new Diagram(
       this.coreUiFactory,

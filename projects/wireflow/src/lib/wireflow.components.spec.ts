@@ -2,11 +2,15 @@ import { WireflowComponent } from './wireflow.component';
 import {TestBed} from '@angular/core/testing';
 import {NgxSmartModalServiceMock} from './core/services/ngx-smart-modal.service.mock';
 import {NgxSmartModalService} from 'ngx-smart-modal';
+import {ServiceResolver} from './core/services/service-resolver';
+import {ServiceResolver as ServiceResolverMock} from './core/services/service-resolver.mock';
 
 describe('WireflowComponent', () => {
   let component: WireflowComponent;
   let translateSpy;
   let modalService: NgxSmartModalService;
+  let serviceResolver: ServiceResolverMock;
+  let changeDetector;
 
   beforeEach(() => {
     const translateService = {
@@ -15,17 +19,24 @@ describe('WireflowComponent', () => {
 
     translateSpy = spyOn(translateService, 'setDefaultLang');
 
+    changeDetector = {
+      detectChanges: () => {}
+    };
+
     TestBed.configureTestingModule({
       declarations: [],
       providers: [
         NgxSmartModalServiceMock,
-        { provide: NgxSmartModalService, useExisting: NgxSmartModalServiceMock }
+        ServiceResolverMock,
+        { provide: NgxSmartModalService, useExisting: NgxSmartModalServiceMock },
+        { provide: ServiceResolver, useExisting: ServiceResolverMock },
       ]
     });
 
     modalService = TestBed.get(NgxSmartModalServiceMock);
+    serviceResolver = TestBed.get(ServiceResolverMock);
 
-    component = new WireflowComponent({gMapKey: ''}, modalService, translateService, {} as any, {} as any);
+    component = new WireflowComponent({gMapKey: ''}, modalService, translateService, changeDetector as any, {} as any, serviceResolver as any);
   });
 
   describe('ctor', () => {
@@ -373,6 +384,224 @@ describe('WireflowComponent', () => {
             }
           ],
         },
+      });
+    });
+  });
+
+  describe('getProximityMap()', () => {
+    let node;
+    let diagram;
+    let getOutputPortByGeneralItemIdSpy;
+
+    beforeEach(() => {
+      node = {
+        outputs: [
+          {
+            generalItemId: 123456,
+            action: 'proximity',
+          }
+        ]
+      };
+
+      diagram = {
+        getOutputPortByGeneralItemId: (id, action) => {},
+      };
+
+      getOutputPortByGeneralItemIdSpy = spyOn(diagram, 'getOutputPortByGeneralItemId').and.returnValue(
+        {
+          model: {
+            connectors: [
+              {
+                proximity: {
+                  lat: 1,
+                  lng: 1,
+                  radius: 20,
+                }
+              }
+            ]
+          }
+        }
+      );
+
+      component['diagram'] = diagram;
+    });
+
+    it ('should return default mapURL if diagram is not defined', () => {
+      component['diagram'] = null;
+
+      const result = component.getProximityMap(node);
+
+      expect(result).toBe(component.mapURL);
+    });
+
+    it ('should return default mapURL if port is not defined', () => {
+      getOutputPortByGeneralItemIdSpy.and.returnValue(null);
+
+      const result = component.getProximityMap(node);
+
+      expect(result).toBe(component.mapURL);
+    });
+
+    it('should call diagram.getOutputPortByGeneralItemId()', () => {
+      component.getProximityMap(node);
+
+      expect(getOutputPortByGeneralItemIdSpy).toHaveBeenCalledWith(123456, 'proximity');
+    });
+
+    it('should return string with google map domain', () => {
+      const result = component.getProximityMap(node);
+      expect(result.includes('https://maps.googleapis.com/maps/api/staticmap')).toBeTruthy();
+    });
+  });
+
+  describe('onProximityDependencySubmit()', () => {
+
+    let modalSpy;
+
+    beforeEach(() => {
+      modalSpy = spyOn(modalService, 'getModal').and.returnValue(modalService['modal']);
+      component.messages = [];
+      component.populatedNodes = [];
+      component.populatedNodesPrev = [];
+      component.ngAfterViewInit();
+    });
+
+    it('should get modal', () => {
+
+      component.onProximityDependencySubmit({ lat: 0, lng: 0, radius: 20 });
+
+      expect(modalSpy).toHaveBeenCalledWith('proximityModal');
+    });
+
+    describe('data.dependency flow', () => {
+      let dataSpy;
+
+      beforeEach(() => {
+        dataSpy = spyOn(modalService['modal'], 'getData').and.returnValue(
+          {
+            dependency: {
+              type: 'ProximityDependency',
+              action: 'read',
+              subtype: 'scantag',
+              generalItemId: 123456,
+
+              lng: 1,
+              lat: 1,
+              radius: 20,
+            },
+            message: {
+              authoringX: 10,
+              authoringY: 20,
+            }
+          }
+        );
+      });
+
+      it('should create middleConnector', () => {
+        expect(component['currentMiddleConnector']).toBeUndefined();
+
+        component.onProximityDependencySubmit({ lat: 0, lng: 0, radius: 20 });
+
+        expect(component['currentMiddleConnector']).toBeDefined();
+      });
+    });
+
+    describe('data.connector flow', () => {
+      let dataSpy;
+
+      beforeEach(() => {
+        dataSpy = spyOn(modalService['modal'], 'getData').and.returnValue(
+          {
+            node: 111,
+            connector: {
+              model: {
+                proximity: {}
+              }
+            },
+            message: {
+              authoringX: 10,
+              authoringY: 20,
+            }
+          }
+        );
+      });
+
+      it('should find middlePoint', () => {
+        const spy = spyOn(component['diagram'], 'getMiddlePointByConnector');
+
+        component.onProximityDependencySubmit({ lng: 0, lat: 0, radius: 20 });
+
+        expect(spy).toHaveBeenCalled();
+      });
+
+      it('should set for middlePoint dependency proximity data', () => {
+        const dep = {
+          generalItemId: 111,
+          lng: -1,
+          lat: -1,
+          radius: 0,
+        } as any;
+        spyOn(component['diagram'], 'getMiddlePointByConnector').and.returnValue({
+          dependency: {
+            dependencies: [dep]
+          }
+        } as any);
+
+        component.onProximityDependencySubmit({ lng: 0, lat: 0, radius: 20 });
+
+        expect(dep.lng).toBe(0);
+        expect(dep.lat).toBe(0);
+        expect(dep.radius).toBe(20);
+      });
+
+      it('should connector emit changes', () => {
+        const service = serviceResolver.getConnectorsService();
+
+        const spy = spyOn(service, 'emitChangeDependencies');
+
+        component.onProximityDependencySubmit({ lng: 0, lat: 0, radius: 20 });
+
+        expect(spy).toHaveBeenCalled();
+      });
+    });
+
+    describe('data.nodeId flow', () => {
+      let dataSpy;
+
+      beforeEach(() => {
+        dataSpy = spyOn(modalService['modal'], 'getData').and.returnValue(
+          {
+            nodeId: 111,
+            message: {
+              authoringX: 10,
+              authoringY: 20,
+            }
+          }
+        );
+      });
+
+      it('should init proximity connector', () => {
+        component.messages = [
+          {
+            id: 111,
+            authoringX: 10,
+            authoringY: 20,
+            dependsOn: {}
+          } as any
+        ];
+
+        component.populatedNodes = [
+          {
+            id: 111,
+            authoringX: 10,
+            authoringY: 20,
+            dependsOn: {}
+          } as any
+        ];
+
+        component.onProximityDependencySubmit({ lng: 0, lat: 0, radius: 20 });
+
+        expect(component['currentMiddleConnector']).toBeDefined();
       });
     });
   });

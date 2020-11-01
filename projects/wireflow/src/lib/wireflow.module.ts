@@ -14,6 +14,7 @@ import { ProximityDependencyModalComponent } from './shared/proximity-dependency
 import { GeolocationService } from './core/services/geolocation.service';
 import { GoogleMapsConfig } from './google-maps-config';
 import { GoogleMapService } from './core/services/google-map.service';
+import {ServiceResolver} from './core/services/service-resolver';
 
 
 export interface IWireflowModuleData {
@@ -39,7 +40,7 @@ export function HttpLoaderFactory(http: HttpClient) {
     FormsModule,
   ],
   exports: [WireflowComponent],
-  providers: [GeolocationService, GoogleMapService],
+  providers: [GeolocationService, GoogleMapService, ServiceResolver],
   entryComponents: [
     ActionModalComponent,
     TimeDependencyModalComponent,

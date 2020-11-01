@@ -75,7 +75,6 @@ export class Connector extends BaseModelUiElement<ConnectorModel> implements Dra
     this.basePoint = point;
 
     this.isSelected = false;
-
     this.initViewState();
 
     if (point.x > -1 && point.y > -1) {

@@ -25,6 +25,10 @@ export class DomContextMock {
         return this.fakeNode;
     }
 
+    public refreshShapeElements() {
+
+    }
+
   public querySelectorAll() {
     return [ this.fakeNode ];
   }
