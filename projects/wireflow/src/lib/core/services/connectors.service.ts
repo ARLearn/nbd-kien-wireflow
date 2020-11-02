@@ -57,7 +57,6 @@ export class ConnectorsService extends BaseService<ConnectorModel> {
   private connectorMove$ = new Subject<ConnectorMoveArgs>();
   private connectorClick$ = new Subject<ConnectorClickArgs>();
   private singleDependenciesOutput$ = new Subject<ConnectorSingleDependencyArgs>();
-  private singleDependencyWithNewDependencyOutput$ = new Subject<ConnectorSingleDependencyWithNewDependencyArgs>();
   private changeDependencies$ = new Subject<void>();
 
   get connectorCreate() { return this.connectorCreate$.asObservable(); }
@@ -69,7 +68,6 @@ export class ConnectorsService extends BaseService<ConnectorModel> {
   get connectorMove() { return this.connectorMove$.asObservable(); }
   get connectorClick() { return this.connectorClick$.asObservable(); }
   get singleDependenciesOutput() { return this.singleDependenciesOutput$.asObservable(); }
-  get singleDependencyWithNewDependencyOutput() { return this.singleDependencyWithNewDependencyOutput$.asObservable(); }
   get changeDependencies() { return this.changeDependencies$.asObservable(); }
 
   constructor(
@@ -113,10 +111,6 @@ export class ConnectorsService extends BaseService<ConnectorModel> {
 
   emitSingleDependenciesOutput(opts: ConnectorSingleDependencyArgs) {
     this.singleDependenciesOutput$.next(opts);
-  }
-
-  emitSingleDependencyWithNewDependencyOutput(opts: ConnectorSingleDependencyWithNewDependencyArgs) {
-    this.singleDependencyWithNewDependencyOutput$.next(opts);
   }
 
   emitChangeDependencies() {

@@ -1,7 +1,7 @@
-import {Injectable} from '@angular/core';
+import { Injectable } from '@angular/core';
 
 @Injectable()
-export class DataService {
+export class DiagramModel {
   private connectorGeneralItemIds: Set<number> = new Set<number>();
 
   hasConnectorGeneralItemId(generalItemId) {

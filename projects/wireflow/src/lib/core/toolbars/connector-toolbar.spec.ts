@@ -58,29 +58,12 @@ describe('ConnectorToolbar', () => {
       expect(querySelectorSpy).toHaveBeenCalledWith('.connector-toolbar__btn--and');
       expect(querySelectorSpy).toHaveBeenCalledWith('.connector-toolbar__btn--or');
       expect(querySelectorSpy).toHaveBeenCalledWith('.connector-toolbar__btn--time');
-      expect(querySelectorSpy).toHaveBeenCalledWith('.connector-toolbar__btn--qr-scan');
-      expect(querySelectorSpy).toHaveBeenCalledWith('.connector-toolbar__btn--text-question');
-      expect(querySelectorSpy).toHaveBeenCalledWith('.connector-toolbar__btn--location');
     });
 
     it('calls createToolbarButton() with correct argument', () => {
       expect(createToolbarButtonSpy).toHaveBeenCalledWith(domContextMock.fakeNode, { data: { targetType: 'org.celstec.arlearn2.beans.dependencies.AndDependency' } }, tweenLiteServiceMock);
       expect(createToolbarButtonSpy).toHaveBeenCalledWith(domContextMock.fakeNode, { data: { targetType: 'org.celstec.arlearn2.beans.dependencies.OrDependency' } }, tweenLiteServiceMock);
       expect(createToolbarButtonSpy).toHaveBeenCalledWith(domContextMock.fakeNode, { data: { targetType: 'org.celstec.arlearn2.beans.dependencies.TimeDependency', } }, tweenLiteServiceMock);
-      expect(createToolbarButtonSpy).toHaveBeenCalledWith(domContextMock.fakeNode, { data: { targetType: 'org.celstec.arlearn2.beans.dependencies.ActionDependency',
-          subtype: 'scantag',
-          type: 'org.celstec.arlearn2.beans.dependencies.AndDependency',
-        }
-      }, tweenLiteServiceMock);
-      expect(createToolbarButtonSpy).toHaveBeenCalledWith(domContextMock.fakeNode, { data: { targetType: 'org.celstec.arlearn2.beans.dependencies.ActionDependency',
-          subtype: 'textquestion',
-          type: 'org.celstec.arlearn2.beans.dependencies.AndDependency',
-        }
-      }, tweenLiteServiceMock);
-      expect(createToolbarButtonSpy).toHaveBeenCalledWith(domContextMock.fakeNode, { data: { targetType: 'org.celstec.arlearn2.beans.dependencies.ProximityDependency',
-          type: 'org.celstec.arlearn2.beans.dependencies.AndDependency',
-        }
-      }, tweenLiteServiceMock);
     });
 
     it('when - calls subscriber', (done: DoneFn) => {
@@ -101,7 +84,6 @@ describe('ConnectorToolbar', () => {
 
     it('inited with observables', () => {
       expect(component.changeSingleDependencyType instanceof Observable).toBe(true);
-      expect(component.changeSingleDependencyTypeWithDependency instanceof Observable).toBe(true);
     });
   });
 
@@ -123,7 +105,7 @@ describe('ConnectorToolbar', () => {
       component.move(basePoint);
 
       expect(tweenLiteSetSpy).toHaveBeenCalled();
-      expect(tweenLiteSetSpy).toHaveBeenCalledWith(domContextMock.fakeNode, { x: basePoint.x - 84, y: basePoint.y + 16 });
+      expect(tweenLiteSetSpy).toHaveBeenCalledWith(domContextMock.fakeNode, { x: basePoint.x - 48, y: basePoint.y + 16 });
     });
   });
 

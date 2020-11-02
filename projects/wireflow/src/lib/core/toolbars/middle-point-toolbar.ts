@@ -32,25 +32,9 @@ export class MiddlePointToolbar extends BaseUiElement {
     }
   } as ToolbarItem<AddChildAction>;
 
-  private _itemTextQuestion = {
-    data: {
-      targetType: 'org.celstec.arlearn2.beans.dependencies.ActionDependency',
-      subtype: 'textquestion'
-    }
-  } as ToolbarItem<AddChildAction>;
-
-  private _itemQrScan = {
-    data: {
-      targetType: 'org.celstec.arlearn2.beans.dependencies.ActionDependency',
-      subtype: 'scantag'
-    }
-  } as ToolbarItem<AddChildAction>;
-
   // Child UI components
   private _btnActionDependency: ToolbarButton;
   private _btnLocation: ToolbarButton;
-  private _btnTextQuestion: ToolbarButton;
-  private _btnQrScan: ToolbarButton;
 
   // Events
   private _addChild = new Subject<AddChildAction>();
@@ -68,14 +52,10 @@ export class MiddlePointToolbar extends BaseUiElement {
 
     this._btnActionDependency = this.coreUiFactory.createToolbarButton(this.nativeElement.querySelector('.connector-toolbar__btn--action-dependency'), this._itemActionDependency, this.tweenLiteService);
     this._btnLocation = this.coreUiFactory.createToolbarButton(this.nativeElement.querySelector('.connector-toolbar__btn--location'), this._itemLocation, this.tweenLiteService);
-    this._btnTextQuestion = this.coreUiFactory.createToolbarButton(this.nativeElement.querySelector('.connector-toolbar__btn--text-question'), this._itemTextQuestion, this.tweenLiteService);
-    this._btnQrScan = this.coreUiFactory.createToolbarButton(this.nativeElement.querySelector('.connector-toolbar__btn--qr-scan'), this._itemQrScan, this.tweenLiteService);
 
     this.when(merge(
       this._btnActionDependency.action,
       this._btnLocation.action,
-      this._btnTextQuestion.action,
-      this._btnQrScan.action,
     ), e => this._onAction(e.source));
 
     this.domContext.connectorLayer.appendChild(this.nativeElement);
@@ -85,7 +65,7 @@ export class MiddlePointToolbar extends BaseUiElement {
 
   move({x, y}: Point) {
     super.move({
-      x: x - 60,
+      x: x - 32,
       y: y + 16
     });
     return this;

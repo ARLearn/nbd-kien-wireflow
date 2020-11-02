@@ -57,15 +57,11 @@ describe('MiddlePointToolbar', () => {
       expect(cloneNodeSpy).toHaveBeenCalledWith('#diagram > .middle-point-toolbar');
       expect(querySelectorSpy).toHaveBeenCalledWith('.connector-toolbar__btn--action-dependency');
       expect(querySelectorSpy).toHaveBeenCalledWith('.connector-toolbar__btn--location');
-      expect(querySelectorSpy).toHaveBeenCalledWith('.connector-toolbar__btn--text-question');
-      expect(querySelectorSpy).toHaveBeenCalledWith('.connector-toolbar__btn--qr-scan');
     });
 
     it('calls createToolbarButton() with correct argument', () => {
       expect(createToolbarButtonSpy).toHaveBeenCalledWith(domContextMock.fakeNode, { data: { targetType: 'org.celstec.arlearn2.beans.dependencies.ActionDependency' } }, tweenLiteServiceMock);
       expect(createToolbarButtonSpy).toHaveBeenCalledWith(domContextMock.fakeNode, { data: { targetType: 'org.celstec.arlearn2.beans.dependencies.ProximityDependency' } }, tweenLiteServiceMock);
-      expect(createToolbarButtonSpy).toHaveBeenCalledWith(domContextMock.fakeNode, { data: { targetType: 'org.celstec.arlearn2.beans.dependencies.ActionDependency', subtype: 'scantag' } }, tweenLiteServiceMock);
-      expect(createToolbarButtonSpy).toHaveBeenCalledWith(domContextMock.fakeNode, { data: { targetType: 'org.celstec.arlearn2.beans.dependencies.ActionDependency', subtype: 'textquestion' } }, tweenLiteServiceMock);
     });
 
     it('when - calls subscriber', (done: DoneFn) => {
@@ -108,7 +104,7 @@ describe('MiddlePointToolbar', () => {
       component.move(basePoint);
 
       expect(tweenLiteSetSpy).toHaveBeenCalled();
-      expect(tweenLiteSetSpy).toHaveBeenCalledWith(domContextMock.fakeNode, { x: basePoint.x - 60, y: basePoint.y + 16 });
+      expect(tweenLiteSetSpy).toHaveBeenCalledWith(domContextMock.fakeNode, { x: basePoint.x - 32, y: basePoint.y + 16 });
     });
   });
 

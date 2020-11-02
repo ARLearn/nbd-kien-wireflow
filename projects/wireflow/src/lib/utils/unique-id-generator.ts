@@ -1,5 +1,10 @@
+import { Injectable } from '@angular/core';
+
+@Injectable()
 export class UniqueIdGenerator {
-    constructor(private seed = 0) {}
+    private seed = 0;
+
+    constructor() {}
     generate() {
         return this.seed++;
     }

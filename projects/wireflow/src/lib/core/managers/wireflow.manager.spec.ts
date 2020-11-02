@@ -19,7 +19,7 @@ import { Diagram } from '../diagram';
 import { Connector } from '../connector';
 import { Dependency } from '../../models/core';
 import { MiddlePoint } from '../middle-point';
-import { DataService } from '../services/data.service';
+import { DiagramModel } from '../models/DiagramModel';
 
 
 describe('WireflowManager', () => {
@@ -32,7 +32,7 @@ describe('WireflowManager', () => {
     middlePointsService,
     diagramService,
     draggableService,
-    dataService: DataService;
+    dataService: DiagramModel;
 
   let diagram, manager;
 
@@ -49,7 +49,7 @@ describe('WireflowManager', () => {
         MiddlePointsService,
         DiagramService,
         DraggableServiceMock,
-        DataService,
+        DiagramModel,
         { provide: CoreUIFactory, useExisting: CoreUIFactoryMock },
         { provide: DomContext, useExisting: DomContextMock },
         { provide: TweenLiteService, useExisting: TweenLiteServiceMock },
@@ -66,7 +66,7 @@ describe('WireflowManager', () => {
     middlePointsService = TestBed.get(MiddlePointsService);
     diagramService = TestBed.get(DiagramService);
     draggableService = TestBed.get(DraggableServiceMock);
-    dataService = TestBed.get(DataService);
+    dataService = TestBed.get(DiagramModel);
 
     diagram = new Diagram(
       coreUIFactoryMock,

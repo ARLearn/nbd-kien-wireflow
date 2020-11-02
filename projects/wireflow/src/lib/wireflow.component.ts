@@ -48,8 +48,8 @@ import { TweenLiteService } from './core/services/tween-lite.service';
 import { IWireflowModuleData } from './wireflow.module';
 import { GeolocationService } from './core/services/geolocation.service';
 import { DraggableService } from './core/services/draggable.service';
-import {DataService} from './core/services/data.service';
-import {ServiceResolver} from './core/services/service-resolver';
+import {DiagramModel} from './core/models/DiagramModel';
+import {ServiceFactory} from './core/services/service-factory.service';
 
 interface MessageEditorStateModel {
   messages: GameMessageCommon[];
@@ -145,7 +145,7 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
   tweenLiteService: TweenLiteService;
   draggableService: DraggableService;
 
-  dataService: DataService;
+  dataService: DiagramModel;
 
   // managers
   nodesManager: NodesManager;
@@ -161,7 +161,6 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
   get dependenciesOutput() { return this.connectorsService.changeDependencies; }
   get coordinatesOutputSubject() { return this.nodesService.nodeCoordinatesChanged.pipe(distinct()); }
   get singleDependenciesOutput() { return this.connectorsService.singleDependenciesOutput.pipe(distinct()); }
-  get singleDependencyWithNewDependencyOutput() { return this.connectorsService.singleDependencyWithNewDependencyOutput.pipe(distinct()); }
   get middlePointAddChild() { return this.middlePointsService.middlePointAddChild; }
   get nodeNew() { return this.nodesService.nodeNew; }
   get nodeInit() { return this.nodesService.nodeInit; }
@@ -194,9 +193,9 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
     private translate: TranslateService,
     private changeDetectorRef: ChangeDetectorRef,
     private geolocationService: GeolocationService,
-    private serviceResolver: ServiceResolver,
+    private serviceResolver: ServiceFactory,
   ) {
-    this.dataService = new DataService();
+    this.dataService = new DiagramModel();
     this.nodesManager = new NodesManager(this.selector, this.dataService);
 
     translate.setDefaultLang(this.lang);
@@ -346,16 +345,6 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
       } else {
         this.wireflowManager.changeSingleDependency(this.messages, x.type, x.connector);
       }
-    }));
-
-    this.subscription.add(this.singleDependencyWithNewDependencyOutput.subscribe((x: any) => {
-      x.connector = this.diagram.getConnectorById(x.connectorModel.id);
-
-      const mp = this.wireflowManager.changeSingleDependency(this.messages, x.type, x.connector, null, false);
-      mp.addChild({
-        targetType: x.targetType,
-        subtype: x.subtype
-      });
     }));
 
     this.subscription.add(this.middlePointAddChild.subscribe(x => {

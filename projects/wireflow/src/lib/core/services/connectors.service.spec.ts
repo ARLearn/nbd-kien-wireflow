@@ -46,7 +46,6 @@ describe('ConnectorsService', () => {
       expect(service.connectorMove instanceof Observable).toBe(true);
       expect(service.connectorClick instanceof Observable).toBe(true);
       expect(service.singleDependenciesOutput instanceof Observable).toBe(true);
-      expect(service.singleDependencyWithNewDependencyOutput instanceof Observable).toBe(true);
       expect(service.changeDependencies instanceof Observable).toBe(true);
     });
 
@@ -64,7 +63,7 @@ describe('ConnectorsService', () => {
       {connectorModel: {id: 'connector_1', dependencyType: '1', subType: '1'} as ConnectorModel },
       {connectorModel: {id: 'connector_2'} as ConnectorModel },
       {connectorModel: {id: 'connector_3'} as ConnectorModel },
-    ].forEach(args => { 
+    ].forEach(args => {
 
       it(`'connectorCreate' emits correct object for ${JSON.stringify(args)}`, fakeAsync(() => {
         service.createConnector(args);
@@ -91,7 +90,7 @@ describe('ConnectorsService', () => {
       {connectorModel: {id: 'connector_1', dependencyType: '1', subType: '1'} as ConnectorModel },
       {connectorModel: {id: 'connector_2'} as ConnectorModel },
       {connectorModel: {id: 'connector_3'} as ConnectorModel },
-    ].forEach(args => { 
+    ].forEach(args => {
 
       it(`'connectorHover' emits correct object for ${JSON.stringify(args)}`, fakeAsync(() => {
         service.hoverConnector(args);
@@ -118,7 +117,7 @@ describe('ConnectorsService', () => {
       {connectorModel: {id: 'connector_1', dependencyType: '1', subType: '1'} as ConnectorModel },
       {connectorModel: {id: 'connector_2'} as ConnectorModel },
       {connectorModel: {id: 'connector_3'} as ConnectorModel },
-    ].forEach(args => { 
+    ].forEach(args => {
 
       it(`'connectorLeave' emits correct object for ${JSON.stringify(args)}`, fakeAsync(() => {
         service.leaveConnector(args);
@@ -145,7 +144,7 @@ describe('ConnectorsService', () => {
       {connectorModel: {id: 'connector_1', dependencyType: '1', subType: '1'} as ConnectorModel, opts: { onlyConnector: true } as ConnectorRemoveOptions },
       {connectorModel: {id: 'connector_2'} as ConnectorModel, opts: { removeDependency: true } as ConnectorRemoveOptions },
       {connectorModel: {id: 'connector_3'} as ConnectorModel, opts: { removeVirtualNode: true } as ConnectorRemoveOptions },
-    ].forEach(args => { 
+    ].forEach(args => {
 
       it(`'connectorRemove' emits correct object for ${JSON.stringify(args)}`, fakeAsync(() => {
         service.removeConnector(args);
@@ -176,7 +175,7 @@ describe('ConnectorsService', () => {
       {connectorModel: {id: 'connector_1', dependencyType: '1', subType: '1'} as ConnectorModel, port: { id: 'port_1' } as PortModel },
       {connectorModel: {id: 'connector_2'} as ConnectorModel, port: { id: 'port_2' } as PortModel },
       {connectorModel: {id: 'connector_3'} as ConnectorModel, port: { id: 'port_3' } as PortModel },
-    ].forEach(args => { 
+    ].forEach(args => {
 
       it(`'connectorAttach' emits correct object for ${JSON.stringify(args)}`, fakeAsync(() => {
         service.attachConnector(args);
@@ -205,7 +204,7 @@ describe('ConnectorsService', () => {
       {connectorModel: {id: 'connector_1', dependencyType: '1', subType: '1'} as ConnectorModel, port: { id: 'port_1' } as PortModel },
       {connectorModel: {id: 'connector_2'} as ConnectorModel, port: { id: 'port_2' } as PortModel },
       {connectorModel: {id: 'connector_3'} as ConnectorModel, port: { id: 'port_3' } as PortModel },
-    ].forEach(args => { 
+    ].forEach(args => {
 
       it(`'connectorDetach' emits correct object for ${JSON.stringify(args)}`, fakeAsync(() => {
         service.detachConnector(args);
@@ -234,7 +233,7 @@ describe('ConnectorsService', () => {
       {connectorModel: {id: 'connector_1', dependencyType: '1', subType: '1'} as ConnectorModel, point: { x: 0, y: 0 } as Point },
       {connectorModel: {id: 'connector_2'} as ConnectorModel },
       {connectorModel: {id: 'connector_3'} as ConnectorModel },
-    ].forEach(args => { 
+    ].forEach(args => {
 
       it(`'connectorMove' emits correct object for ${JSON.stringify(args)}`, fakeAsync(() => {
         service.moveConnector(args);
@@ -266,7 +265,7 @@ describe('ConnectorsService', () => {
     [
       { isSelected: false },
       { isSelected: true  },
-    ].forEach(args => { 
+    ].forEach(args => {
 
       it(`'connectorClick' emits correct object for ${JSON.stringify(args)}`, fakeAsync(() => {
         service.clickConnector(args);
@@ -290,7 +289,7 @@ describe('ConnectorsService', () => {
       {connectorModel: {id: 'connector_1', dependencyType: '1', subType: '1'} as ConnectorModel, type: 'type-1' },
       {connectorModel: {id: 'connector_2'} as ConnectorModel, type: 'type-2' },
       {connectorModel: {id: 'connector_3', subType: 'subtype' } as ConnectorModel, type: 'type-3' },
-    ].forEach(args => { 
+    ].forEach(args => {
 
       it(`'singleDependenciesOutput' emits correct object for ${JSON.stringify(args)}`, fakeAsync(() => {
         service.emitSingleDependenciesOutput(args);
@@ -306,36 +305,6 @@ describe('ConnectorsService', () => {
     });
   });
 
-
-  describe('emitSingleDependencyWithNewDependencyOutput()', () => {
-    let emittedArgs: ConnectorSingleDependencyWithNewDependencyArgs;
-
-    beforeEach(fakeAsync(() => {
-        service.singleDependencyWithNewDependencyOutput.subscribe(x => emittedArgs = x);
-        tick();
-    }));
-
-    [
-      {connectorModel: {id: 'connector_1', dependencyType: '1', subType: '1'} as ConnectorModel, type: 'type-1', targetType: 'target-type' },
-      {connectorModel: {id: 'connector_2'} as ConnectorModel, type: 'type-2', targetType: 'target-type', subtype: 'subtype' },
-      {connectorModel: {id: 'connector_3', subType: 'subtype' } as ConnectorModel, type: 'type-3', targetType: 'target-type' },
-    ].forEach(args => { 
-
-      it(`'singleDependenciesOutput' emits correct object for ${JSON.stringify(args)}`, fakeAsync(() => {
-        service.emitSingleDependencyWithNewDependencyOutput(args);
-        tick();
-
-        expect(emittedArgs).toBeTruthy();
-        expect(emittedArgs.connectorModel).toEqual(args.connectorModel);
-        expect(emittedArgs.connectorModel.id).toBe(args.connectorModel.id);
-        expect(emittedArgs.connectorModel.dependencyType).toBe(args.connectorModel.dependencyType);
-        expect(emittedArgs.connectorModel.subType).toBe(args.connectorModel.subType);
-        expect(emittedArgs.type).toEqual(args.type);
-        expect(emittedArgs.targetType).toEqual(args.targetType);
-        expect(emittedArgs.subtype).toEqual(args.subtype);
-      }));
-    });
-  });
 
   describe('emitChangeDependencies()', () => {
     it(`'changeDependencies' emits correct`, (done) => {
@@ -366,9 +335,9 @@ describe('ConnectorsService', () => {
     it(`should create connectorModel with subType`, () => {
       let fakeId = 42;
       let spy = spyOn(uniqueIdGeneratorMock, 'generate').and.returnValue(fakeId);
-  
+
       const result = service.createConnectorModel('dependencyType', 'subtype');
-  
+
       expect(spy).toHaveBeenCalled();
       expect(result).toBeTruthy();
       expect(result.id).toBe(`connector_${fakeId}`);
@@ -380,9 +349,9 @@ describe('ConnectorsService', () => {
     it(`should create connectorModel with subType and proximity`, () => {
       let fakeId = 42;
       let spy = spyOn(uniqueIdGeneratorMock, 'generate').and.returnValue(fakeId);
-  
+
       const result = service.createConnectorModel('dependencyType', 'subtype', { lng: 1, lat: 2 });
-  
+
       expect(spy).toHaveBeenCalled();
       expect(result).toBeTruthy();
       expect(result.id).toBe(`connector_${fakeId}`);
@@ -400,7 +369,7 @@ describe('ConnectorsService', () => {
     it(`should return true when remove existing connectorModel`, () => {
       let fakeId = 42;
       spyOn(uniqueIdGeneratorMock, 'generate').and.returnValue(fakeId);
-  
+
       service.createConnectorModel('dependencyType', 'subtype', { lng: 1, lat: 2 });
       const result = service.removeConnectorModel(`connector_${fakeId}`);
       expect(result).toBeTruthy();

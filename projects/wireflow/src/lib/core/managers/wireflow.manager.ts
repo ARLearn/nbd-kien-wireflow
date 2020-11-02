@@ -12,7 +12,7 @@ import { NodeShape } from '../node-shape';
 import { clone } from '../../utils/object';
 import { CoreUIFactory } from '../core-ui-factory';
 import { TweenLiteService } from '../services/tween-lite.service';
-import {DataService} from '../services/data.service';
+import {DiagramModel} from '../models/DiagramModel';
 
 export class WireflowManager {
 
@@ -25,7 +25,7 @@ export class WireflowManager {
     private middlePointsService: MiddlePointsService,
     private tweenLiteService: TweenLiteService,
     private diagram: Diagram,
-    private dataService: DataService,
+    private dataService: DiagramModel,
     private selector: string,
   ) { }
 

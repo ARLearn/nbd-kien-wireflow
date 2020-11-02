@@ -1,7 +1,7 @@
 import { Subscription } from 'rxjs';
 import { NodeShape } from './node-shape';
 import { NodePort } from './node-port';
-import { ChangeSingleDependencyWithDependencyAction, ConnectorToolbar } from './toolbars/connector-toolbar';
+import { ConnectorToolbar } from './toolbars/connector-toolbar';
 import { ConnectorActionsCircle, ConnectorPointAction } from './connector-actions-circle';
 import { BezierPath } from './bezier-path';
 import { getNumberFromPixels, Point } from '../utils';
@@ -90,10 +90,6 @@ export class Connector extends BaseModelUiElement<ConnectorModel> implements Dra
     this._subscription.add(
       this.connectorToolbar.changeSingleDependencyType
         .subscribe(data => this._changeSingleDependencyType(data.targetType))
-    );
-    this._subscription.add(
-      this.connectorToolbar.changeSingleDependencyTypeWithDependency
-        .subscribe(data => this._changeSingleDependencyTypeWithDependency(data))
     );
 
     this.nativeElement.onclick      = (e) => this._onClick(e);
@@ -468,15 +464,6 @@ export class Connector extends BaseModelUiElement<ConnectorModel> implements Dra
     this.service.emitSingleDependenciesOutput({
       connectorModel: this.model,
       type,
-    });
-  }
-
-  private _changeSingleDependencyTypeWithDependency(data: ChangeSingleDependencyWithDependencyAction) {
-    this.service.emitSingleDependencyWithNewDependencyOutput({
-      connectorModel: this.model,
-      type: data.type,
-      targetType: data.targetType,
-      subtype: data.subtype
     });
   }
 }

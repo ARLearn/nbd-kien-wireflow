@@ -1,11 +1,11 @@
 import { GameMessageCommon, MultipleChoiceScreen } from '../../models/core';
-import {DataService} from '../services/data.service';
+import {DiagramModel} from '../models/DiagramModel';
 
 export class NodesManager {
 
   constructor(
     private selector: string,
-    private dataService: DataService,
+    private dataService: DiagramModel,
   ) {}
 
   getNodes(messages: GameMessageCommon[]) {

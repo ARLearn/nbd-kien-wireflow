@@ -1197,25 +1197,4 @@ describe('Connector', () => {
       });
     }));
   });
-
-  describe('_changeSingleDependencyTypeWithDependency()', () => {
-    it('should call service.emitSingleDependencyWithNewDependencyOutput', fakeAsync(() => {
-      const spy = spyOn(connectorsService, 'emitSingleDependencyWithNewDependencyOutput');
-
-      connector.connectorToolbar['_changeSingleDependencyTypeWithDependency'].next({
-        targetType: 'org.celstec.arlearn2.beans.dependencies.ProximityDependency',
-        type: 'org.celstec.arlearn2.beans.dependencies.AndDependency',
-        subtype: '123'
-      });
-
-      tick();
-
-      expect(spy).toHaveBeenCalledWith({
-        connectorModel: model,
-        targetType: 'org.celstec.arlearn2.beans.dependencies.ProximityDependency',
-        type: 'org.celstec.arlearn2.beans.dependencies.AndDependency',
-        subtype: '123'
-      });
-    }));
-  });
 });

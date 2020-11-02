@@ -2,8 +2,10 @@ import { WireflowComponent } from './wireflow.component';
 import {TestBed} from '@angular/core/testing';
 import {NgxSmartModalServiceMock} from './core/services/ngx-smart-modal.service.mock';
 import {NgxSmartModalService} from 'ngx-smart-modal';
-import {ServiceResolver} from './core/services/service-resolver';
-import {ServiceResolver as ServiceResolverMock} from './core/services/service-resolver.mock';
+import {ServiceFactory} from './core/services/service-factory.service';
+import {ServiceFactory as ServiceResolverMock} from './core/services/service-factory.mock';
+import {UniqueIdGeneratorMock} from './utils/unique-id-generator.mock';
+import {UniqueIdGenerator} from './utils';
 
 describe('WireflowComponent', () => {
   let component: WireflowComponent;
@@ -28,8 +30,10 @@ describe('WireflowComponent', () => {
       providers: [
         NgxSmartModalServiceMock,
         ServiceResolverMock,
+        UniqueIdGeneratorMock,
         { provide: NgxSmartModalService, useExisting: NgxSmartModalServiceMock },
-        { provide: ServiceResolver, useExisting: ServiceResolverMock },
+        { provide: ServiceFactory, useExisting: ServiceResolverMock },
+        { provide: UniqueIdGenerator, useExisting: UniqueIdGeneratorMock },
       ]
     });
 
@@ -555,7 +559,7 @@ describe('WireflowComponent', () => {
       });
 
       it('should connector emit changes', () => {
-        const service = serviceResolver.getConnectorsService();
+        const service = component.connectorsService;
 
         const spy = spyOn(service, 'emitChangeDependencies');
 
