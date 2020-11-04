@@ -269,8 +269,12 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
       .map(x => x.backgroundPath)
       .filter(x => x)
       .map(async backgroundPath => {
-        const url = await backgroundPath.toPromise();
-        this.loadedImages[url] = await this.getImageParam(url);
+        try {
+          const url = await backgroundPath.toPromise();
+          this.loadedImages[url] = await this.getImageParam(url);
+        } catch (error) {
+          console.error(error);
+        }
       }));
 
     this.initState(this.populatedNodes);
@@ -896,9 +900,12 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
 
 
   public async getImageParam(url) {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
       const img = document.createElement('img');
       img.src = url;
+      img.onerror = () => {
+        reject();
+      };
       img.onload = () => {
         const width = img.width;
         const height = img.height;
