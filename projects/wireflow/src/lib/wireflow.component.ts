@@ -72,6 +72,7 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
   @Input() messages: GameMessageCommon[];
   @Input() lang: string = 'en';
   @Input() selector: string = 'dependsOn';
+  @Input() noimage: boolean = false;
   @Output() messagesChange: Observable<GameMessageCommon[]>;
   @Output() selectMessage: Subject<GameMessageCommon>;
   @Output() deselectMessage: Subject<GameMessageCommon>;
@@ -265,17 +266,19 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
     this.domContext.refreshShapeElements();
     this.diagram.initShapes(chunk);
 
-    await Promise.all(chunk
-      .map(x => x.backgroundPath)
-      .filter(x => x)
-      .map(async backgroundPath => {
-        try {
-          const url = await backgroundPath.toPromise();
-          this.loadedImages[url] = await this.getImageParam(url);
-        } catch (error) {
-          console.error(error);
-        }
-      }));
+    if (!this.noimage) {
+      await Promise.all(chunk
+        .map(x => x.backgroundPath)
+        .filter(x => x)
+        .map(async backgroundPath => {
+          try {
+            const url = await backgroundPath.toPromise();
+            this.loadedImages[url] = await this.getImageParam(url);
+          } catch (error) {
+            console.error(error);
+          }
+        }));
+    }
 
     this.initState(this.populatedNodes);
     this.chunkLoaded$.next(true);

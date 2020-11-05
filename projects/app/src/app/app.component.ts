@@ -1,5 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { AppService } from './app.service';
+import {from} from 'rxjs';
+import {delay, tap} from 'rxjs/operators';
 
 @Component({
   selector: 'app-root',
@@ -10,6 +12,8 @@ export class AppComponent implements OnInit {
   title = 'Wireflow Demo';
   messages: any[];
   lang = 'en';
+
+  noimage$ = from([true]).pipe(delay(100));
 
   constructor(private service: AppService) { }
 
