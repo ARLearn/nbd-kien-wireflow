@@ -32,7 +32,7 @@ describe('WireflowManager', () => {
     middlePointsService,
     diagramService,
     draggableService,
-    dataService: DiagramModel;
+    diagramModel: DiagramModel;
 
   let diagram, manager;
 
@@ -66,7 +66,7 @@ describe('WireflowManager', () => {
     middlePointsService = TestBed.get(MiddlePointsService);
     diagramService = TestBed.get(DiagramService);
     draggableService = TestBed.get(DraggableServiceMock);
-    dataService = TestBed.get(DiagramModel);
+    diagramModel = TestBed.get(DiagramModel);
 
     diagram = new Diagram(
       coreUIFactoryMock,
@@ -89,7 +89,7 @@ describe('WireflowManager', () => {
       middlePointsService,
       tweenLiteServiceMock,
       diagram,
-      dataService,
+      diagramModel,
       'dependsOn'
     );
   });
@@ -299,7 +299,7 @@ describe('WireflowManager', () => {
 
     it('should check connector id and return input dependency if is in data service', () => {
       getSingleConnectorSpy.and.returnValue(undefined);
-      dataService.addConnectorGeneralItemId(22222);
+      diagramModel.addConnectorGeneralItemId(22222);
 
       const dependency = manager.getOutputDependency({
         id: 123456789,

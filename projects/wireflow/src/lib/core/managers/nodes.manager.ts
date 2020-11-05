@@ -5,7 +5,7 @@ export class NodesManager {
 
   constructor(
     private selector: string,
-    private dataService: DiagramModel,
+    private diagramModel: DiagramModel,
   ) {}
 
   getNodes(messages: GameMessageCommon[]) {
@@ -21,7 +21,7 @@ export class NodesManager {
 
     result.forEach(x => {
       x[this.selector] && this.getAllDependenciesByCondition(x[this.selector], dep => !!dep.generalItemId)
-        .forEach(item => this.dataService.addConnectorGeneralItemId(item.generalItemId));
+        .forEach(item => this.diagramModel.addConnectorGeneralItemId(item.generalItemId));
     });
 
     return result;

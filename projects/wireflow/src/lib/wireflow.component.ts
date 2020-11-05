@@ -146,7 +146,7 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
   tweenLiteService: TweenLiteService;
   draggableService: DraggableService;
 
-  dataService: DiagramModel;
+  diagramModel: DiagramModel;
 
   // managers
   nodesManager: NodesManager;
@@ -196,8 +196,8 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
     private geolocationService: GeolocationService,
     private serviceResolver: ServiceFactory,
   ) {
-    this.dataService = new DiagramModel();
-    this.nodesManager = new NodesManager(this.selector, this.dataService);
+    this.diagramModel = new DiagramModel();
+    this.nodesManager = new NodesManager(this.selector, this.diagramModel);
 
     translate.setDefaultLang(this.lang);
     this.messagesChange = this.stateSubject
@@ -557,7 +557,7 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
         this.connectorsService.detachConnector({ connectorModel, port: port.model });
       });
 
-      this.dataService.removeConnectorGeneralItemId(Number(connector.outputPort.model.generalItemId));
+      this.diagramModel.removeConnectorGeneralItemId(Number(connector.outputPort.model.generalItemId));
 
       const isInput = connector && ((connector.outputPort && connector.outputPort.model.isInput) || connector.isInputConnector);
       const middlePoint = this.diagram.getMiddlePointByConnector(connectorModel);
@@ -990,7 +990,7 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
       this.middlePointsService,
       this.tweenLiteService,
       this.diagram,
-      this.dataService,
+      this.diagramModel,
       this.selector,
     );
   }

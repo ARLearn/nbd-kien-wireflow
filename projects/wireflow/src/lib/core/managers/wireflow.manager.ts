@@ -25,7 +25,7 @@ export class WireflowManager {
     private middlePointsService: MiddlePointsService,
     private tweenLiteService: TweenLiteService,
     private diagram: Diagram,
-    private dataService: DiagramModel,
+    private diagramModel: DiagramModel,
     private selector: string,
   ) { }
 
@@ -65,7 +65,7 @@ export class WireflowManager {
             };
           }
         } else {
-          if (!this.dataService.hasConnectorGeneralItemId(message[this.selector].generalItemId)) {
+          if (!this.diagramModel.hasConnectorGeneralItemId(message[this.selector].generalItemId)) {
             return {};
           }
 
