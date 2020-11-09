@@ -1,11 +1,13 @@
 import { WireflowComponent } from './wireflow.component';
-import {TestBed} from '@angular/core/testing';
+import {fakeAsync, TestBed, tick} from '@angular/core/testing';
 import {NgxSmartModalServiceMock} from './core/services/ngx-smart-modal.service.mock';
 import {NgxSmartModalService} from 'ngx-smart-modal';
 import {ServiceFactory} from './core/services/service-factory.service';
 import {ServiceFactory as ServiceResolverMock} from './core/services/service-factory.mock';
 import {UniqueIdGeneratorMock} from './utils/unique-id-generator.mock';
 import {UniqueIdGenerator} from './utils';
+import {of} from 'rxjs';
+import {messagesMock} from './mock/data.mock';
 
 describe('WireflowComponent', () => {
   let component: WireflowComponent;
@@ -13,6 +15,8 @@ describe('WireflowComponent', () => {
   let modalService: NgxSmartModalService;
   let serviceResolver: ServiceResolverMock;
   let changeDetector;
+
+  let geolocationService;
 
   beforeEach(() => {
     const translateService = {
@@ -23,6 +27,15 @@ describe('WireflowComponent', () => {
 
     changeDetector = {
       detectChanges: () => {}
+    };
+
+    geolocationService = {
+      coords: null,
+      getCurrentPosition() {
+        return new Promise((resolve => {
+          setTimeout(() => resolve(this.coords), 100);
+        }));
+      }
     };
 
     TestBed.configureTestingModule({
@@ -40,7 +53,7 @@ describe('WireflowComponent', () => {
     modalService = TestBed.get(NgxSmartModalServiceMock);
     serviceResolver = TestBed.get(ServiceResolverMock);
 
-    component = new WireflowComponent({gMapKey: ''}, modalService, translateService, changeDetector as any, {} as any, serviceResolver as any);
+    component = new WireflowComponent({gMapKey: ''}, modalService, translateService, changeDetector as any, geolocationService as any, serviceResolver as any);
   });
 
   describe('ctor', () => {
@@ -334,6 +347,34 @@ describe('WireflowComponent', () => {
 
   });
 
+  describe('onQrTagSubmit()', () => {
+    let modalSpy;
+
+    beforeEach(() => {
+      modalSpy = spyOn(modalService, 'getModal').and.returnValue(modalService['modal']);
+      spyOn(modalService['modal'], 'getData').and.returnValue({
+        dependency: {
+          type: 'ActionDependency'
+        },
+        message: {
+          authoringX: 0,
+          authoringY: 0,
+        }
+      });
+      component.messages = [];
+      component.populatedNodes = [];
+      component.populatedNodesPrev = [];
+      component.ngAfterViewInit();
+    });
+
+    it('should get modal data', () => {
+      component.onQrTagSubmit({ action: '1234' });
+
+      expect(modalSpy).toHaveBeenCalledWith('actionQrModal');
+
+    });
+  });
+
   describe('onQrOutputSubmit()', () => {
     let value;
     let dataSpy;
@@ -464,6 +505,7 @@ describe('WireflowComponent', () => {
 
     beforeEach(() => {
       modalSpy = spyOn(modalService, 'getModal').and.returnValue(modalService['modal']);
+
       component.messages = [];
       component.populatedNodes = [];
       component.populatedNodesPrev = [];
@@ -608,6 +650,826 @@ describe('WireflowComponent', () => {
         expect(component['currentMiddleConnector']).toBeDefined();
       });
     });
+  });
+
+  describe('ngOnInit()', () => {
+    beforeEach(() => {
+      component.messages = [];
+    });
+
+    it('should populate populatedNodes property with defined messages', () => {
+      expect(component.populatedNodes).toBeUndefined();
+
+      component.ngOnInit();
+
+      expect(component.populatedNodes).toBeDefined();
+    });
+
+    it('should populate populatedNodes property with undefined messages', () => {
+      component.messages = undefined;
+
+      expect(component.populatedNodes).toBeUndefined();
+
+      component.ngOnInit();
+
+      expect(component.populatedNodes).toBeDefined();
+    });
+
+    it('should set initialized property to true', () => {
+      component.ngOnInit();
+      expect(component['initialized']).toBeTruthy();
+    });
+  });
+
+  describe('ngOnChanges()', () => {
+    it('should set language', () => {
+      component.ngOnChanges({ lang: { previousValue: null, currentValue: 'ru', firstChange: true, isFirstChange: () => true } });
+
+      expect(translateSpy).toHaveBeenCalledWith('ru');
+    });
+
+    it('should not set language', () => {
+      component.ngOnChanges({});
+      expect(translateSpy).not.toHaveBeenCalledWith('ru');
+    });
+  });
+
+  describe('ngAfterViewChecked()', () => {
+    beforeEach(() => {
+      component['_handleRenderNodesNeeded'] = true;
+      component.messages = [];
+      component.populatedNodes = [];
+      component.ngAfterViewInit();
+    });
+
+    it('should set _handleRenderNodesNeeded to false', () => {
+      component.ngAfterViewChecked();
+
+      expect(component['_handleRenderNodesNeeded']).toBeFalsy();
+    });
+
+    it('should not set _handleRenderNodesNeeded if it is false', () => {
+      component['_handleRenderNodesNeeded'] = false;
+
+      component.ngAfterViewChecked();
+
+      expect(component['_handleRenderNodesNeeded']).toBeFalsy();
+    });
+
+    describe('handleRender: lastAddedProximity', () => {
+      beforeEach(() => {
+        component['lastAddedProximity'] = {
+          message: {
+            id: 1,
+          }
+        };
+      });
+
+      it('should create connector and drag it', () => {
+        const obj = { handler: () => {} };
+        const dragEndSpy = spyOn(obj, 'handler');
+        const spy = spyOn(component.wireflowManager, 'createConnector').and.returnValue({ onDragEnd: obj.handler } as any);
+
+        component.ngAfterViewChecked();
+
+        expect(spy).toHaveBeenCalled();
+        expect(dragEndSpy).toHaveBeenCalled();
+        expect(component['lastAddedProximity']).toBeNull();
+      });
+    });
+
+    describe('handleRender: lastAddedNode', () => {
+      beforeEach(() => {
+        component['lastAddedNode'] = {} as any;
+      });
+
+      it('should render node', () => {
+        const spy = spyOn(component.wireflowManager, 'renderLastAddedNode');
+
+        component.ngAfterViewChecked();
+
+        expect(spy).toHaveBeenCalled();
+        expect(component['lastAddedNode']).toBeNull();
+      });
+    });
+
+    describe('handleRender: lastAddedPort', () => {
+      beforeEach(() => {
+        component['lastAddedPort'] = {} as any;
+      });
+
+      it('should create port', () => {
+        spyOn(component['diagram'], 'getShapeByGeneralItemId').and.returnValue({ model: {} } as any);
+        const spy = spyOn(component.portsService, 'createPort');
+
+        component.ngAfterViewChecked();
+
+        expect(spy).toHaveBeenCalled();
+        expect(component['lastAddedPort']).toBeUndefined();
+      });
+    });
+  });
+
+  describe('renderChunk()', () => {
+    let chunkItem: any;
+    let chunk: any[];
+    let spyError;
+    beforeEach(() => {
+      spyError = spyOn(console, 'error');
+      component.messages = [...messagesMock] as any;
+      component.populatedNodes = [];
+      component.populatedNodesPrev = [];
+      component.ngOnInit();
+      component.ngAfterViewInit();
+
+      chunkItem = {
+        isVisible: false,
+        backgroundPath: of('some-url-path')
+      };
+
+      chunk = [ chunkItem ];
+    });
+
+    it('should set isVisible = true for each chunk item', async () => {
+      await component.renderChunk(chunk);
+
+      expect(chunkItem.isVisible).toBeTruthy();
+    });
+
+    it('should detect changes', async () => {
+      const spy = spyOn(changeDetector, 'detectChanges');
+      await component.renderChunk(chunk);
+
+      expect(spy).toHaveBeenCalled();
+    });
+
+    it('should call console.error for not existing image', async () => {
+      await component.renderChunk(chunk);
+
+      expect(spyError).toHaveBeenCalled();
+    });
+
+    it('should refresh shapes elements', async () => {
+      const spy = spyOn(component.domContext, 'refreshShapeElements');
+      await component.renderChunk(chunk);
+
+      expect(spy).toHaveBeenCalled();
+    });
+
+    it('should init shapes', async () => {
+      const spy = spyOn(component['diagram'], 'initShapes');
+      await component.renderChunk(chunk);
+
+      expect(spy).toHaveBeenCalled();
+    });
+
+    it('should fire FIRST_CHUNK_LOADING custom event', async () => {
+      const obj = { handler: (event) => {} };
+      const spy = spyOn(obj, 'handler');
+      component.onEvent.subscribe(obj.handler);
+
+      await component.renderChunk(chunk);
+
+      expect(spy).toHaveBeenCalledTimes(2);
+      expect(spy).toHaveBeenCalledWith({
+        type: 'FIRST_CHUNK_LOADING',
+        payload: true
+      });
+      expect(spy).toHaveBeenCalledWith({
+        type: 'FIRST_CHUNK_LOADING',
+        payload: false
+      });
+    });
+
+    it('should init connector and drag it', async () => {
+      const diagramCanInitConnectorSpy = spyOn(component['diagram'], 'canInitConnector').and.returnValue(true);
+
+      const obj = { handler: () => {} };
+      const onDragSpy = spyOn(obj, 'handler');
+
+      const diagramInitConnectorSpy = spyOn(component['diagram'], 'initConnector').and.returnValue({ onDrag: obj.handler } as any);
+
+      await component.renderChunk(chunk);
+
+      const result = component.populatedNodes.some(x => x['initConnectorDone']);
+
+      expect(diagramCanInitConnectorSpy).toHaveBeenCalled();
+      expect(diagramInitConnectorSpy).toHaveBeenCalled();
+      expect(onDragSpy).toHaveBeenCalled();
+      expect(result).toBeTruthy();
+    });
+
+    it('should init node', async () => {
+      const diagramCanInitNodeSpy = spyOn(component.wireflowManager, 'canInitNodeMessage').and.returnValue(true);
+
+      const wireflowManagerInitNodeSpy = spyOn(component.wireflowManager, 'initNodeMessage');
+
+      await component.renderChunk(chunk);
+
+      const result = component.populatedNodes.some(x => x['initNodeMessageDone']);
+
+      expect(diagramCanInitNodeSpy).toHaveBeenCalled();
+      expect(wireflowManagerInitNodeSpy).toHaveBeenCalled();
+      expect(result).toBeTruthy();
+    });
+  });
+
+  describe('isAbleToAddProximity()', () => {
+    let node;
+
+    beforeEach(() => {
+      node = {
+        dependsOn: {
+          dependencies: [
+            {
+              type: 'Proximity',
+            }
+          ]
+        }
+      };
+    });
+
+    it('should return false for node with proximity', () => {
+      expect(component.isAbleToAddProximity(node)).toBeFalsy();
+    });
+  });
+
+  describe('setProximity()', () => {
+    it('should stop event propagation', () => {
+      const event = { stopPropagation: () => {} };
+
+      const spy = spyOn(event, 'stopPropagation');
+
+      component.setProximity(event, {} as any);
+
+      expect(spy).toHaveBeenCalled();
+    });
+
+    it('should open modal', () => {
+      const event = { stopPropagation: () => {} };
+      const spy = spyOn(modalService['modal'], 'open');
+      component.setProximity(event, {} as any);
+
+      expect(spy).toHaveBeenCalled();
+    });
+  });
+
+  describe('onNodeMouseEnter', () => {
+    let domContextMock;
+    let event;
+    let shapeSpy;
+
+    beforeEach(() => {
+      domContextMock = serviceResolver.createDomContext();
+      event = { target: domContextMock.fakeNode };
+
+      component.messages = [];
+      component.populatedNodes = [];
+      component.populatedNodesPrev = [];
+      component.ngAfterViewInit();
+
+      component['diagram']['dragging'] = true;
+
+      component['currentMiddleConnector'] = {
+        setShape: (sth) => {},
+        model: {
+          dependencyType: 'ActionDependency'
+        }
+      } as any;
+
+      component['processing'] = false;
+
+      shapeSpy = spyOn(component['diagram'], 'getShapeByGeneralItemId').and.returnValue(
+        {
+          model: {
+            dependencyType: 'TextQuestion'
+          }
+        } as any
+      );
+    });
+
+    it('should add hover class if the diagram is not dragged', () => {
+      component['diagram']['dragging'] = false;
+
+      const spy = spyOn(domContextMock.fakeNode.classList, 'add');
+
+      component.onNodeMouseEnter(event);
+
+      expect(spy).toHaveBeenCalledWith('node-container--hover');
+    });
+
+    it('should add border--success class', () => {
+      const spy = spyOn(domContextMock.fakeNode.classList, 'add');
+
+      component.onNodeMouseEnter(event);
+
+      expect(spy).toHaveBeenCalledWith('border--success');
+    });
+
+    it('should add border--success class for TextQuestion or ScanTag', () => {
+      const spy = spyOn(domContextMock.fakeNode.classList, 'add');
+
+      component['currentMiddleConnector']['model']['subType'] = 'textquestion';
+
+      component.onNodeMouseEnter(event);
+
+      expect(spy).toHaveBeenCalledWith('border--success');
+    });
+
+    it('should add border--danger class for not TextQuestion and ScanTag', () => {
+      const spy = spyOn(domContextMock.fakeNode.classList, 'add');
+
+      component['currentMiddleConnector']['model']['subType'] = 'textquestion';
+      shapeSpy.and.returnValue(
+        {
+          model: {
+            dependencyType: 'ActionType'
+          }
+        } as any
+      );
+
+      component.onNodeMouseEnter(event);
+
+      expect(spy).toHaveBeenCalledWith('border--danger');
+    });
+
+    it('should do nothing for undefined currentMiddleConnector', () => {
+      const spy = spyOn(domContextMock.fakeNode.classList, 'add');
+
+      component['currentMiddleConnector'] = undefined;
+
+      component.onNodeMouseEnter(event);
+
+      expect(spy).not.toHaveBeenCalledWith('border--success');
+    });
+
+    it('should do nothing for proximity connector', () => {
+      const spy = spyOn(domContextMock.fakeNode.classList, 'add');
+
+      component['currentMiddleConnector']['model']['dependencyType'] = 'ProximityDependency';
+
+      component.onNodeMouseEnter(event);
+
+      expect(spy).not.toHaveBeenCalledWith('border--success');
+    });
+  });
+
+  describe('onNodeMouseLeave()', () => {
+    let domContextMock;
+    let event;
+
+    beforeEach(() => {
+      domContextMock = serviceResolver.createDomContext();
+      event = { target: domContextMock.fakeNode };
+
+      component['currentMiddleConnector'] = {
+        setShape: (sth) => {},
+      } as any;
+
+      component['processing'] = false;
+    });
+
+    it('should remove classes', () => {
+      const spy = spyOn(domContextMock.fakeNode.classList, 'remove');
+
+      component.onNodeMouseLeave(event);
+
+      expect(spy).toHaveBeenCalledTimes(3);
+      expect(spy).toHaveBeenCalledWith('node-container--hover');
+      expect(spy).toHaveBeenCalledWith('border--success');
+      expect(spy).toHaveBeenCalledWith('border--danger');
+    });
+
+    it('should set shape null', () => {
+      const spy = spyOn(component['currentMiddleConnector'], 'setShape');
+
+      component.onNodeMouseLeave(event);
+
+      expect(spy).toHaveBeenCalledWith(null);
+    });
+
+    it('should not set shape null', () => {
+      const spy = spyOn(component['currentMiddleConnector'], 'setShape');
+      component['processing'] = true;
+
+      component.onNodeMouseLeave(event);
+
+      expect(spy).not.toHaveBeenCalledWith(null);
+    });
+  });
+
+  describe('onPortMouseEnter()', () => {
+    let event;
+    let domContextMock;
+
+    beforeEach(() => {
+      domContextMock = serviceResolver.createDomContext();
+      component['lastDependency'] = {};
+      component['currentMiddleConnector'] = {
+        model: {
+          dependencyType: 'ActionDependency',
+          subType: '',
+        }
+      } as any;
+
+      spyOn(domContextMock.fakeNode, 'querySelector').and.returnValue(domContextMock.fakeNode);
+
+      event = {
+        target: domContextMock.fakeNode,
+      };
+    });
+
+    it('should set lastDependency.action', () => {
+      component.onPortMouseEnter(event,  { action: 'read' });
+
+      expect(component['lastDependency']['action']).toBe('read');
+    });
+
+    it('should not set lastDependency.action', () => {
+      component['currentMiddleConnector'] = {
+        model: {
+          dependencyType: 'ActionDependency',
+          subType: 'textquestion',
+        }
+      } as any;
+      component['lastDependency']['action'] = 'text';
+
+      component.onPortMouseEnter(event,  { action: 'some-other' });
+
+      expect(component['lastDependency']['action']).toBe('text');
+    });
+
+    it('should set no-events class', () => {
+      const spy = spyOn(domContextMock.fakeNode.classList, 'add');
+
+      component.onPortMouseEnter(event,  { action: 'read' });
+
+      expect(spy).toHaveBeenCalledWith('no-events');
+    });
+
+    it('should not set no-events class for Proximity connector', () => {
+      component['currentMiddleConnector']['model']['dependencyType'] = 'ProximityDependency';
+
+      const spy = spyOn(domContextMock.fakeNode.classList, 'add');
+
+      component.onPortMouseEnter(event,  { action: 'read' });
+
+      expect(spy).not.toHaveBeenCalledWith('no-events');
+    });
+
+    it('should not set no-events class for undefined connector', () => {
+      component['currentMiddleConnector'] = null;
+
+      const spy = spyOn(domContextMock.fakeNode.classList, 'add');
+
+      component.onPortMouseEnter(event,  { action: 'read' });
+
+      expect(spy).not.toHaveBeenCalledWith('no-events');
+    });
+  });
+
+  describe('onPortMouseLeave()', () => {
+    let event;
+    let domContextMock;
+
+    beforeEach(() => {
+      domContextMock = serviceResolver.createDomContext();
+      component['lastDependency'] = {};
+      component['lastGeneralItemId'] = '123456';
+      component['currentMiddleConnector'] = {
+        model: {
+          dependencyType: 'ActionDependency',
+          subType: '',
+        }
+      } as any;
+
+      spyOn(domContextMock.fakeNode, 'querySelector').and.returnValue(domContextMock.fakeNode);
+
+      event = {
+        target: domContextMock.fakeNode,
+      };
+    });
+
+    it('should set generalItemId for lastDependency', () => {
+      component.onPortMouseLeave(event);
+
+      expect(component['lastDependency']['generalItemId']).toBe('123456');
+    });
+
+    it('should not set generalItemId for lastDependency', () => {
+      component['processing'] = true;
+
+      component.onPortMouseLeave(event);
+
+      expect(component['lastDependency']['generalItemId']).toBeUndefined();
+    });
+
+    it('should not set lastDependency.action as read', () => {
+      component['currentMiddleConnector'] = {
+        model: {
+          dependencyType: 'ActionDependency',
+          subType: 'textquestion',
+        }
+      } as any;
+
+      component.onPortMouseLeave(event);
+
+      expect(component['lastDependency']['action']).toBeUndefined();
+    });
+
+    it('should remove no-events class from draggable element', () => {
+      const spy = spyOn(domContextMock.fakeNode.classList, 'remove');
+
+      component.onPortMouseLeave(event);
+
+      expect(spy).toHaveBeenCalledWith('no-events');
+    });
+
+    it('should not remove no-events class from draggable element for Proximity connector', () => {
+      component['currentMiddleConnector']['model']['dependencyType'] = 'ProximityDependency';
+
+      const spy = spyOn(domContextMock.fakeNode.classList, 'remove');
+
+      component.onPortMouseLeave(event);
+
+      expect(spy).not.toHaveBeenCalledWith('no-events');
+    });
+  });
+
+  describe('setProximityCurrentLocation()', () => {
+    let event;
+    let node;
+
+    let connector;
+
+    beforeEach(() => {
+      event = {
+        stopPropagation() {}
+      };
+
+      node = { id: 123 };
+
+      geolocationService.coords = [0, 0];
+
+      component.messages = [];
+      component.populatedNodes = [];
+      component.populatedNodesPrev = [];
+      component.ngOnInit();
+      component.ngAfterViewInit();
+
+      connector = {
+        proximity: {
+          lng: -1,
+          lat: -1,
+        }
+      };
+
+      component['diagram']['shapes'] = [{
+        inputs: [],
+        outputs: [
+          {
+            model: {
+              generalItemId: '123',
+              connectors: [connector]
+            }
+          }
+        ]
+      } as any];
+    });
+
+    it('should set proximity values to connector', fakeAsync(() => {
+      component.setProximityCurrentLocation(event, node);
+      tick(150);
+
+      expect(connector.proximity.lat).toBe(0);
+      expect(connector.proximity.lng).toBe(0);
+    }));
+
+    it('should set proximity values to middlePoint', fakeAsync(() => {
+      connector.proximity = null;
+
+      const dep = {
+        generalItemId: '123',
+        lat: -1,
+        lng: -1,
+      };
+
+      spyOn(component['diagram'], 'getMiddlePointByConnector').and.returnValue({
+        dependency: {
+          dependencies: [ dep ]
+        }
+      } as any);
+
+      component.setProximityCurrentLocation(event, node);
+      tick(150);
+
+      expect(dep.lat).toBe(0);
+      expect(dep.lng).toBe(0);
+    }));
+
+    it('should call emit changes', fakeAsync(() => {
+      const spy = spyOn(component.connectorsService, 'emitChangeDependencies');
+
+      component.setProximityCurrentLocation(event, node);
+      tick(150);
+
+      expect(spy).toHaveBeenCalled();
+    }));
+
+    it('should not call emit changes', fakeAsync(() => {
+      connector.proximity = null;
+
+      const spy = spyOn(component.connectorsService, 'emitChangeDependencies');
+
+      component.setProximityCurrentLocation(event, node);
+      tick(150);
+
+      expect(spy).not.toHaveBeenCalled();
+    }));
+
+    it('should not call emit changes for not found port', fakeAsync(() => {
+      component['diagram']['shapes'] = [];
+
+      const spy = spyOn(component.connectorsService, 'emitChangeDependencies');
+
+      component.setProximityCurrentLocation(event, node);
+      tick(150);
+
+      expect(spy).not.toHaveBeenCalled();
+    }));
+
+    it('should not call emit changes for not found coords', fakeAsync(() => {
+      geolocationService.coords = null;
+
+      const spy = spyOn(component.connectorsService, 'emitChangeDependencies');
+
+      component.setProximityCurrentLocation(event, node);
+      tick(150);
+
+      expect(spy).not.toHaveBeenCalled();
+    }));
+  });
+
+
+  describe('nodeClick', () => {
+    let shapeSpy;
+
+    beforeEach(() => {
+      component.messages = [...messagesMock as any];
+      component.populatedNodes = [];
+      component.populatedNodesPrev = [];
+      component.ngOnInit();
+      component.ngAfterViewInit();
+
+      shapeSpy = spyOn(component['diagram'], 'getShapeById').and.returnValue({
+        dependencyType: '',
+        model: {
+          generalItemId: component.messages[0].id.toString()
+        }
+      } as any);
+
+      component.nodesService['models'] = [
+        {
+          id: 'node_1',
+        } as any
+      ];
+    });
+
+    it('should select message', fakeAsync(() => {
+      component.nodesService.emitNodeClick('node_1');
+      tick(100);
+
+      expect(component.selectedMessageId).toBe(component.messages[0].id.toString());
+    }));
+
+    it('should deselect message', fakeAsync(() => {
+      component.nodesService.emitNodeClick('node_1');
+      tick(100);
+      component.nodesService.emitNodeClick('node_1');
+      tick(100);
+
+      expect(component.selectedMessageId).toBe(null);
+    }));
+
+    it('should open proximity modal', fakeAsync(() => {
+      component.nodesService['models'] = [
+        {
+          id: 'node_1',
+          dependencyType: 'ProximityDependency',
+        } as any
+      ];
+
+      shapeSpy.and.returnValue(
+        {
+          dependencyType: 'ProximityDependency',
+          model: {
+            generalItemId: component.messages[0].id.toString()
+          },
+          outputs: [
+            {
+              model: {
+                connectors: [
+                  {
+                  }
+                ]
+              }
+            }
+          ]
+        } as any
+      );
+
+      const spy = spyOn(modalService, 'getModal').and.returnValue(modalService['modal']);
+
+      component.nodesService.emitNodeClick('node_1');
+      tick(100);
+
+      expect(spy).toHaveBeenCalled();
+    }));
+  });
+
+  describe('middlePointClick', () => {
+    let diagramSpy;
+
+    beforeEach(() => {
+      component.messages = [...messagesMock as any];
+      component.populatedNodes = [];
+      component.populatedNodesPrev = [];
+      component.ngOnInit();
+      component.ngAfterViewInit();
+
+      diagramSpy = spyOn(component['diagram'], 'getMiddlePoint').and.returnValue({
+        dependency: {
+          type: 'TimeDependency',
+          timeDelta: {}
+        }
+      } as any);
+    });
+
+    it('should open time modal', fakeAsync(() => {
+      const spy = spyOn(modalService, 'getModal').and.returnValue(modalService['modal']);
+
+      component.middlePointsService.clickMiddlePoint('middle-point-1');
+      tick(100);
+
+      expect(spy).toHaveBeenCalled();
+    }));
+
+    it('should not open time modal', fakeAsync(() => {
+      diagramSpy.and.returnValue({
+        dependency: {
+          type: 'ActionDependency',
+          timeDelta: {}
+        }
+      });
+
+      const spy = spyOn(modalService, 'getModal').and.returnValue(modalService['modal']);
+
+      component.middlePointsService.clickMiddlePoint('middle-point-1');
+      tick(100);
+
+      expect(spy).not.toHaveBeenCalled();
+    }));
+  });
+
+  describe('nodeRemove', () => {
+    beforeEach(() => {
+      component.messages = [...messagesMock as any];
+      component.populatedNodes = [];
+      component.populatedNodesPrev = [];
+      component.ngOnInit();
+      component.ngAfterViewInit();
+      component['diagram']['shapes'] = [
+        { model: { id: 'shape_1' } }
+      ] as any;
+    });
+
+    it('should delete shape', fakeAsync(() => {
+      const len = component['diagram']['shapes']['length'];
+
+      component.nodesService.removeNode('shape_1');
+      tick(200);
+
+      expect(component['diagram']['shapes']['length']).toBe(len - 1);
+    }));
+  });
+
+  describe('nodeInit', () => {
+    beforeEach(() => {
+      component.messages = [...messagesMock as any];
+      component.populatedNodes = [];
+      component.populatedNodesPrev = [];
+      component.ngOnInit();
+      component.ngAfterViewInit();
+    });
+
+    it('should call createPort 3 times', fakeAsync(() => {
+      const spy = spyOn(component.portsService, 'createPort');
+
+      component.nodesService.initNode('node_1', [1] as any, [2, 3] as any);
+      tick(100);
+
+      expect(spy).toHaveBeenCalledTimes(3);
+    }));
   });
 });
 

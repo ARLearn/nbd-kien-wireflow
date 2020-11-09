@@ -251,7 +251,7 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
     }));
   }
 
-  async ngOnInit() {
+  ngOnInit() {
     this.messages = this.nodesManager.getNodes(this.messages || []);
     this.populatedNodes = this.messages.slice();
 
@@ -780,8 +780,8 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
       if (this.currentMiddleConnector.model.dependencyType.includes('ProximityDependency')) { return; }
 
       if (!this.currentMiddleConnector.model.subType ||
-        !this.currentMiddleConnector.model.subType.includes('scantag') ||
-        !this.currentMiddleConnector.model.subType.includes('textquestion')
+        !(this.currentMiddleConnector.model.subType.includes('scantag') ||
+          this.currentMiddleConnector.model.subType.includes('textquestion'))
       ) {
         this.lastDependency.action = output.action;
       }
@@ -791,13 +791,13 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
     }
   }
 
-  onPortMouseLeave(event: MouseEvent, output: any) {
+  onPortMouseLeave(event: MouseEvent) {
     if (this.currentMiddleConnector && !this.processing) {
       if (this.currentMiddleConnector.model.dependencyType.includes('ProximityDependency')) { return; }
 
       if (!this.currentMiddleConnector.model.subType ||
-        !this.currentMiddleConnector.model.subType.includes('scantag') ||
-        !this.currentMiddleConnector.model.subType.includes('textquestion')
+        !(this.currentMiddleConnector.model.subType.includes('scantag') ||
+          this.currentMiddleConnector.model.subType.includes('textquestion'))
       ) {
         this.lastDependency.action = 'read';
       }
