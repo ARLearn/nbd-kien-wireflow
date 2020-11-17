@@ -26,11 +26,11 @@
         <g id="diagram" data-drag="diagram:diagram" data-drag-type="diagram">
           <g id="node-layer">
             <rect x="0" y="0" height="100%" width="100%" fill="transparent"
-              (click)="selectedMessageId && onDiagramBackdropClick()" />
+              (click)="existAnySelectedNodes() && onDiagramBackdropClick()" />
             <g *ngFor="let node of populatedNodes; let c = index">
               <g class="node-container node-container--new"
                 *ngIf="node['isVisible']"
-                [class.border--selected]="node.id.toString() === selectedMessageId" [attr.general-item-id]="node.id"
+                [class.border--selected]="isNodeSelected(node.id.toString())" [attr.general-item-id]="node.id"
                 [attr.dependency-type]="node.type" (mouseenter)="onNodeMouseEnter($event)"
                 (mouseleave)="onNodeMouseLeave($event)">
                 <filter id="dropshadow" height="130%">

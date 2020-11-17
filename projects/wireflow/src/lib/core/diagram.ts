@@ -15,6 +15,8 @@ import { DiagramService } from './services/diagram.service';
 import { CoreUIFactory } from './core-ui-factory';
 import { TweenLiteService } from './services/tween-lite.service';
 import { DraggableService } from './services/draggable.service';
+import {DiagramModel} from './models/DiagramModel';
+import {Subject} from 'rxjs';
 
 
 export class Diagram implements DraggableUiElement {
@@ -26,6 +28,7 @@ export class Diagram implements DraggableUiElement {
   dragType: any;
   draggable: any;
   private dragging: boolean;
+  private nodeSelectedOnDragging = false;
 
   mpAllowedTypes: string[] = [
     'org.celstec.arlearn2.beans.dependencies.AndDependency',
@@ -49,6 +52,7 @@ export class Diagram implements DraggableUiElement {
     private diagramService: DiagramService,
     private tweenLiteService: TweenLiteService,
     private draggableService: DraggableService,
+    private diagramModel: DiagramModel,
   ) {
     this.target = null;
     this.dragType = null;
@@ -59,7 +63,22 @@ export class Diagram implements DraggableUiElement {
       trigger: this.domContext.svgElement,
       onDrag: () => this._dragTarget(),
       onDragEnd: e => this._stopDragging(this._getDragArgs(e)),
-      onPress: e => this._onDragStart(this._getDragArgs(e)),
+      onPress: e => {
+        this.nodeSelectedOnDragging = false;
+        this._onDragStart(this._getDragArgs(e));
+
+        if (this.target instanceof NodeShape) {
+          if (e.ctrlKey) {
+              this.nodesService.toggleSelect(this.target.model.generalItemId, true);
+          } else {
+            if (this.diagramModel.isNodeSelected(this.target.model.generalItemId)) {
+              this.nodeSelectedOnDragging = true;
+            } else {
+              this.nodesService.toggleSelect(this.target.model.generalItemId, false);
+            }
+          }
+        }
+      },
       onClick: (event) => this._onDragClick(event)
     });
   }
@@ -316,7 +335,13 @@ export class Diagram implements DraggableUiElement {
 
       case 'port':
         const port = this.getPortById(id);
-        const con = new Connector(this.coreUiFactory, this.domContext, this.connectorsService, this.tweenLiteService, this.connectorsService.createConnectorModel(null));
+        const con = new Connector(
+          this.coreUiFactory,
+          this.domContext,
+          this.connectorsService,
+          this.tweenLiteService,
+          this.connectorsService.createConnectorModel(null)
+        );
         this.addConnector(con);
         con
           .initCreating()
@@ -337,20 +362,38 @@ export class Diagram implements DraggableUiElement {
 
   private _dragTarget() {
     if (this.target) {
-      this.tweenLiteService.set(this.target.dragElement, {
-        x: `+=${this.draggable.deltaX}`,
-        y: `+=${this.draggable.deltaY}`,
-      });
-
       this.dragging = true;
 
-      this.target.onDrag && this.target.onDrag();
+      if (this.target instanceof NodeShape) {
+        this._dragShapes();
+      } else {
+        this._dragElement(this.target);
+      }
+    }
+  }
+
+  private _dragElement(target) {
+    this.tweenLiteService.set(target.dragElement, {
+      x: `+=${this.draggable.deltaX}`,
+      y: `+=${this.draggable.deltaY}`,
+    });
+
+    target.onDrag && target.onDrag();
+  }
+
+  private _dragShapes() {
+    const shapes = this.diagramModel.selectedNodes
+      // .filter(id => )
+      .map(id => this.getShapeByGeneralItemId(id));
+
+    for (const shape of shapes) {
+      this._dragElement(shape);
     }
   }
 
   private _stopDragging({id, dragType}) {
     this.dragging = false;
-
+    this.nodeSelectedOnDragging = false;
 
     switch (dragType) {
       case 'shape':
@@ -358,14 +401,13 @@ export class Diagram implements DraggableUiElement {
         if (this.openedConnector) {
           this.openedConnector.onDragEnd((this.target as NodeShape).inputs[0]);
         }
-        this.target.onDragEnd();
-
         this.cleanDraggableShapes();
         break;
       case 'diagram': {
         if (this.target instanceof Diagram) {
           this.diagramService.drag();
         }
+        this.cleanDraggableShapes();
       }
       default: {
         if (this.target) {
@@ -418,6 +460,9 @@ export class Diagram implements DraggableUiElement {
     this.dragging = false;
     this._cleanupOpenedConnector();
 
+    if (this.target instanceof NodeShape && this.nodeSelectedOnDragging) {
+      this.nodesService.toggleSelect(this.target.model.generalItemId, false);
+    }
 
     const target = event.target;
     const isToolbarPoint = target.classList.contains('base-middle-point');
@@ -426,6 +471,8 @@ export class Diagram implements DraggableUiElement {
       this.connectors.forEach(c => !c.connectorToolbar.isHidden() && c.connectorToolbar.hide());
       this.middlePoints.forEach(c => !c.actionToolbar.isHidden() && c.actionToolbar.hide());
     }
+
+    this.nodeSelectedOnDragging = false;
   }
 
   private _cleanupOpenedConnector() {

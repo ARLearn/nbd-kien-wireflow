@@ -79,7 +79,7 @@ export class NodeShape extends BaseModelUiElement<NodeModel> implements Draggabl
     this.service.removeNode(this.model.id);
   }
 
-  private _onClick() {
-    this.service.emitNodeClick(this.model.id);
+  private _onClick(event: MouseEvent) {
+    this.service.emitNodeClick(this.model.id, event.ctrlKey);
   }
 }

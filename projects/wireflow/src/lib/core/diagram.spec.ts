@@ -74,7 +74,8 @@ describe('Diagram', () => {
       middlePointsService,
       diagramService,
       tweenLiteServiceMock,
-      draggableService
+      draggableService,
+      {} as any
     );
   });
 
@@ -1048,7 +1049,8 @@ describe('Diagram', () => {
         middlePointsService,
         diagramService,
         tweenLiteServiceMock,
-        draggableService
+        draggableService,
+        {} as any
       );
     });
 

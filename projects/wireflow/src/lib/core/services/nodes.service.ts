@@ -14,6 +14,11 @@ export interface NodeShapeNewArgs {
   point: Point;
 }
 
+export interface NodeClickArgs {
+  model: NodeModel;
+  isCtrlClicked: boolean;
+}
+
 export interface NodeInitArgs {
   model: NodeModel;
   inputs: InputModel[];
@@ -31,7 +36,9 @@ export class NodesService extends BaseService<NodeModel> {
   private nodeInit$ = new Subject<NodeInitArgs>();
   private nodeRemove$ = new Subject<string>();
   private nodeCoordinatesChanged$ = new Subject<NodeSetCoordsArgs>();
-  private nodeClick$ = new Subject<NodeModel>();
+  private nodeClick$ = new Subject<NodeClickArgs>();
+  private nodeSelect$ = new Subject<string>();
+  private nodeToggleSelect$ = new Subject<any>();
 
   constructor(uniqueIdGenerator: UniqueIdGenerator) {
     super(uniqueIdGenerator);
@@ -42,6 +49,8 @@ export class NodesService extends BaseService<NodeModel> {
   get nodeRemove() { return this.nodeRemove$.asObservable(); }
   get nodeCoordinatesChanged() { return this.nodeCoordinatesChanged$.asObservable(); }
   get nodeClick() { return this.nodeClick$.asObservable(); }
+  get nodeSelect() { return this.nodeSelect$.asObservable(); }
+  get nodeToggleSelect() { return this.nodeToggleSelect$.asObservable(); }
 
   createNode(message: GameMessageCommon, offset: Point, skipOffset = false) {
     const model = {
@@ -74,9 +83,13 @@ export class NodesService extends BaseService<NodeModel> {
     this.nodeCoordinatesChanged$.next({ coords, messageId });
   }
 
-  emitNodeClick(id: string) {
+  emitNodeClick(id: string, isCtrlClicked: boolean) {
     const model = this.models.find(x => x.id === id);
-    this.nodeClick$.next(model);
+    this.nodeClick$.next({ model, isCtrlClicked });
+  }
+
+  select(id: string) {
+    this.nodeSelect$.next(id);
   }
 
   removeNode(id: string) {
@@ -86,5 +99,9 @@ export class NodesService extends BaseService<NodeModel> {
 
   exists(generalItemId: any): boolean {
     return this.models.findIndex(x => x.generalItemId.toString() === generalItemId.toString()) > -1;
+  }
+
+  toggleSelect(generalItemId: string, ctrlKeyPressed: boolean) {
+    this.nodeToggleSelect$.next({generalItemId, ctrlKeyPressed});
   }
 }

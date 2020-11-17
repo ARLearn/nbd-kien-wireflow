@@ -86,8 +86,6 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
     messagesOld: [],
   } as MessageEditorStateModel;
 
-  selectedMessageId: string;
-
   loadedImages: any = {};
 
   private icons = {
@@ -165,6 +163,8 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
   get middlePointAddChild() { return this.middlePointsService.middlePointAddChild; }
   get nodeNew() { return this.nodesService.nodeNew; }
   get nodeInit() { return this.nodesService.nodeInit; }
+  get nodeSelect() { return this.nodesService.nodeSelect; }
+  get nodeToggleSelect() { return this.nodesService.nodeToggleSelect; }
   get nodeRemove() { return this.nodesService.nodeRemove; }
   get connectorCreate() { return this.connectorsService.connectorCreate; }
   get connectorHover() { return this.connectorsService.connectorHover; }
@@ -628,6 +628,20 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
       );
     }));
 
+    this.subscription.add(this.nodeSelect.subscribe(id => {
+      const shape = this.diagram.getShapeById(id);
+
+      this.selectNode(shape.model.generalItemId);
+    }));
+
+    this.subscription.add(this.nodeToggleSelect.subscribe(args => {
+      if (args.ctrlKeyPressed) {
+        this.toggleMultipleSelectedMessage(args.generalItemId);
+      } else {
+        this.toggleSelectedMessage(args.generalItemId);
+      }
+    }));
+
     this.subscription.add(this.nodeRemove.subscribe(id => {
       const shapeToDelete = this.diagram.shapes.find(x => x.model.id === id);
       this.diagram.shapes.splice(this.diagram.shapes.indexOf(shapeToDelete), 1);
@@ -644,22 +658,18 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
       }
     }));
 
-    this.subscription.add(this.nodeClick.subscribe(nodeModel => {
-      const node = this.diagram.getShapeById(nodeModel.id);
-      if (nodeModel.dependencyType && nodeModel.dependencyType.includes('ProximityDependency')) {
+    this.subscription.add(this.nodeClick.subscribe(args => {
+      const node = this.diagram.getShapeById(args.model.id);
+      if (args.model.dependencyType && args.model.dependencyType.includes('ProximityDependency')) {
         const connectorModel = node.outputs[0].model.connectors[0];
         const connector = this.diagram.getConnectorById(connectorModel.id);
 
         if (connectorModel) {
           this.ngxSmartModalService.getModal('proximityModal').setData({
-            initialData: connectorModel.proximity, connector, node: nodeModel.generalItemId
+            initialData: connectorModel.proximity, connector, node: args.model.generalItemId
           }, true).open();
         }
       }
-
-      const message = this.populatedNodes.find(m => m.id.toString() === node.model.generalItemId);
-
-      this.toggleSelectedMessage(message.id.toString());
     }));
 
     this.subscription.add(this.diagramDragged.subscribe(async () => {
@@ -918,19 +928,27 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
     });
   }
 
+  isNodeSelected(id) {
+    return this.diagramModel.isNodeSelected(id);
+  }
 
   private selectNode(id: string) {
-    this.selectedMessageId = id;
-    const selectedMessage = this.populatedNodes.find(m => m.id.toString() === this.selectedMessageId.toString());
+    this.diagramModel.addSelectedNode(id);
+
+    const selectedMessage = this.populatedNodes.find(m => m.id.toString() === id);
     this.selectMessage.next(selectedMessage);
   }
 
-  private deselectNode() {
-    if (!this.selectedMessageId) { return; }
-    const selectedMessage = this.populatedNodes.find(m => m.id.toString() === this.selectedMessageId.toString());
+  private deselectNode(id: string) {
+    if (!this.diagramModel.existsAnySelectedNode()) { return; }
+    const selectedMessage = this.populatedNodes.find(m => m.id.toString() === id);
 
     this.deselectMessage.next(selectedMessage);
-    this.selectedMessageId = null;
+    this.diagramModel.removeSelectedNode(id);
+  }
+
+  private deselectNodes() {
+    this.diagramModel.clearSelectedNodes();
   }
 
   private _emitMessages(messages: any[]) {
@@ -979,6 +997,7 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
       this.diagramService,
       this.tweenLiteService,
       this.draggableService,
+      this.diagramModel,
     );
 
     this.wireflowManager = new WireflowManager(
@@ -1342,24 +1361,43 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
   }
 
   private toggleSelectedMessage(id: string) {
-    const prevId = this.selectedMessageId;
-    prevId && this.deselectNode();
+    if (this.diagramModel.existsAnySelectedNode()) {
+      const isTheSameNode = this.diagramModel.isNodeSelected(id);
 
-    if (prevId !== id) {
-      return this.selectNode(id);
+      this.deselectNodes();
+
+      if (isTheSameNode) {
+        this.emitNoneSelectEvent();
+        return;
+      }
+    }
+
+    this.selectNode(id);
+    this.emitNoneSelectEvent();
+  }
+
+  private toggleMultipleSelectedMessage(id: string) {
+    if (this.diagramModel.isNodeSelected(id)) {
+      this.deselectNode(id);
+    } else {
+      this.selectNode(id);
     }
 
     this.emitNoneSelectEvent();
   }
 
   private emitNoneSelectEvent() {
-    if (!this.selectedMessageId) {
+    if (!this.diagramModel.existsAnySelectedNode()) {
       this.noneSelected.next();
     }
   }
 
+  existAnySelectedNodes() {
+    return this.diagramModel.existsAnySelectedNode();
+  }
+
   onDiagramBackdropClick() {
-    this.deselectNode();
+    this.deselectNodes();
     this.emitNoneSelectEvent();
   }
 
