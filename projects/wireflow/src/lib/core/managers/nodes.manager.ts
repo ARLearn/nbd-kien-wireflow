@@ -78,7 +78,7 @@ export class NodesManager {
           action: 'answer_incorrect',
           title: 'Wrong'
         },
-        ...(message as MultipleChoiceScreen).answers.map((a, n) => ({
+        ...((message as MultipleChoiceScreen).answers || []).map((a, n) => ({
           type: 'org.celstec.arlearn2.beans.dependencies.ActionDependency',
           generalItemId: message.id,
           action: `answer_${a.id}`,
