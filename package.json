@@ -8,6 +8,7 @@
     "prod": "npm run build && pushstate-server -d dist/app -p 4200",
     "test": "ng test wireflow --code-coverage",
     "test-headless": "ng test wireflow --code-coverage --browsers=ChromeHeadless",
+    "test-headless-no-watch": "ng test wireflow --code-coverage --browsers=ChromeHeadless --no-watch",
     "lint": "ng lint",
     "e2e": "ng e2e"
   },
@@ -44,6 +45,7 @@
     "@types/node": "~8.9.4",
     "codelyzer": "^5.0.0",
     "concurrently": "^5.1.0",
+    "husky": "^4.3.0",
     "jasmine-core": "~3.4.0",
     "jasmine-spec-reporter": "~4.2.1",
     "karma": "~4.1.0",
@@ -58,5 +60,10 @@
     "tsickle": "^0.37.0",
     "tslint": "~5.15.0",
     "typescript": "~3.5.3"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "npm run test-headless-no-watch"
+    }
   }
 }
