@@ -160,8 +160,8 @@ describe('NodeShape', () => {
 
   describe('_onClick()', () => {
     it('should call service.emitNodeClick', () => {
-      domContextMock.fakeNode.onclick();
-      expect(spyNodesServiceEmitNodeClick).toHaveBeenCalledWith('shape_1');
+      domContextMock.fakeNode.onclick({ ctrlKey: false });
+      expect(spyNodesServiceEmitNodeClick).toHaveBeenCalledWith('shape_1', false);
     });
   });
 });

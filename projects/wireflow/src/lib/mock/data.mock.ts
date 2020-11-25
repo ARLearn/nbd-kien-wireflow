@@ -118,13 +118,10 @@ export const messagesMock = [{
   authoringX: 542,
   authoringY: 447,
   dependsOn: {
-    type: 'org.celstec.arlearn2.beans.dependencies.TimeDependency',
-    timeDelta: 231000,
-    offset: {
-      type: 'org.celstec.arlearn2.beans.dependencies.ActionDependency',
-      action: 'complete',
-      generalItemId: '5651663746498560'
-    }
+    type: 'org.celstec.arlearn2.beans.dependencies.ProximityDependency',
+    lat: 1,
+    lng: 1,
+    radius: 5,
   },
   message: false
 }, {

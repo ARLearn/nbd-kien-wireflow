@@ -77,7 +77,8 @@ describe('WireflowManager', () => {
       middlePointsService,
       diagramService,
       tweenLiteServiceMock,
-      draggableService
+      draggableService,
+      diagramModel,
     );
 
     manager = new WireflowManager(

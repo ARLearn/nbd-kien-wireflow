@@ -15,6 +15,8 @@ import { DiagramService } from './services/diagram.service';
 import { DraggableServiceMock } from './services/draggable.service.mock';
 import { DraggableService } from './services/draggable.service';
 import { Connector } from './connector';
+import {DiagramModel} from './models/DiagramModel';
+import {NodeShape} from './node-shape';
 
 describe('Diagram', () => {
 
@@ -26,7 +28,8 @@ describe('Diagram', () => {
     connectorsService,
     middlePointsService,
     diagramService,
-    draggableService;
+    draggableService,
+    diagramModel;
 
   let draggableServiceCreateSpy;
 
@@ -46,6 +49,7 @@ describe('Diagram', () => {
         MiddlePointsService,
         DiagramService,
         DraggableServiceMock,
+        DiagramModel,
         { provide: CoreUIFactory, useExisting: CoreUIFactoryMock },
         { provide: DomContext, useExisting: DomContextMock },
         { provide: TweenLiteService, useExisting: TweenLiteServiceMock },
@@ -62,6 +66,7 @@ describe('Diagram', () => {
     middlePointsService = TestBed.get(MiddlePointsService);
     diagramService = TestBed.get(DiagramService);
     draggableService = TestBed.get(DraggableServiceMock);
+    diagramModel = TestBed.get(DiagramModel);
 
     draggableServiceCreateSpy = spyOn(draggableService, 'create');
 
@@ -75,7 +80,7 @@ describe('Diagram', () => {
       diagramService,
       tweenLiteServiceMock,
       draggableService,
-      {} as any
+      diagramModel,
     );
   });
 
@@ -1050,7 +1055,7 @@ describe('Diagram', () => {
         diagramService,
         tweenLiteServiceMock,
         draggableService,
-        {} as any
+        diagramModel,
       );
     });
 
@@ -1080,6 +1085,35 @@ describe('Diagram', () => {
         draggableService.options.onDrag();
 
         expect(spy).toHaveBeenCalledTimes(0);
+      });
+
+      it('should move shapes', () => {
+        diagram.shapes = [
+          new NodeShape(
+            nodesService,
+            tweenLiteServiceMock,
+            domContextMock.fakeNode,
+            { id: 'shape_1', outputModels: [], inputModels: [], dependencyType: '', generalItemId: '123' },
+            { x: 1, y: 1 }
+          ),
+          new NodeShape(
+            nodesService,
+            tweenLiteServiceMock,
+            domContextMock.fakeNode,
+            { id: 'shape_2', outputModels: [], inputModels: [], dependencyType: '', generalItemId: '345' },
+            { x: 1, y: 1 }
+          ),
+        ];
+
+        const spy = spyOn(tweenLiteServiceMock, 'set');
+
+        diagram.target = diagram.shapes[0];
+        diagramModel.addSelectedNode('123');
+        diagramModel.addSelectedNode('345');
+
+        draggableService.options.onDrag();
+
+        expect(spy).toHaveBeenCalledWith(domContextMock.fakeNode, { x: '+=10', y: '+=10' });
       });
 
       it('should set dragging true', () => {
@@ -1304,8 +1338,6 @@ describe('Diagram', () => {
 
     describe('onPress()', () => {
       let spyDragArgs;
-      let spyHitShape;
-      let spyHitPort;
       let message;
       let dependency;
 
@@ -1374,6 +1406,69 @@ describe('Diagram', () => {
 
         expect(diagram.target).toBeTruthy();
         expect(diagram.target.model.id).toBe('shape_1');
+      });
+
+      it('should toggle select on ctrl', () => {
+        const spy = spyOn(nodesService, 'toggleSelect');
+        diagram.shapes = [
+          new NodeShape(
+            nodesService,
+            tweenLiteServiceMock,
+            domContextMock.fakeNode,
+            { id: 'shape_1', outputModels: [], inputModels: [], dependencyType: '', generalItemId: '123' },
+            { x: 1, y: 1 }
+            ),
+        ];
+
+        spyDragArgs
+          .and
+          .returnValue({ target: null, id: 'shape_1', dragType: 'shape' });
+
+        draggableService.options.onPress({ ctrlKey: true });
+
+        expect(spy).toHaveBeenCalledWith('123', true);
+      });
+
+      it('should toggle select without ctrl', () => {
+        const spy = spyOn(nodesService, 'toggleSelect');
+        diagram.shapes = [
+          new NodeShape(
+            nodesService,
+            tweenLiteServiceMock,
+            domContextMock.fakeNode,
+            { id: 'shape_1', outputModels: [], inputModels: [], dependencyType: '', generalItemId: '123' },
+            { x: 1, y: 1 }
+          ),
+        ];
+
+        spyDragArgs
+          .and
+          .returnValue({ target: null, id: 'shape_1', dragType: 'shape' });
+
+        draggableService.options.onPress({ ctrlKey: false });
+
+        expect(spy).toHaveBeenCalledWith('123', false);
+      });
+
+      it('should set nodeSelectedOnDragging', () => {
+        diagramModel.addSelectedNode('123');
+        diagram.shapes = [
+          new NodeShape(
+            nodesService,
+            tweenLiteServiceMock,
+            domContextMock.fakeNode,
+            { id: 'shape_1', outputModels: [], inputModels: [], dependencyType: '', generalItemId: '123' },
+            { x: 1, y: 1 }
+          ),
+        ];
+
+        spyDragArgs
+          .and
+          .returnValue({ target: null, id: 'shape_1', dragType: 'shape' });
+
+        draggableService.options.onPress({ ctrlKey: false });
+
+        expect(diagram.nodeSelectedOnDragging).toBeTruthy();
       });
 
       it('should create connector as target and openedConnector', () => {
@@ -1506,6 +1601,21 @@ describe('Diagram', () => {
 
         expect(spy).toHaveBeenCalled();
         expect(diagram.openedConnector).toBeUndefined();
+      });
+
+      it('should toggleSelect', () => {
+        diagram.target = new NodeShape(
+          nodesService,
+          tweenLiteServiceMock,
+          domContextMock.fakeNode,
+          { id: 'shape_1', outputModels: [], inputModels: [], dependencyType: '', generalItemId: '123' },
+          { x: 1, y: 1 }
+        );
+        diagram['nodeSelectedOnDragging'] = true;
+        const spy = spyOn(nodesService, 'toggleSelect');
+
+        draggableService.options.onClick(event);
+        expect(spy).toHaveBeenCalledWith('123', false);
       });
     });
   });

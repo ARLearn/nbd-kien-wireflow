@@ -383,7 +383,6 @@ export class Diagram implements DraggableUiElement {
 
   private _dragShapes() {
     const shapes = this.diagramModel.selectedNodes
-      // .filter(id => )
       .map(id => this.getShapeByGeneralItemId(id));
 
     for (const shape of shapes) {
@@ -401,6 +400,7 @@ export class Diagram implements DraggableUiElement {
         if (this.openedConnector) {
           this.openedConnector.onDragEnd((this.target as NodeShape).inputs[0]);
         }
+        this.target.onDragEnd();
         this.cleanDraggableShapes();
         break;
       case 'diagram': {

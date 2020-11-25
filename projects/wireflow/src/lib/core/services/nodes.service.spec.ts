@@ -5,7 +5,7 @@ import { ServicesModule } from './services.module';
 import { NodeModel } from '../models'
 import { UniqueIdGenerator } from '../../utils';
 import { UniqueIdGeneratorMock } from '../../utils/unique-id-generator.mock';
-import { NodesService, NodeShapeNewArgs, NodeInitArgs, NodeSetCoordsArgs } from './nodes.service';
+import {NodesService, NodeShapeNewArgs, NodeInitArgs, NodeSetCoordsArgs, NodeClickArgs} from './nodes.service';
 import { GameMessageCommon } from '../../models/core';
 
 describe('NodesService', () => {
@@ -60,7 +60,7 @@ describe('NodesService', () => {
       {message: messages[0], offset: { x: 10, y: 10 }, skipOffset: false},
       {message: messages[1], offset: { x: 30, y: 20 }, skipOffset: true },
       {message: messages[2], offset: { x: 40, y: 50 }, skipOffset: false},
-    ].forEach(args => { 
+    ].forEach(args => {
 
       it(`'nodeNew' emits correct object for ${JSON.stringify(args)}`, fakeAsync(() => {
         let fakeId = 42;
@@ -106,7 +106,7 @@ describe('NodesService', () => {
       expect(emittedNodeShapeNew.point).toEqual({ x: messages[0].authoringX - offset.x, y: messages[0].authoringY - offset.y });
     }));
   });
-  
+
   describe('initNode()', () => {
 
     let emittedNodeInit: NodeInitArgs;
@@ -120,7 +120,7 @@ describe('NodesService', () => {
       {id: messages[0].id.toString(), inputs: [], outputs: [] },
       {id: messages[1].id.toString(), inputs: [], outputs: [] },
       {id: messages[2].id.toString(), inputs: [], outputs: [] },
-    ].forEach(args => { 
+    ].forEach(args => {
 
       it(`'nodeInit' emits correct object for ${JSON.stringify(args)}`, fakeAsync(() => {
         service.initNode(args.id, args.inputs, args.outputs);
@@ -170,7 +170,7 @@ describe('NodesService', () => {
       {messageId: messages[0].id.toString(), coords: {x: 1, y: 1} },
       {messageId: messages[1].id.toString(), coords: {x: 2, y: 2} },
       {messageId: messages[2].id.toString(), coords: {x: 3, y: 3} },
-    ].forEach(args => { 
+    ].forEach(args => {
 
       it(`'nodeCoordinatesChanged' emits correct object for ${JSON.stringify(args)}`, fakeAsync(() => {
         service.setNodeCoordinates(args.messageId, args.coords);
@@ -185,7 +185,7 @@ describe('NodesService', () => {
   });
 
   describe('emitNodeClick()', () => {
-    let emittedNode: NodeModel;
+    let emittedNode: NodeClickArgs;
 
     beforeEach(fakeAsync(() => {
         service.nodeClick.subscribe(x => emittedNode = x);
@@ -193,29 +193,30 @@ describe('NodesService', () => {
     }));
 
     it(`should return node model if item was clicked`, fakeAsync(() => {
-      let fakeId = 42;
+      const fakeId = 42;
       spyOn(uniqueIdGeneratorMock, 'generate').and.returnValue(fakeId);
       service.createNode(messages[0], { x: 10, y: 10 }, false);
       tick();
 
-      service.emitNodeClick(`shape_${fakeId}`);
+      service.emitNodeClick(`shape_${fakeId}`, false);
       tick();
 
       expect(emittedNode).toBeTruthy();
-      expect(emittedNode.id).toBe(`shape_${fakeId}`);
-      expect(emittedNode.dependencyType).toBe(messages[0].type);
-      expect(emittedNode.generalItemId).toBe(messages[0].id.toString());
-      expect(emittedNode.inputModels).toEqual([]);
-      expect(emittedNode.outputModels).toEqual([]);
+      expect(emittedNode.isCtrlClicked).toBeFalsy();
+      expect(emittedNode.model.id).toBe(`shape_${fakeId}`);
+      expect(emittedNode.model.dependencyType).toBe(messages[0].type);
+      expect(emittedNode.model.generalItemId).toBe(messages[0].id.toString());
+      expect(emittedNode.model.inputModels).toEqual([]);
+      expect(emittedNode.model.outputModels).toEqual([]);
     }));
 
     it(`should return undefined if not exisiting item was clicked`, fakeAsync(() => {
-      service.emitNodeClick(`shape_1`);
+      service.emitNodeClick(`shape_1`, false);
       tick();
 
-      expect(emittedNode).toBeFalsy();
+      expect(emittedNode.model).toBeFalsy();
     }));
-    
+
   });
 
   describe('exists(), removeNode()', () => {
@@ -229,7 +230,7 @@ describe('NodesService', () => {
 
     it(`should return true if exists`, () => {
       service.createNode(messages[0], { x: 10, y: 10 }, false);
-  
+
       expect(service.exists(messages[0].id)).toBe(true);
     });
 
@@ -256,5 +257,5 @@ describe('NodesService', () => {
       expect(service.exists(messages[1].id)).toBe(false);
     });
   });
-  
+
 });

@@ -592,7 +592,7 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
       const shape = this.diagram.getShapeById(parentNode.id);
 
       const element =
-        document.querySelector<HTMLElement>(
+        this.domContext.querySelector<HTMLElement>(
           model.isInput
             ? `.input-field[general-item-id="${model.generalItemId}"]`
             : `.output-field[general-item-id="${model.generalItemId}"][action="${model.action}"]`
@@ -609,7 +609,7 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
     }));
 
     this.subscription.add(this.nodeNew.subscribe(({message, model, point}) => {
-      const element = document.querySelector(`.node-container[general-item-id="${ message.id }"]`) as HTMLElement;
+      const element = this.domContext.querySelector(`.node-container[general-item-id="${ message.id }"]`) as HTMLElement;
 
       if (!this.diagram.shapeExist(model.generalItemId)) {
         const shape = new NodeShape(this.nodesService, this.tweenLiteService, element, model, point);
@@ -1270,8 +1270,8 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
     });
 
     const inputMessagePopulated = this.populatedNodes.find(m => m.id === x.id);
-    if (inputMessage[this.selector] && inputMessage[this.selector].type) {
 
+    if (inputMessage[this.selector] && inputMessage[this.selector].type) {
       const [shapePort] = this.diagram.getShapeByGeneralItemId(inputMessage.id).inputs;
       const [connector] = this.diagram.getConnectorsByPortId(shapePort.model.id);
       connector.remove();

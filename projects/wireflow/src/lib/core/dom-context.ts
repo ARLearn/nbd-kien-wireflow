@@ -35,6 +35,10 @@ export class DomContext {
         return document.querySelector(selector).cloneNode(true) as HTMLElement;
     }
 
+  public querySelector<T extends HTMLElement>(selector: string) {
+    return document.querySelector(selector) as T;
+  }
+
     public querySelectorAll(selector: string) {
       return document.querySelectorAll(selector);
     }

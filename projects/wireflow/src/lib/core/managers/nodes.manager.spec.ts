@@ -167,6 +167,12 @@ describe('NodesManager()', () => {
         {
           type: 'org.celstec.arlearn2.beans.dependencies.ActionDependency',
           generalItemId: 1,
+          action: 'answer_given',
+          title: 'Given'
+        },
+        {
+          type: 'org.celstec.arlearn2.beans.dependencies.ActionDependency',
+          generalItemId: 1,
           action: `answer_1`,
           title: 'Ndm_1'
         },
@@ -532,8 +538,8 @@ describe('NodesManager()', () => {
           { x: 16, y: 16 },
           { x: 236, y: 16 },
           { x: 456, y: 16 },
-          { x: 676, y: 16 },
           { x: 16, y: 256 },
+          { x: 236, y: 256 },
         ]);
     });
 
@@ -548,8 +554,8 @@ describe('NodesManager()', () => {
           { x: 16, y: 16 },
           { x: 236, y: 16 },
           { x: 1000, y: 1000 },
-          { x: 676, y: 16 },
           { x: 16, y: 256 },
+          { x: 236, y: 256 },
         ]);
     });
 

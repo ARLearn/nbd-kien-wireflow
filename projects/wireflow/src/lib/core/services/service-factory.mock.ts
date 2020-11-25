@@ -34,7 +34,7 @@ export class ServiceFactory {
   }
 
   createPortsService(): PortsService {
-    return new PortsServiceMock() as any;
+    return new PortsService(this.uniqueIdGenerator) as any;
   }
 
   createConnectorsService(domContext: DomContext): ConnectorsService {

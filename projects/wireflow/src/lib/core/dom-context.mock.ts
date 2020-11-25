@@ -29,9 +29,13 @@ export class DomContextMock {
 
     }
 
-  public querySelectorAll() {
-    return [ this.fakeNode ];
-  }
+    public querySelector(selector) {
+        return this.fakeNode;
+    }
+
+    public querySelectorAll() {
+      return [ this.fakeNode ];
+    }
 
 }
 
@@ -53,7 +57,9 @@ export class DomNodeMock {
 
 
     public querySelector(selector) { return new DomNodeMock(); }
-    public querySelectorAll(selector) {}
+    public querySelectorAll(selector) {
+      return [ new DomNodeMock() ];
+    }
     public prepend() { return undefined; }
     public append() { return undefined; }
     public appendChild() { return undefined; }
@@ -63,9 +69,12 @@ export class DomNodeMock {
     public removeChild() {}
     public contains() { return false; }
 
+    public getBoundingClientRect() {
+        return { x: 0, y: 0, height: 200, width: 100 };
+    }
 
     public getBBox() {  return { x: 0, y: 0, height: 100, width: 100 }; }
-    public createSVGPoint() {}
+    public createSVGPoint() { return this; }
     public getTransformToElement(el) { return {}; }
     public matrixTransform() { return {}; }
 }

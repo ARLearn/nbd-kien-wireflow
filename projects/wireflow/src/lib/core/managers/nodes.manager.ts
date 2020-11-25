@@ -78,12 +78,34 @@ export class NodesManager {
           action: 'answer_incorrect',
           title: 'Wrong'
         },
+        {
+          type: 'org.celstec.arlearn2.beans.dependencies.ActionDependency',
+          generalItemId: message.id,
+          action: 'answer_given',
+          title: 'Given'
+        },
         ...((message as MultipleChoiceScreen).answers || []).map((a, n) => ({
           type: 'org.celstec.arlearn2.beans.dependencies.ActionDependency',
           generalItemId: message.id,
           action: `answer_${a.id}`,
           title: a.answer || `option ${n + 1}`
         }))
+      );
+    }
+
+    if (
+        message.type === 'org.celstec.arlearn2.beans.generalItem.PictureQuestion'
+     || message.type === 'org.celstec.arlearn2.beans.generalItem.AudioQuestion'
+     || message.type === 'org.celstec.arlearn2.beans.generalItem.TextQuestion'
+     || message.type === 'org.celstec.arlearn2.beans.generalItem.VideoQuestion'
+    ) {
+      outputs.push(
+        {
+          type: 'org.celstec.arlearn2.beans.dependencies.ActionDependency',
+          generalItemId: message.id,
+          action: 'answer_given',
+          title: 'Given'
+        },
       );
     }
 
@@ -166,8 +188,6 @@ export class NodesManager {
       ).length > 0;
 
       let hasOutputs = false;
-
-
 
       if (!hasInputs) {
         hasOutputs = this.getAllDependenciesByCondition(
