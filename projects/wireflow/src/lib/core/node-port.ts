@@ -40,7 +40,7 @@ export class NodePort extends BaseModelUiElement<PortModel> implements Draggable
     this.portElement = nativeElement.querySelector('.port');
     this.portScrim = nativeElement.querySelector('.port-scrim');
 
-    if (!this.parentNode.model.dependencyType.includes('ProximityDependency')) {
+    if (this.parentNode.model.dependencyType && !this.parentNode.model.dependencyType.includes('ProximityDependency')) {
       this.portScrim.setAttribute('data-drag', `${this.model.id}:port`);
     }
 

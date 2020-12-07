@@ -15,6 +15,7 @@ import { PortsServiceMock } from './ports.service.mock';
 import { DomContextMock } from '../dom-context.mock';
 import { CoreUIFactory } from '../core-ui-factory';
 import { CoreUIFactoryMock } from '../core-ui-factory.mock';
+import {EndGameNodesService} from './end-game-nodes.service';
 
 @Injectable()
 export class ServiceFactory {
@@ -31,6 +32,10 @@ export class ServiceFactory {
 
   createNodesService(): NodesService {
     return new NodesService(this.uniqueIdGenerator);
+  }
+
+  createEndGameNodesService(): EndGameNodesService {
+    return new EndGameNodesService(this.uniqueIdGenerator);
   }
 
   createPortsService(): PortsService {

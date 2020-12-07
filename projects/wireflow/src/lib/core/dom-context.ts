@@ -16,7 +16,6 @@ export class DomContext {
     get dragProxy() { return this._dragProxy; }
     get connectorLayer() { return this._connectorLayer; }
 
-
     public refreshShapeElements() {
         this._shapeElements = Array.from(document.querySelectorAll('.node-container'));
     }

@@ -19,7 +19,7 @@ import { TranslateService } from '@ngx-translate/core';
 
 import { NgxSmartModalService } from 'ngx-smart-modal';
 import { Diagram } from './core/diagram';
-import { GameMessageCommon } from './models/core';
+import {Dependency, GameMessageCommon} from './models/core';
 import { Connector } from './core/connector';
 import {
   clone,
@@ -50,10 +50,18 @@ import { GeolocationService } from './core/services/geolocation.service';
 import { DraggableService } from './core/services/draggable.service';
 import {DiagramModel} from './core/models/DiagramModel';
 import {ServiceFactory} from './core/services/service-factory.service';
+import {EndGameNode} from './core/end-game-node';
+import {EndGameNodesService} from './core/services/end-game-nodes.service';
+import {maxBy} from "./utils/maxBy";
 
 interface MessageEditorStateModel {
   messages: GameMessageCommon[];
   messagesOld: GameMessageCommon[];
+}
+
+interface EndGameStateModel {
+  old: Dependency;
+  current: Dependency;
 }
 
 interface CustomEvent {
@@ -73,9 +81,13 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
   @Input() lang: string = 'en';
   @Input() selector: string = 'dependsOn';
   @Input() noimage: boolean = false;
+  @Input() endsOn = {};
+
   @Output() messagesChange: Observable<GameMessageCommon[]>;
   @Output() selectMessage: Subject<GameMessageCommon>;
   @Output() deselectMessage: Subject<GameMessageCommon>;
+  @Output() endsOnCoordinatesChange: Subject<Point>;
+  @Output() endsOnChange: Observable<any>;
   @Output() noneSelected: Subject<void>;
   @Output() onEvent: Subject<CustomEvent>;
 
@@ -86,7 +98,14 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
     messagesOld: [],
   } as MessageEditorStateModel;
 
+  stateEndsOn = {
+    current: null,
+    old: null,
+  };
+
   loadedImages: any = {};
+
+  endGameMessage: any = { id: '', initNodeMessageDone: false };
 
   private icons = {
     'org.celstec.arlearn2.beans.generalItem.NarratorItem': '&#xf4a6;',
@@ -107,6 +126,7 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
   };
 
   private stateSubject = new Subject<MessageEditorStateModel>();
+  private endGameStateSubject = new Subject<EndGameStateModel>();
   private diagram: Diagram;
   private svg: HTMLElement;
   private diagramElement: HTMLElement;
@@ -137,6 +157,7 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
   coreUiFactory: CoreUIFactory;
   domContext: DomContext;
   nodesService: NodesService;
+  endGameNodesService: EndGameNodesService;
   portsService: PortsService;
   connectorsService: ConnectorsService;
   middlePointsService: MiddlePointsService;
@@ -166,6 +187,8 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
   get nodeSelect() { return this.nodesService.nodeSelect; }
   get nodeToggleSelect() { return this.nodesService.nodeToggleSelect; }
   get nodeRemove() { return this.nodesService.nodeRemove; }
+  get endGameNodeInit() { return this.endGameNodesService.nodeInit; }
+  get endGameNodeCoordinatesChange() { return this.endGameNodesService.nodeCoordinatesChange; }
   get connectorCreate() { return this.connectorsService.connectorCreate; }
   get connectorHover() { return this.connectorsService.connectorHover; }
   get connectorLeave() { return this.connectorsService.connectorLeave; }
@@ -186,6 +209,10 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
 
   get heightTitle() {
     return this._heightTitle;
+  }
+
+  get filteredPopulatedNodes() {
+    return this.populatedNodes;
   }
 
   constructor(
@@ -223,10 +250,25 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
         filter(x => x.length > 0),
       );
 
+    this.endsOnChange = this.endGameStateSubject
+      .pipe(
+        map((current) => {
+          const old = this.stateEndsOn.old;
+
+          if (hasDeepDiff(current, old)) {
+            return current;
+          }
+
+          return null;
+        }),
+        filter(current => !!current),
+      );
+
     this.selectMessage = new Subject<GameMessageCommon>();
     this.deselectMessage = new Subject<GameMessageCommon>();
     this.noneSelected = new Subject<void>();
     this.onEvent = new Subject<CustomEvent>();
+    this.endsOnCoordinatesChange = new Subject<Point>();
 
     this.subscription.add(
       this.chunkLoadingStarted$.pipe(first()).subscribe(() => {
@@ -249,12 +291,28 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
     this.subscription.add(this.stateSubject.subscribe(x => {
       this.state = { ...x, messages: clone(x.messages), messagesOld: this.state.messages };
     }));
+
+    this.subscription.add(this.endGameStateSubject.subscribe(dep => {
+      this.stateEndsOn = { old: this.stateEndsOn.current, current: clone(dep) };
+    }));
   }
 
   ngOnInit() {
     this.messages = this.nodesManager.getNodes(this.messages || []);
     this.populatedNodes = this.messages.slice();
-
+    this.endGameMessage = {
+      type: '',
+      id: 'end-game_0',
+      dependsOn: {},
+      inputs: [],
+      outputs: [],
+      initNodeMessageDone: false,
+      [this.selector]: this.endsOn,
+    };
+    this.stateEndsOn = {
+      current: this.endGameMessage[this.selector],
+      old: this.endGameMessage[this.selector],
+    };
     this.initialized = true;
   }
 
@@ -282,6 +340,42 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
 
     this.initState(this.populatedNodes);
     this.chunkLoaded$.next(true);
+
+    this.initEndGameNode();
+  }
+
+  initEndGameNode() {
+    if (this.endGameMessage[this.selector] && !this.endGameMessage['initNodeMessageDone']) {
+      if (!this.endGameMessage[this.selector].type) {
+        const unvirtual = this.populatedNodes.filter(f => !f['virtual']);
+        const last = maxBy(unvirtual, m => m.authoringX + m.authoringY);
+        if (last) {
+          this.diagram.getEndGameNode().move({ x: last.authoringX + 300, y: last.authoringY + 60 });
+        }
+        this.endGameMessage['initNodeMessageDone'] = true;
+        return;
+      }
+      const nodes = this.getDependentNodesForEndGame();
+      if (nodes.length > 0) {
+        this.wireflowManager.initNodeMessage(this.endGameMessage);
+
+        const endGame = this.diagram.getEndGameNode();
+        const connector = endGame.inputs[0].model.connectors[0];
+        const mp = this.diagram.getMiddlePointByConnector(connector);
+
+        endGame && nodes[0] && endGame.move({ x: nodes[0].authoringX + 300, y: nodes[0].authoringY + 60 });
+        mp && nodes[0] && mp.move({ x: nodes[0].authoringX + 240, y: nodes[0].authoringY + 60 });
+
+        this.endGameMessage['initNodeMessageDone'] = true;
+      }
+    }
+  }
+
+  getDependentNodesForEndGame() {
+    const deps = this.nodesManager.getAllDependenciesByCondition(this.endGameMessage[this.selector], () => true);
+    return  deps.filter(d => d.generalItemId)
+      .map(d => this.populatedNodes.find(pn => pn.id.toString() === d.generalItemId.toString() && pn['isVisible']))
+      .filter(x => !!x);
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -321,6 +415,8 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
         const visibleIds = this.populatedNodes.filter(x => x['isVisible']).map(x => x.id);
         this.messages = this.wireflowManager.populateOutputMessages(this.messages, visibleIds, true);
 
+        this.endGameMessage[this.selector] = this.wireflowManager.getOutputDependency(this.endGameMessage);
+
         this._emitMessages(this.messages);
       }));
 
@@ -350,7 +446,7 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
       if (x.type.includes('TimeDependency')) {
         this.ngxSmartModalService.getModal('timeModal').setData({data: x, onSubmit: this._onTimeDependencySubmit.bind(this) }, true).open();
       } else {
-        this.wireflowManager.changeSingleDependency(this.messages, x.type, x.connector);
+        this.wireflowManager.changeSingleDependency([...this.messages, this.endGameMessage], x.type, x.connector);
       }
     }));
 
@@ -375,6 +471,13 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
           middlePoint.move(middlePoint.coordinates);
         }
       }
+    }));
+
+
+    this.subscription.add(this.endGameNodeCoordinatesChange.subscribe((params) => {
+      this.endGameMessage.authoringX = params.x;
+      this.endGameMessage.authoringY = params.y;
+      this.endsOnCoordinatesChange.next(params);
     }));
 
     this.subscription.add(this.connectorCreate.subscribe(({ connectorModel }) => {
@@ -433,6 +536,7 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
 
     this.subscription.add(this.connectorMove.subscribe(({ connectorModel, point }) => {
       const connector = this.diagram.getConnectorById(connectorModel.id);
+      if (!connector) { return; }
       const opts = this.diagram.getConnectorPathOptions(connector);
 
       connector.updatePath(point && point.x, point && point.y, opts);
@@ -445,7 +549,6 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
       const dot = middlePoint ?
           middlePoint.coordinates :
           connector.outputPort && connector.outputPort.portScrim.getBoundingClientRect() as Point;
-
       const shape = inputPort && this.diagram.getShapeByGeneralItemId(inputPort.model.generalItemId);
 
       if (shape && inputPort) {
@@ -460,6 +563,33 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
             { general: generalRect.leftMiddlePoint, local: localRect.leftMiddlePoint, side: 'left' },
             // Exclude right
             // { general: generalRect.rightMiddlePoint, local: localRect.rightMiddlePoint },
+            { general: generalRect.bottomMiddlePoint, local: localRect.bottomMiddlePoint, side: 'bottom' },
+          ],
+          item => dot && item.general && getDistance(dot, item.general)
+        );
+
+        inputPort
+          .move(mp.local)
+          .updatePlacement();
+        connector
+          .setConnectionSide(mp.side)
+          .updateHandle(inputPort.model, false);
+
+        return;
+      }
+
+      if (inputPort && inputPort.model && !inputPort.model.generalItemId) {
+        // move end game node
+        const node = this.diagram.getEndGameNode();
+
+        const { height, width, x, y } = node.nativeElement.querySelector('circle').getBoundingClientRect() as any;
+        const localRect = new Rectangle(-5, -3, height + 5, width + 1);
+        const generalRect = new Rectangle(x, y, height, width);
+
+        const mp = minBy(
+          [
+            { general: generalRect.topMiddlePoint, local: localRect.topMiddlePoint, side: 'top' },
+            { general: generalRect.leftMiddlePoint, local: localRect.leftMiddlePoint, side: 'left' },
             { general: generalRect.bottomMiddlePoint, local: localRect.bottomMiddlePoint, side: 'bottom' },
           ],
           item => dot && item.general && getDistance(dot, item.general)
@@ -557,18 +687,21 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
         this.connectorsService.detachConnector({ connectorModel, port: port.model });
       });
 
-      this.diagramModel.removeConnectorGeneralItemId(Number(connector.outputPort.model.generalItemId));
+      if (connector) {
+        this.diagramModel.removeConnectorGeneralItemId(Number(connector.outputPort.model.generalItemId));
 
-      const isInput = connector && ((connector.outputPort && connector.outputPort.model.isInput) || connector.isInputConnector);
-      const middlePoint = this.diagram.getMiddlePointByConnector(connectorModel);
+        const isInput = connector && ((connector.outputPort && connector.outputPort.model.isInput) || connector.isInputConnector);
+        const middlePoint = this.diagram.getMiddlePointByConnector(connectorModel);
 
-      if (isInput && !opts.onlyConnector) {
-        middlePoint && middlePoint.remove(); // TODO: Inverse dependency
-      } else {
-        if (middlePoint && opts.onlyConnector) { // TODO: Inverse dependency
-          middlePoint.removeOutputConnector(connectorModel, opts.removeDependency);
+        if (isInput && !opts.onlyConnector) {
+          middlePoint && middlePoint.remove(); // TODO: Inverse dependency
+        } else {
+          if (middlePoint && opts.onlyConnector) { // TODO: Inverse dependency
+            middlePoint.removeOutputConnector(connectorModel, opts.removeDependency);
+          }
         }
       }
+
 
       if (
            opts.removeVirtualNode
@@ -693,7 +826,32 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
       await this.renderChunk([...visibleNodes, ...closest]);
     }));
 
+    this.subscription.add(this.endGameNodeInit.subscribe(() => {
+      const node = this.diagram.getEndGameNode();
+      const port = new NodePort(
+        this.domContext,
+        this.portsService,
+        this.tweenLiteService,
+        node,
+        node.nativeElement.querySelector('.port-field'),
+        this.portsService.createPortModel('input', node.model.id, true),
+      );
+
+      node.inputs.push(port);
+    }));
+
     setTimeout(() => {
+      const endGameNode = new EndGameNode(
+        this.endGameNodesService,
+        this.domContext,
+        this.tweenLiteService,
+        this.endGameNodesService.create(),
+        { x: -1000, y: -1000 }
+      ).move({ x: -1000, y: -1000 });
+
+      this.diagram.addEndGameNode(endGameNode);
+
+      endGameNode.init();
       this.diagramService.drag();
       this.state.messages = clone(this.messages);
       this.state.messagesOld = clone(this.messages);
@@ -956,6 +1114,8 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
       ...this.state,
       messages,
     });
+
+    this.endGameStateSubject.next(this.endGameMessage[this.selector]);
   }
 
   private _initDiagram() {
@@ -982,6 +1142,7 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
     this.tweenLiteService = this.serviceResolver.createTweenLiteService();
     this.draggableService = this.serviceResolver.createDraggableService();
     this.nodesService = this.serviceResolver.createNodesService();
+    this.endGameNodesService = this.serviceResolver.createEndGameNodesService();
     this.portsService = this.serviceResolver.createPortsService();
     this.connectorsService = this.serviceResolver.createConnectorsService(this.domContext);
     this.middlePointsService = this.serviceResolver.createMiddlePointsService();
@@ -1292,7 +1453,7 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
 
     const modal = this.ngxSmartModalService.getModal('timeModal');
     const { data } = modal.getData();
-    this.wireflowManager.changeSingleDependency(this.messages, data.type, data.connector, options);
+    this.wireflowManager.changeSingleDependency([...this.messages, this.endGameMessage], data.type, data.connector, options);
   }
 
   private _onChangeTimeDependency(formValue: any) {

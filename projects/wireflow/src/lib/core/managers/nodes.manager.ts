@@ -24,6 +24,16 @@ export class NodesManager {
         .forEach(item => this.diagramModel.addConnectorGeneralItemId(item.generalItemId));
     });
 
+    // result.push({
+    //   type: '',
+    //   id: 'end-game_0',
+    //   dependsOn: {},
+    //   inputs: [],
+    //   outputs: [],
+    //   ['isVisible']: false,
+    //   ['isSystem']: true,
+    // } as any);
+
     return result;
   }
 
@@ -233,6 +243,10 @@ export class NodesManager {
       dependency.dependencies.forEach(x => {
         this.getAllDependenciesByCondition(x, cb, result);
       });
+    }
+
+    if (dependency && dependency.offset) {
+      this.getAllDependenciesByCondition(dependency.offset, cb, result);
     }
 
     return result;

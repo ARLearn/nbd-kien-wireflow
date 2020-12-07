@@ -26,9 +26,10 @@ export class PortsService extends BaseService<PortModel> {
     super(uniqueIdGenerator);
   }
 
-  createPort(action: string, generalItemId: string, parentNode: NodeModel, isInput: boolean) {
+  createPortModel(action: string, generalItemId: string, isInput: boolean) {
+    const id = `port_${this.uniqueIdGenerator.generate()}`;
     const model = {
-      id: `port_${this.uniqueIdGenerator.generate()}`,
+      id,
       generalItemId,
       action,
       isInput,
@@ -36,6 +37,12 @@ export class PortsService extends BaseService<PortModel> {
     } as PortModel;
 
     this.models.push(model);
+
+    return model;
+  }
+
+  createPort(action: string, generalItemId: string, parentNode: NodeModel, isInput: boolean) {
+    const model = this.createPortModel(action, generalItemId, isInput);
 
     return new Promise<PortModel>(resolve => {
       this.nodePortNew$.next({ model, parentNode, doneCallback: x => resolve(x) });

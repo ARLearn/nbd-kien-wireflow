@@ -17,10 +17,12 @@ import { TweenLiteService } from './services/tween-lite.service';
 import { DraggableService } from './services/draggable.service';
 import {DiagramModel} from './models/DiagramModel';
 import {Subject} from 'rxjs';
+import {EndGameNode} from './end-game-node';
 
 
 export class Diagram implements DraggableUiElement {
   shapes: NodeShape[] = [];
+  endGameNodes: EndGameNode[] = [];
   connectors: Connector[] = [];
   middlePoints: MiddlePoint[] = [];
 
@@ -104,10 +106,25 @@ export class Diagram implements DraggableUiElement {
     return this.shapes.findIndex(x => x.model.generalItemId === generalItemId.toString()) > -1;
   }
 
+  addEndGameNode(endGameNode: EndGameNode) {
+    this.endGameNodes.push(endGameNode);
+  }
+
+  getEndGameNode() {
+    return this.endGameNodes[0];
+  }
+
   getPortsBy(matcher: (p: NodePort) => boolean) {
     const ports = new Array<NodePort>();
     for (const shape of this.shapes) {
-      for (const port of [...shape.inputs, ...shape.outputs]) {
+      for (const port of [...(shape.inputs || []), ...(shape.outputs || [])]) {
+        if (matcher(port)) {
+          ports.push(port);
+        }
+      }
+    }
+    for (const node of this.endGameNodes) {
+      for (const port of (node.inputs || [])) {
         if (matcher(port)) {
           ports.push(port);
         }
@@ -144,7 +161,7 @@ export class Diagram implements DraggableUiElement {
 
     return port.model.connectors.map<Connector>(c => {
       return this.getConnectorById(c.id);
-    });
+    }).filter(c => !!c);
   }
 
   isConnectorSelected(model: ConnectorModel) {
@@ -249,7 +266,7 @@ export class Diagram implements DraggableUiElement {
       c => {
         const middlePoint = this.getMiddlePointByConnector(c.model);
 
-        return !middlePoint && c.inputPort.model.generalItemId === id;
+        return !middlePoint && c.inputPort && c.inputPort.model && c.inputPort.model.generalItemId === id;
       }
     );
   }
@@ -333,6 +350,10 @@ export class Diagram implements DraggableUiElement {
         this.target = this.getShapeById(id);
         break;
 
+      case 'end-game':
+        this.target = this.getEndGameNode();
+        break;
+
       case 'port':
         const port = this.getPortById(id);
         const con = new Connector(
@@ -377,7 +398,6 @@ export class Diagram implements DraggableUiElement {
       x: `+=${this.draggable.deltaX}`,
       y: `+=${this.draggable.deltaY}`,
     });
-
     target.onDrag && target.onDrag();
   }
 
@@ -403,6 +423,15 @@ export class Diagram implements DraggableUiElement {
         this.target.onDragEnd();
         this.cleanDraggableShapes();
         break;
+      case 'end-game': {
+        const node = this.getEndGameNode();
+        if (this.openedConnector) {
+          this.openedConnector.onDragEnd(node.inputs[0]);
+          this.openedConnector = null;
+        }
+        node.onDragEnd();
+        break;
+      }
       case 'diagram': {
         if (this.target instanceof Diagram) {
           this.diagramService.drag();

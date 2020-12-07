@@ -899,7 +899,8 @@ describe('WireflowComponent', () => {
         component['lastAddedProximity'] = {
           message: {
             id: 1,
-          }
+          },
+          input: 1234,
         };
       });
 
@@ -955,10 +956,23 @@ describe('WireflowComponent', () => {
     beforeEach(() => {
       spyError = spyOn(console, 'error');
       component.messages = [...messagesMock] as any;
-      component.populatedNodes = [];
+      component.populatedNodes = [...messagesMock] as any;
       component.populatedNodesPrev = [];
       component.ngOnInit();
       component.ngAfterViewInit();
+
+      component['diagram']['shapes'] = component['diagram']['shapes'].map(x => ({ ...x, inputs: [] })) as any;
+
+      component['diagram']['endGameNodes'] = [
+        {
+          inputs: [],
+          move: (point) => {},
+          model: {
+            generalItemId: '',
+          },
+          nativeElement: new DomNodeMock(),
+        } as any
+      ];
 
       chunkItem = {
         isVisible: false,

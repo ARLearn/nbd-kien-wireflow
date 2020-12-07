@@ -43,8 +43,8 @@ export class WireflowManager {
   getOutputDependency(message: GameMessageCommon) {
     try {
       const mainMiddlePoints = this.diagram.getMainMiddlePoints();
-      const currentMiddlePoint = mainMiddlePoints.find(mp => Number(mp.generalItemId) === message.id);
-
+      const currentMiddlePoint = mainMiddlePoints.find(mp => mp &&
+        message.id && mp.generalItemId && mp.generalItemId.toString() === message.id.toString());
       if (currentMiddlePoint) {
         return currentMiddlePoint.dependency;
       } else {
@@ -55,17 +55,17 @@ export class WireflowManager {
             return {
               type: singleConnector.outputPort.nodeType,
               ...singleConnector.model.proximity,
-              generalItemId: message[this.selector].generalItemId
+              generalItemId: message[this.selector] && message[this.selector].generalItemId
             };
           } else {
             return {
               type: singleConnector.outputPort.nodeType,
               action: singleConnector.outputPort.model.action,
-              generalItemId: Number(singleConnector.outputPort.model.generalItemId)
+              generalItemId: Number(singleConnector.outputPort.model && singleConnector.outputPort.model.generalItemId)
             };
           }
         } else {
-          if (!this.diagramModel.hasConnectorGeneralItemId(message[this.selector].generalItemId)) {
+          if (!this.diagramModel.hasConnectorGeneralItemId(message[this.selector] && message[this.selector].generalItemId)) {
             return {};
           }
 
@@ -244,13 +244,12 @@ export class WireflowManager {
       return this.createChildMiddlePointForOutputConnector(message, type, connector, middlePoint, coords, options, notifyChanges);
     } else {
       const message: any = messages.find(r => r.id.toString() === connector.inputPort.model.generalItemId.toString());
-
       return this.initMiddlePointForConnector(message, type, connector, middlePoint, options, notifyChanges);
     }
   }
 
   createConnector(node: GameMessageCommon, currentConnector: Connector = null, nodeShape: NodeShape = null, dependency = null) {
-    if (!nodeShape) {
+    if (!nodeShape && node.type) {
       this.nodesService.createNode(node, this.diagram.getDiagramCoords());
       nodeShape = this.diagram.shapes.find(x => x.model.generalItemId === node.id.toString());
     }

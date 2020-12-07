@@ -340,7 +340,7 @@ export class Connector extends BaseModelUiElement<ConnectorModel> implements Dra
   }
 
   private onHover(e: MouseEvent) {
-    if (this._inputPort && this._inputPort.inputNodeType.includes('ProximityDependency')) { return; }
+    if (this._inputPort && this._inputPort.inputNodeType && this._inputPort.inputNodeType.includes('ProximityDependency')) { return; }
 
     this.service.hoverConnector({ connectorModel: this.model });
   }

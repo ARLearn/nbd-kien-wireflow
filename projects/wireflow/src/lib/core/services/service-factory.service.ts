@@ -9,6 +9,7 @@ import { MiddlePointsService } from './middle-points.service';
 import { DiagramService } from './diagram.service';
 import { DomContext } from '../dom-context';
 import { CoreUIFactory } from '../core-ui-factory';
+import {EndGameNodesService} from './end-game-nodes.service';
 
 
 @Injectable()
@@ -26,6 +27,10 @@ export class ServiceFactory {
 
   createNodesService(): NodesService {
     return new NodesService(this.uniqueIdGenerator);
+  }
+
+  createEndGameNodesService(): EndGameNodesService {
+    return new EndGameNodesService(this.uniqueIdGenerator);
   }
 
   createPortsService(): PortsService {
@@ -48,7 +53,19 @@ export class ServiceFactory {
     return new CoreUIFactory();
   }
 
-  createDomContext(diagramElement: HTMLElement, shapeElements: HTMLElement[], svgElement: HTMLElement, dragProxy: HTMLElement, connectorLayer: HTMLElement): DomContext {
-    return new DomContext(diagramElement, shapeElements, svgElement, dragProxy, connectorLayer);
+  createDomContext(
+    diagramElement: HTMLElement,
+    shapeElements: HTMLElement[],
+    svgElement: HTMLElement,
+    dragProxy: HTMLElement,
+    connectorLayer: HTMLElement,
+  ): DomContext {
+    return new DomContext(
+      diagramElement,
+      shapeElements,
+      svgElement,
+      dragProxy,
+      connectorLayer,
+    );
   }
 }

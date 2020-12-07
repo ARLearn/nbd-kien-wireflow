@@ -2,6 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { AppService } from './app.service';
 import {from} from 'rxjs';
 import {delay, tap} from 'rxjs/operators';
+import { Point } from 'wireflow/lib/utils';
+import { Dependency } from 'wireflow/lib/models/core';
 
 @Component({
   selector: 'app-root',
@@ -12,6 +14,33 @@ export class AppComponent implements OnInit {
   title = 'Wireflow Demo';
   messages: any[];
   lang = 'en';
+
+  endsOn = {
+    action: 'read',
+    generalItemId: 5728005179572224,
+    type: 'org.celstec.arlearn2.beans.dependencies.ActionDependency',
+  };
+
+  endsOnOrDependency = {
+    type: 'org.celstec.arlearn2.beans.dependencies.OrDependency',
+    dependencies: [
+      {
+        action: 'read',
+        generalItemId: 5728005179572224,
+        type: 'org.celstec.arlearn2.beans.dependencies.ActionDependency',
+      }
+    ]
+  };
+
+  endsOnTimeDependency = {
+    offset: {
+      action: 'read',
+      generalItemId: 5728005179572224,
+      type: 'org.celstec.arlearn2.beans.dependencies.ActionDependency',
+    },
+    timeDelta: 2000,
+    type: 'org.celstec.arlearn2.beans.dependencies.TimeDependency',
+  };
 
   noimage$ = from([true]).pipe(delay(100));
 
@@ -58,5 +87,13 @@ export class AppComponent implements OnInit {
 
   onEvent({ type, nodeType, payload }) {
     console.log(type, nodeType, payload);
+  }
+
+  endsOnCoordinatesChange($event: Point) {
+    console.log('FROM ENDS ON COORDS', $event);
+  }
+
+  endsOnChange($event: Dependency) {
+    console.log('FROM ENDS CHANGE', $event);
   }
 }

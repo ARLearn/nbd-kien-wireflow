@@ -27,7 +27,7 @@
           <g id="node-layer">
             <rect x="0" y="0" height="100%" width="100%" fill="transparent"
               (click)="existAnySelectedNodes() && onDiagramBackdropClick()" />
-            <g *ngFor="let node of populatedNodes; let c = index">
+            <g *ngFor="let node of filteredPopulatedNodes; let c = index">
               <g class="node-container node-container--new"
                 *ngIf="node['isVisible']"
                 [class.border--selected]="isNodeSelected(node.id.toString())" [attr.general-item-id]="node.id"
@@ -177,7 +177,7 @@
               <text x="-5" y="9" class="middle-point-font">+</text>
             </g>
 
-            <circle class="connector-handle output-handle" cx="0" cy="0" r="4" />
+            <circle class="connector-handle output-handle" opacity="0" cx="0" cy="0" r="4" />
           </g>
 
           <g class="middle-point" style="display: none;">
@@ -264,7 +264,7 @@
 
             <circle class="connector-handle input-handle" opacity="0" cx="0" cy="0" r="4" />
 
-            <circle class="connector-handle output-handle" cx="0" cy="0" r="4" />
+            <circle class="connector-handle output-handle" opacity="0" cx="0" cy="0" r="4" />
           </g>
 
           <g class="connector-middle-point-and" style="display: none;" transform="translate(0, 4)">
@@ -294,6 +294,19 @@
               <path
                 d="M12 2c5.514 0 10 4.486 10 10s-4.486 10-10 10-10-4.486-10-10 4.486-10 10-10zm0-2c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12-5.373-12-12-12zm1 12v-6h-2v8h7v-2h-5z" />
               </svg>
+          </g>
+
+          <g class="end-game-node" style="display: none">
+            <svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="30" cy="30" r="30" fill="#3DA8D9"/>
+            </svg>
+            <g class="port-field">
+              <g class="port">
+                <circle class="port-outer" cx="15" cy="10" r="7.5" opacity="0" />
+                <circle class="port-inner" cx="15" cy="10" r="5" opacity="0" />
+                <circle class="port-scrim" cx="15" cy="10" r="7.5" opacity="0" />
+              </g>
+            </g>
           </g>
 
           <circle id="drag-proxy" cx="0" cy="0" r="1" fill="none" />
