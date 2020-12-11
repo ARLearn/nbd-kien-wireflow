@@ -2,8 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { AppService } from './app.service';
 import {from} from 'rxjs';
 import {delay, tap} from 'rxjs/operators';
-import { Point } from 'wireflow/lib/utils';
-import { Dependency } from 'wireflow/lib/models/core';
+// import { Point } from 'wireflow/lib/utils';
+// import { Dependency } from 'wireflow/lib/models/core';
 
 @Component({
   selector: 'app-root',
@@ -14,6 +14,8 @@ export class AppComponent implements OnInit {
   title = 'Wireflow Demo';
   messages: any[];
   lang = 'en';
+
+  endsOnEmpty = {};
 
   endsOn = {
     action: 'read',
@@ -89,11 +91,11 @@ export class AppComponent implements OnInit {
     console.log(type, nodeType, payload);
   }
 
-  endsOnCoordinatesChange($event: Point) {
+  endsOnCoordinatesChange($event: any) {
     console.log('FROM ENDS ON COORDS', $event);
   }
 
-  endsOnChange($event: Dependency) {
+  endsOnChange($event: any) {
     console.log('FROM ENDS CHANGE', $event);
   }
 }

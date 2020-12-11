@@ -105,7 +105,7 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
 
   loadedImages: any = {};
 
-  endGameMessage: any = { id: '', initNodeMessageDone: false };
+  endGameMessage: any = { id: 'end-game_1', initNodeMessageDone: false };
 
   private icons = {
     'org.celstec.arlearn2.beans.generalItem.NarratorItem': '&#xf4a6;',
@@ -302,7 +302,7 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
     this.populatedNodes = this.messages.slice();
     this.endGameMessage = {
       type: '',
-      id: 'end-game_0',
+      id: 'end-game_1',
       dependsOn: {},
       inputs: [],
       outputs: [],
@@ -349,6 +349,7 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
       if (!this.endGameMessage[this.selector].type) {
         const unvirtual = this.populatedNodes.filter(f => !f['virtual']);
         const last = maxBy(unvirtual, m => m.authoringX + m.authoringY);
+
         if (last) {
           this.diagram.getEndGameNode().move({ x: last.authoringX + 300, y: last.authoringY + 60 });
         }
@@ -356,6 +357,7 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
         return;
       }
       const nodes = this.getDependentNodesForEndGame();
+
       if (nodes.length > 0) {
         this.wireflowManager.initNodeMessage(this.endGameMessage);
 
@@ -374,7 +376,7 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
   getDependentNodesForEndGame() {
     const deps = this.nodesManager.getAllDependenciesByCondition(this.endGameMessage[this.selector], () => true);
     return  deps.filter(d => d.generalItemId)
-      .map(d => this.populatedNodes.find(pn => pn.id.toString() === d.generalItemId.toString() && pn['isVisible']))
+      .map(d => this.populatedNodes.find(pn => pn.id.toString() === d.generalItemId.toString()))
       .filter(x => !!x);
   }
 
