@@ -82,6 +82,7 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
   @Input() selector: string = 'dependsOn';
   @Input() noimage: boolean = false;
   @Input() endsOn = {};
+  @Input() endsOnDisabled = false;
 
   @Output() messagesChange: Observable<GameMessageCommon[]>;
   @Output() selectMessage: Subject<GameMessageCommon>;
@@ -341,7 +342,9 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
     this.initState(this.populatedNodes);
     this.chunkLoaded$.next(true);
 
-    this.initEndGameNode();
+    if (!this.endsOnDisabled) {
+      this.initEndGameNode();
+    }
   }
 
   initEndGameNode() {
@@ -448,7 +451,11 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
       if (x.type.includes('TimeDependency')) {
         this.ngxSmartModalService.getModal('timeModal').setData({data: x, onSubmit: this._onTimeDependencySubmit.bind(this) }, true).open();
       } else {
-        this.wireflowManager.changeSingleDependency([...this.messages, this.endGameMessage], x.type, x.connector);
+        if (this.endsOnDisabled) {
+          this.wireflowManager.changeSingleDependency(this.messages, x.type, x.connector);
+        } else {
+          this.wireflowManager.changeSingleDependency([...this.messages, this.endGameMessage], x.type, x.connector);
+        }
       }
     }));
 
@@ -843,17 +850,20 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
     }));
 
     setTimeout(() => {
-      const endGameNode = new EndGameNode(
-        this.endGameNodesService,
-        this.domContext,
-        this.tweenLiteService,
-        this.endGameNodesService.create(),
-        { x: -1000, y: -1000 }
-      ).move({ x: -1000, y: -1000 });
+      if (!this.endsOnDisabled) {
+        const endGameNode = new EndGameNode(
+          this.endGameNodesService,
+          this.domContext,
+          this.tweenLiteService,
+          this.endGameNodesService.create(),
+          { x: -1000, y: -1000 }
+        ).move({ x: -1000, y: -1000 });
 
-      this.diagram.addEndGameNode(endGameNode);
+        this.diagram.addEndGameNode(endGameNode);
 
-      endGameNode.init();
+        endGameNode.init();
+      }
+
       this.diagramService.drag();
       this.state.messages = clone(this.messages);
       this.state.messagesOld = clone(this.messages);
@@ -1455,7 +1465,11 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
 
     const modal = this.ngxSmartModalService.getModal('timeModal');
     const { data } = modal.getData();
-    this.wireflowManager.changeSingleDependency([...this.messages, this.endGameMessage], data.type, data.connector, options);
+    if (this.endsOnDisabled) {
+      this.wireflowManager.changeSingleDependency(this.messages, data.type, data.connector, options);
+    } else {
+      this.wireflowManager.changeSingleDependency([...this.messages, this.endGameMessage], data.type, data.connector, options);
+    }
   }
 
   private _onChangeTimeDependency(formValue: any) {
