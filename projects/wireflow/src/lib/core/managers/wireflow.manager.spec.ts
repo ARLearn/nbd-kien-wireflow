@@ -295,7 +295,7 @@ describe('WireflowManager', () => {
         authoringY: 100,
       });
 
-      expect(dependency).toEqual({});
+      expect(dependency).toBeUndefined();
     });
 
     it('should check connector id and return input dependency if is in data service', () => {

@@ -235,7 +235,7 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
           const a = this.state.messagesOld.filter((x: any) => !x.virtual);
           b = b.filter(x => !x.virtual);
 
-          return diff(b, a, this._preChange);
+          return diff(b, a, this._preChange.bind(this));
         }),
         map(result => {
           const messages = clone(result);
@@ -1523,7 +1523,7 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
   }
 
   private _preChange(input: GameMessageCommon) {
-    return { dependsOn: input.dependsOn, authoringX: input.authoringX, authoringY: input.authoringY };
+    return { [this.selector]: input[this.selector], authoringX: input.authoringX, authoringY: input.authoringY };
   }
 
   ngOnDestroy() {

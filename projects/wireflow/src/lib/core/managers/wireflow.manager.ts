@@ -66,7 +66,7 @@ export class WireflowManager {
           }
         } else {
           if (!this.diagramModel.hasConnectorGeneralItemId(message[this.selector] && message[this.selector].generalItemId)) {
-            return {};
+            return undefined;
           }
 
           return message[this.selector];
