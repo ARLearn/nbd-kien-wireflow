@@ -1,0 +1,22 @@
+<div>
+  <button routerLink="/candy-crush">Candy Crush</button>
+</div>
+
+<h1>{{title}}</h1>
+
+<div *ngIf="messages">
+  <lib-wireflow
+    [messages]="messages"
+    [endsOnDisabled]="true"
+    (messagesChange)="messagesChange($event)"
+    (selectMessage)="selectMessage($event)"
+    (deselectMessage)="deselectMessage($event)"
+    (noneSelected)="noneSelected()"
+    (onEvent)="onEvent($event)"
+    (endsOnChange)="endsOnChange($event)"
+    (endsOnCoordinatesChange)="endsOnCoordinatesChange($event)"
+    [lang]="lang"
+    [selector]="'dependsOn'"
+    [noimage]="noimage$ | async"
+  ></lib-wireflow>
+</div>
