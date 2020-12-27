@@ -4,6 +4,8 @@ import {CandyCrushItemModel} from './models/CandyCrushItemModel';
 import {TweenLiteService} from '../../core/services/tween-lite.service';
 import {CandyCrushDomContext} from './candy-crush-dom-context';
 import {getNumberFromPixels} from '../../utils';
+import {CandyCrashItemsService} from './services/candy-crash-items.service';
+
 
 export class CandyCrushItem extends BaseModelUiElement<CandyCrushItemModel> implements DraggableUiElement {
   get dragElement() { return this.nativeElement; }
@@ -14,6 +16,7 @@ export class CandyCrushItem extends BaseModelUiElement<CandyCrushItemModel> impl
     private domContext: CandyCrushDomContext,
     model: CandyCrushItemModel,
     tweenLiteService: TweenLiteService,
+    private service: CandyCrashItemsService,
   ) {
     super(domContext.cloneNode('.crush-item'), model, tweenLiteService);
 
@@ -32,5 +35,7 @@ export class CandyCrushItem extends BaseModelUiElement<CandyCrushItemModel> impl
     });
   }
 
-  onDragEnd() {}
+  onDragEnd() {
+    this.service.move(this.model.id, this.coordinates)
+  }
 }

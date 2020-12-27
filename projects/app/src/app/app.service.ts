@@ -17,6 +17,14 @@ export class AppService {
     return this._getData().pipe(map(x => this._populateNodes(x)));
   }
 
+  getCandyCrushData() {
+    return this._getCandyCrushData();
+  }
+
+  randomImgObservable(id) {
+    return from(['https://picsum.photos/seed/' + id + '/300/800']).pipe(delay(3000 * Math.random()));
+  }
+
   private _getData() {
     // return this.http.get<any[]>('assets/data_100.json');
     // return this.http.get<any[]>('assets/data.json');
@@ -34,16 +42,16 @@ export class AppService {
     // return this.http.get<{ entities: any[] }>('assets/mediaquest-messages.json').pipe(map(response => Object.values(response.entities)));
   }
 
+  private _getCandyCrushData() {
+    return this.http.get<any[]>('assets/data-candy-crush.json');
+  }
+
   private _populateNodes(nodes: GameMessageCommon[]) {
     return nodes && nodes.map(x => this._populateNode(x));
   }
 
   private _populateNode(node: GameMessageCommon) {
-    node.backgroundPath = this._randomImgObservable(node.id);
+    node.backgroundPath = this.randomImgObservable(node.id);
     return node;
-  }
-
-  private _randomImgObservable(id) {
-    return from(['https://picsum.photos/seed/'+id+'/300/800']).pipe(delay(3000 * Math.random()));
   }
 }

@@ -1,0 +1,291 @@
+[
+  {
+    "type":"org.celstec.arlearn2.beans.generalItem.SingleChoiceImageTest",
+    "gameId":5634472569470976,
+    "deleted":false,
+    "lastModificationDate":1607516372171,
+    "id":5149226929487872,
+    "scope":"user",
+    "name":"enkele keuze met figuren",
+    "description":"",
+    "autoLaunch":false,
+    "customMapX":100,
+    "customMapY":100,
+    "customMapVisible": true,
+    "fileReferences":{
+      "XHa7w":"/mediaLibrary/bibliotheekdame hand.png",
+      "gNHLS":"/mediaLibrary/Boekenkast.png"
+    },
+    "answers":[
+      {
+        "type":"org.celstec.arlearn2.beans.generalItem.MultipleChoiceAnswerItem",
+        "isCorrect":true,
+        "feedback":"test",
+        "answer":"abc",
+        "id":"XHa7w"
+      },
+      {
+        "type":"org.celstec.arlearn2.beans.generalItem.MultipleChoiceAnswerItem",
+        "isCorrect":false,
+        "feedback":"fout",
+        "answer":"def",
+        "id":"gNHLS"
+      }
+    ],
+    "showFeedback":true,
+    "columns":3,
+    "message":true
+  },
+  {
+    "type":"org.celstec.arlearn2.beans.generalItem.AudioObject",
+    "gameId":5634472569470976,
+    "deleted":false,
+    "lastModificationDate":1607505381394,
+    "id":5165530625343488,
+    "scope":"user",
+    "name":"Nieuwe geluidsopname",
+    "description":"   ",
+    "autoLaunch":false,
+    "customMapX":200,
+    "customMapY":200,
+    "customMapVisible": true,
+    "fileReferences":{
+      "audio":"/game/5634472569470976/geluid/activity.mp3"
+    },
+    "message":true,
+    "showFeedback":false
+  },
+  {
+    "type":"org.celstec.arlearn2.beans.generalItem.SingleChoiceTest",
+    "gameId":5634472569470976,
+    "deleted":false,
+    "lastModificationDate":1607517646669,
+    "id":5196933010292736,
+    "scope":"user",
+    "name":"meerkeuze ",
+    "description":"",
+    "dependsOn":{
+      "type":"org.celstec.arlearn2.beans.dependencies.ActionDependency",
+      "action":"read",
+      "generalItemId":5707274949492736
+    },
+    "autoLaunch":false,
+    "customMapX":300,
+    "customMapY":200,
+    "customMapVisible": true,
+    "showInList":true,
+    "fileReferences":{
+      "P1yYM":"/game/5634472569470976/gif/sprinklefest5.gif",
+      "M84Bq":"/game/5634472569470976/fotografie/Schermafbeelding 2020-02-19 om 14.48.56.png",
+      "WugpH":"/mediaLibrary/bibliotheekdame hand.png"
+    },
+    "primaryColor":"#4d2319",
+    "answers":[
+      {
+        "type":"org.celstec.arlearn2.beans.generalItem.MultipleChoiceAnswerItem",
+        "isCorrect":true,
+        "feedback":"goedzo",
+        "answer":"aaa",
+        "id":"P1yYM"
+      },
+      {
+        "type":"org.celstec.arlearn2.beans.generalItem.MultipleChoiceAnswerItem",
+        "isCorrect":true,
+        "feedback":"goedzo",
+        "answer":"bbb",
+        "id":"M84Bq"
+      },
+      {
+        "type":"org.celstec.arlearn2.beans.generalItem.MultipleChoiceAnswerItem",
+        "isCorrect":false,
+        "feedback":"fout",
+        "answer":"ccc",
+        "id":"WugpH"
+      }
+    ],
+    "showFeedback":true,
+    "message":true
+  },
+  {
+    "type":"org.celstec.arlearn2.beans.generalItem.NarratorItem",
+    "gameId":5634472569470976,
+    "deleted":false,
+    "lastModificationDate":1607505830169,
+    "id":5631159471964160,
+    "scope":"user",
+    "name":"verteller met animated gif",
+    "description":"VERDER",
+    "dependsOn":{
+      "type":"org.celstec.arlearn2.beans.dependencies.ActionDependency",
+      "action":"read",
+      "generalItemId":5733215511773184
+    },
+    "autoLaunch":false,
+    "lng":5.704894818359367,
+    "lat":51.01249066320807,
+    "customMapX":400,
+    "customMapY":300,
+    "customMapVisible": true,
+    "showInList":true,
+    "fileReferences":{
+      "background":"/game/5634472569470976/gif/sprinklefest5.gif"
+    },
+    "heading":"Heading",
+    "richText":"",
+    "message":false,
+    "showFeedback":false,
+    "backgroundPath":{
+      "_isScalar":false
+    }
+  },
+  {
+    "type":"org.celstec.arlearn2.beans.generalItem.VideoObject",
+    "gameId":5634472569470976,
+    "deleted":false,
+    "lastModificationDate":1606834853369,
+    "id":5631832271880192,
+    "scope":"user",
+    "name":"Video boodschap - 1",
+    "description":" test::toMap",
+    "label":"video",
+    "autoLaunch":false,
+    "lng":4.530731,
+    "lat":52.051255,
+    "customMapX":500,
+    "customMapY":100,
+    "customMapVisible": true,
+    "showInList":true,
+    "fileReferences":{
+      "video":"/game/5634472569470976/video.mp4"
+    },
+    "primaryColor":"#faf6c0",
+    "message":false,
+    "showFeedback":false
+  },
+  {
+    "type":"org.celstec.arlearn2.beans.generalItem.TextQuestion",
+    "gameId":5634472569470976,
+    "deleted":false,
+    "lastModificationDate":1606988742632,
+    "id":5645612305350656,
+    "scope":"user",
+    "name":"REply with text messages",
+    "description":"Volgende",
+    "autoLaunch":false,
+    "customMapX":700,
+    "customMapY":350,
+    "customMapVisible": true,
+    "fileReferences":{
+      "video":"/game/5634472569470976/video.mp4",
+      "p1VyC":"/game/5634472569470976/3B-Answer_A.png",
+      "aDlmE":"/game/5634472569470976/3D-Answer_B.png",
+      "correct":"/game/5634472569470976/Resultaat A-Book fullscreen.png",
+      "wrong":"/game/5634472569470976/Resultaat E-Book fullscreen.png",
+      "background":"/game/5634472569470976/1A-Answer_A.png"
+    },
+    "text":"vraagje",
+    "richText":"Typ iets in...",
+    "message":true,
+    "showFeedback":false,
+    "backgroundPath":{
+      "_isScalar":false
+    }
+  },
+  {
+    "type":"org.celstec.arlearn2.beans.generalItem.PictureQuestion",
+    "gameId":5634472569470976,
+    "deleted":false,
+    "lastModificationDate":1606852877152,
+    "id":5661854663704576,
+    "scope":"user",
+    "name":"reply with picture test",
+    "description":"proceed",
+    "label":"",
+    "autoLaunch":false,
+    "customMapX":800,
+    "customMapY":240,
+    "customMapVisible": true,
+    "fileReferences":{
+      "background":"/game/5634472569470976/Resultaat A-Book fullscreen.png"
+    },
+    "primaryColor":"#4d4619",
+    "richText":"Take some pictures",
+    "message":true,
+    "showFeedback":false,
+    "backgroundPath":{
+      "_isScalar":false
+    }
+  },
+  {
+    "type":"org.celstec.arlearn2.beans.generalItem.NarratorItem",
+    "gameId":5634472569470976,
+    "deleted":false,
+    "lastModificationDate":1607591364350,
+    "id":5663016720793600,
+    "scope":"user",
+    "name":"na gif",
+    "description":"",
+    "dependsOn":{
+      "type":"org.celstec.arlearn2.beans.dependencies.ActionDependency",
+      "action":"read",
+      "generalItemId":5723644344926208
+    },
+    "autoLaunch":false,
+    "customMapX":900,
+    "customMapY":340,
+    "customMapVisible": true,
+    "message":true,
+    "fileReferences":{
+
+    },
+    "showFeedback":false
+  },
+  {
+    "type":"org.celstec.arlearn2.beans.generalItem.SingleChoiceImageTest",
+    "gameId":5634472569470976,
+    "deleted":false,
+    "lastModificationDate":1607506109813,
+    "id":5707274949492736,
+    "scope":"user",
+    "name":"tekstanswer2",
+    "description":"",
+    "autoLaunch":false,
+    "authoringX":1100,
+    "authoringY":420,
+    "customMapX":1100,
+    "customMapY":420,
+    "customMapVisible": true,
+    "fileReferences":{
+      "YBQ2X":"/game/5634472569470976/1A-Answer_B.png",
+      "9dazz":"/game/5634472569470976/1A-Answer_A.png",
+      "zIybC":"/game/5634472569470976/4A-Answer_A.png"
+    },
+    "primaryColor":"#4d3d19",
+    "answers":[
+      {
+        "type":"org.celstec.arlearn2.beans.generalItem.MultipleChoiceAnswerItem",
+        "isCorrect":false,
+        "feedback":"",
+        "answer":"",
+        "id":"YBQ2X"
+      },
+      {
+        "type":"org.celstec.arlearn2.beans.generalItem.MultipleChoiceAnswerItem",
+        "isCorrect":false,
+        "feedback":"",
+        "answer":"",
+        "id":"9dazz"
+      },
+      {
+        "type":"org.celstec.arlearn2.beans.generalItem.MultipleChoiceAnswerItem",
+        "isCorrect":false,
+        "feedback":"",
+        "answer":"",
+        "id":"zIybC"
+      }
+    ],
+    "showFeedback":false,
+    "columns":3,
+    "message":true
+  }
+]

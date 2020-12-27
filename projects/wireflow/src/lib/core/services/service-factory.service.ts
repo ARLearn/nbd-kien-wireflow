@@ -10,6 +10,7 @@ import { DiagramService } from './diagram.service';
 import { DomContext } from '../dom-context';
 import { CoreUIFactory } from '../core-ui-factory';
 import {EndGameNodesService} from './end-game-nodes.service';
+import {CandyCrashItemsService} from '../../candy-crush/core/services/candy-crash-items.service';
 
 
 @Injectable()
@@ -67,5 +68,9 @@ export class ServiceFactory {
       dragProxy,
       connectorLayer,
     );
+  }
+
+  createCandyCrushItemsService() {
+    return new CandyCrashItemsService(this.uniqueIdGenerator);
   }
 }

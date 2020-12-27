@@ -2,4 +2,6 @@
   <button routerLink="/">Wireflow</button>
 </div>
 
-<lib-candy-crush></lib-candy-crush>
+<ng-container *ngIf="data?.length">
+  <lib-candy-crush [messages]="data" [background]="'https://picsum.photos/seed/1/1920/800'" (onCoordinatesChange)="onCoordinatesChange($event)"></lib-candy-crush>
+</ng-container>
