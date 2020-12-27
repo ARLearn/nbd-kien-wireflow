@@ -5,6 +5,7 @@ import {CandyCrushDomContext} from './core/candy-crush-dom-context';
 import {CoreUIFactory} from '../core/core-ui-factory';
 import {TweenLiteService} from '../core/services/tween-lite.service';
 import {DraggableService} from '../core/services/draggable.service';
+import {CandyCrushItem} from './core/сandy-сrush-іtem';
 
 @Component({
   selector: 'lib-candy-crush',
@@ -29,8 +30,9 @@ export class CandyCrushComponent implements AfterViewInit {
     const svg = document.querySelector('#svg') as HTMLElement;
     const diagramElement = document.querySelector('#diagram') as HTMLElement;
     const dragProxy = document.querySelector('#drag-proxy') as HTMLElement;
+    const crushItemsLayer = document.querySelector('#crushItemsLayer') as HTMLElement;
 
-    this.domContext = new CandyCrushDomContext(diagramElement, svg, dragProxy);
+    this.domContext = new CandyCrushDomContext(diagramElement, svg, dragProxy, crushItemsLayer);
 
     this.coreUiFactory = this.serviceResolver.createCoreUIFactory();
     this.tweenLiteService = this.serviceResolver.createTweenLiteService();
@@ -41,6 +43,14 @@ export class CandyCrushComponent implements AfterViewInit {
       this.domContext,
       this.tweenLiteService,
       this.draggableService,
+    );
+
+    this.diagram.addCrushItem(
+      new CandyCrushItem(
+        this.domContext,
+        { id: 'crush-item_1', generalItemId: '123' },
+        this.tweenLiteService,
+      )
     );
   }
 }

@@ -2,14 +2,17 @@ import { DraggableUiElement } from '../../core/draggable-ui-element';
 import { CoreUIFactory } from '../../core/core-ui-factory';
 import { TweenLiteService } from '../../core/services/tween-lite.service';
 import { DraggableService } from '../../core/services/draggable.service';
-import { DiagramModel } from '../../core/models/DiagramModel';
 import { getNumberFromPixels } from '../../utils';
 import { CandyCrushDomContext } from './candy-crush-dom-context';
+import {CandyCrushItem} from './сandy-сrush-іtem';
 
 export class CandyCrushDiagram implements DraggableUiElement {
   target: DraggableUiElement;
   dragType: any;
   draggable: any;
+
+  crushItems: CandyCrushItem[] = [];
+
   private dragging: boolean;
 
   get isDragging() {
@@ -51,6 +54,18 @@ export class CandyCrushDiagram implements DraggableUiElement {
     return {x, y};
   }
 
+  addCrushItem(item: CandyCrushItem) {
+    this.crushItems = [ ...this.crushItems, item ];
+  }
+
+  removeCrushItem(id: string) {
+    this.crushItems = this.crushItems.filter((ci) => ci.model.id !== id);
+  }
+
+  getCrushItemById(id: string) {
+    return this.crushItems.find((ci) => ci.model.id === id);
+  }
+
   private _getDragArgs({target}: any) {
     let drag = target.getAttribute('data-drag');
 
@@ -72,7 +87,9 @@ export class CandyCrushDiagram implements DraggableUiElement {
         this.target = this;
         break;
 
-      case 'middle-point':
+      case 'crush-item':
+        this.target = this.getCrushItemById(id);
+        this.target.onDrag();
         break;
     }
   }
@@ -97,6 +114,11 @@ export class CandyCrushDiagram implements DraggableUiElement {
 
     switch (dragType) {
       case 'diagram': {
+        break;
+      }
+      case 'crush-item': {
+        this.target = this.getCrushItemById(id);
+        this.target.onDragEnd();
         break;
       }
       default: {
