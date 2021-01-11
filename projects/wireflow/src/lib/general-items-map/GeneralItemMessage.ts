@@ -1,4 +1,4 @@
-export interface CrushItemMessage {
+export interface GeneralItemMessage {
   id: number;
   customMapX: number;
   customMapY: number;

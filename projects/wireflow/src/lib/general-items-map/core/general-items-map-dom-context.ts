@@ -1,18 +1,18 @@
 import { getNumberFromPixels, Point } from '../../utils';
 
 
-export class CandyCrushDomContext {
+export class GeneralItemsMapDomContext {
   constructor(
       private _diagramElement: HTMLElement,
       private _svgElement: HTMLElement,
       private _dragProxy: HTMLElement,
-      private _crushItemsLayer: HTMLElement,
+      private _generalItemsLayer: HTMLElement,
   ) {}
 
   get diagramElement() { return this._diagramElement; }
   get svgElement() { return this._svgElement; }
   get dragProxy() { return this._dragProxy; }
-  get crushItemsLayer() { return this._crushItemsLayer; }
+  get generalItemsLayer() { return this._generalItemsLayer; }
 
   public getOffsetCoordinates() {
       const { offsetLeft, offsetTop } = this.svgElement.parentNode as HTMLElement;

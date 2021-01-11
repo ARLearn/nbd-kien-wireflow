@@ -185,7 +185,63 @@ describe('NodesManager()', () => {
       ]);
     });
 
+    it('should populate answers for undefined', () => {
+      const array = manager.getNodeOutputs({ id: 1, type: 'SingleChoice' });
 
+      expect(array).toEqual([
+        {
+          type: 'org.celstec.arlearn2.beans.dependencies.ActionDependency',
+          generalItemId: 1,
+          action: 'read'
+        },
+        {
+          type: 'org.celstec.arlearn2.beans.dependencies.ActionDependency',
+          generalItemId: 1,
+          action: 'next'
+        },
+        {
+          type: 'org.celstec.arlearn2.beans.dependencies.ActionDependency',
+          generalItemId: 1,
+          action: 'answer_correct',
+          title: 'Correct'
+        },
+        {
+          type: 'org.celstec.arlearn2.beans.dependencies.ActionDependency',
+          generalItemId: 1,
+          action: 'answer_incorrect',
+          title: 'Wrong'
+        },
+        {
+          type: 'org.celstec.arlearn2.beans.dependencies.ActionDependency',
+          generalItemId: 1,
+          action: 'answer_given',
+          title: 'Given'
+        },
+      ]);
+    });
+
+    it('should populate answer_given for video question', () => {
+      const array = manager.getNodeOutputs({ id: 1, type: 'org.celstec.arlearn2.beans.generalItem.VideoQuestion' });
+
+      expect(array).toEqual([
+        {
+          type: 'org.celstec.arlearn2.beans.dependencies.ActionDependency',
+          generalItemId: 1,
+          action: 'read'
+        },
+        {
+          type: 'org.celstec.arlearn2.beans.dependencies.ActionDependency',
+          generalItemId: 1,
+          action: 'next'
+        },
+        {
+          type: 'org.celstec.arlearn2.beans.dependencies.ActionDependency',
+          generalItemId: 1,
+          action: 'answer_given',
+          title: 'Given'
+        },
+      ]);
+    });
   });
 
   describe('prepareMessages()', () => {

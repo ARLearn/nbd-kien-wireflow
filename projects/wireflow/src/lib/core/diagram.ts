@@ -15,9 +15,8 @@ import { DiagramService } from './services/diagram.service';
 import { CoreUIFactory } from './core-ui-factory';
 import { TweenLiteService } from './services/tween-lite.service';
 import { DraggableService } from './services/draggable.service';
-import {DiagramModel} from './models/DiagramModel';
-import {Subject} from 'rxjs';
-import {EndGameNode} from './end-game-node';
+import { DiagramModel } from './models/DiagramModel';
+import { EndGameNode } from './end-game-node';
 
 
 export class Diagram implements DraggableUiElement {

@@ -27,7 +27,7 @@
           <g id="node-layer">
             <rect x="0" y="0" height="100%" width="100%" fill="transparent"
               (click)="existAnySelectedNodes() && onDiagramBackdropClick()" />
-            <g *ngFor="let node of filteredPopulatedNodes; let c = index">
+            <g *ngFor="let node of populatedNodes; let c = index">
               <g class="node-container node-container--new"
                 *ngIf="node['isVisible']"
                 [class.border--selected]="isNodeSelected(node.id.toString())" [attr.general-item-id]="node.id"

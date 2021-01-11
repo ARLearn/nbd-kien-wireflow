@@ -1,5 +1,5 @@
 
-export interface CandyCrushItemModel {
+export interface GeneralItemModel {
   id: string;
   generalItemId: string;
 }

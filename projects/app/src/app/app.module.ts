@@ -11,7 +11,7 @@ import { AppComponent } from './app.component';
 import { environment } from '../environments/environment';
 import {RouterModule} from '@angular/router';
 import { WireflowMainComponent } from './wireflow-main/wireflow-main.component';
-import { CandyCrushMainComponent } from './candy-crush-main/candy-crush-main.component';
+import { GeneralItemsMapComponent } from './general-items-map/general-items-map.component';
 
 export function HttpLoaderFactory(http: HttpClient) {
   return new TranslateHttpLoader(http);
@@ -21,7 +21,7 @@ export function HttpLoaderFactory(http: HttpClient) {
   declarations: [
     AppComponent,
     WireflowMainComponent,
-    CandyCrushMainComponent,
+    GeneralItemsMapComponent,
   ],
     imports: [
         BrowserModule,
@@ -43,8 +43,8 @@ export function HttpLoaderFactory(http: HttpClient) {
             component: WireflowMainComponent,
           },
           {
-            path: 'candy-crush',
-            component: CandyCrushMainComponent,
+            path: 'map',
+            component: GeneralItemsMapComponent,
           },
         ]),
     ],

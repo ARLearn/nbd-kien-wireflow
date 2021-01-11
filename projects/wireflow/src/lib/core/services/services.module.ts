@@ -8,6 +8,9 @@ import { ConnectorsService } from './connectors.service';
 import { TweenLiteService } from './tween-lite.service';
 import { DraggableService } from './draggable.service';
 
+import { GeneralItemsService } from '../../general-items-map/core/services/general-items.service';
+import { EndGameNodesService } from './end-game-nodes.service';
+
 @NgModule({
   providers: [
     DiagramService,
@@ -17,6 +20,8 @@ import { DraggableService } from './draggable.service';
     ConnectorsService,
     TweenLiteService,
     DraggableService,
+    GeneralItemsService,
+    EndGameNodesService,
   ],
 })
 export class ServicesModule { }

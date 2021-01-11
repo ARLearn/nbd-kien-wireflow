@@ -17,8 +17,8 @@ export class AppService {
     return this._getData().pipe(map(x => this._populateNodes(x)));
   }
 
-  getCandyCrushData() {
-    return this._getCandyCrushData();
+  getMapData() {
+    return this._getMapData();
   }
 
   randomImgObservable(id) {
@@ -42,8 +42,8 @@ export class AppService {
     // return this.http.get<{ entities: any[] }>('assets/mediaquest-messages.json').pipe(map(response => Object.values(response.entities)));
   }
 
-  private _getCandyCrushData() {
-    return this.http.get<any[]>('assets/data-candy-crush.json');
+  private _getMapData() {
+    return this.http.get<any[]>('assets/data-map.json');
   }
 
   private _populateNodes(nodes: GameMessageCommon[]) {

@@ -16,7 +16,7 @@ import { GoogleMapsConfig } from './google-maps-config';
 import { GoogleMapService } from './core/services/google-map.service';
 import {ServiceFactory} from './core/services/service-factory.service';
 import {UniqueIdGenerator} from './utils';
-import { CandyCrushComponent } from './candy-crush/candy-crush.component';
+import { GeneralItemsMapComponent } from './general-items-map/general-items-map.component';
 
 
 export interface IWireflowModuleData {
@@ -33,7 +33,7 @@ export function HttpLoaderFactory(http: HttpClient) {
     ActionModalComponent,
     TimeDependencyModalComponent,
     ProximityDependencyModalComponent,
-    CandyCrushComponent,
+    GeneralItemsMapComponent,
   ],
   imports: [
     CommonModule,
@@ -42,7 +42,7 @@ export function HttpLoaderFactory(http: HttpClient) {
     AgmCoreModule.forRoot(),
     FormsModule,
   ],
-  exports: [WireflowComponent, CandyCrushComponent],
+  exports: [WireflowComponent, GeneralItemsMapComponent],
   providers: [GeolocationService, GoogleMapService, UniqueIdGenerator, ServiceFactory],
   entryComponents: [
     ActionModalComponent,

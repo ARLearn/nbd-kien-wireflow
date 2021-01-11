@@ -10,7 +10,8 @@ import { DiagramService } from './diagram.service';
 import { DomContext } from '../dom-context';
 import { CoreUIFactory } from '../core-ui-factory';
 import {EndGameNodesService} from './end-game-nodes.service';
-import {CandyCrashItemsService} from '../../candy-crush/core/services/candy-crash-items.service';
+import {GeneralItemsService} from '../../general-items-map/core/services/general-items.service';
+import {GeneralItemsMapDomContext} from '../../general-items-map/core/general-items-map-dom-context';
 
 
 @Injectable()
@@ -70,7 +71,21 @@ export class ServiceFactory {
     );
   }
 
-  createCandyCrushItemsService() {
-    return new CandyCrashItemsService(this.uniqueIdGenerator);
+  createGeneralItemsMapDomContext(
+    diagramElement,
+    svg,
+    dragProxy,
+    generalItemsLayer
+  ): GeneralItemsMapDomContext {
+    return new GeneralItemsMapDomContext(
+      diagramElement,
+      svg,
+      dragProxy,
+      generalItemsLayer,
+    );
+  }
+
+  createGeneralItemsService() {
+    return new GeneralItemsService(this.uniqueIdGenerator);
   }
 }

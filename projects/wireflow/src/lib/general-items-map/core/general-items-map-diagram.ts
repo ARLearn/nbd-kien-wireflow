@@ -3,15 +3,15 @@ import { CoreUIFactory } from '../../core/core-ui-factory';
 import { TweenLiteService } from '../../core/services/tween-lite.service';
 import { DraggableService } from '../../core/services/draggable.service';
 import { getNumberFromPixels } from '../../utils';
-import { CandyCrushDomContext } from './candy-crush-dom-context';
-import {CandyCrushItem} from './сandy-сrush-іtem';
+import { GeneralItemsMapDomContext } from './general-items-map-dom-context';
+import { GeneralItem } from './general-item';
 
-export class CandyCrushDiagram implements DraggableUiElement {
+export class GeneralItemsMapDiagram implements DraggableUiElement {
   target: DraggableUiElement;
   dragType: any;
   draggable: any;
 
-  crushItems: CandyCrushItem[] = [];
+  generalItems: GeneralItem[] = [];
 
   private dragging: boolean;
 
@@ -21,7 +21,7 @@ export class CandyCrushDiagram implements DraggableUiElement {
 
   constructor(
     private coreUiFactory: CoreUIFactory,
-    private domContext: CandyCrushDomContext,
+    private domContext: GeneralItemsMapDomContext,
     private tweenLiteService: TweenLiteService,
     private draggableService: DraggableService,
   ) {
@@ -54,16 +54,16 @@ export class CandyCrushDiagram implements DraggableUiElement {
     return {x, y};
   }
 
-  addCrushItem(item: CandyCrushItem) {
-    this.crushItems = [ ...this.crushItems, item ];
+  addGeneralItem(item: GeneralItem) {
+    this.generalItems = [ ...this.generalItems, item ];
   }
 
-  removeCrushItem(id: string) {
-    this.crushItems = this.crushItems.filter((ci) => ci.model.id !== id);
+  removeGeneralItem(id: string) {
+    this.generalItems = this.generalItems.filter((ci) => ci.model.id !== id);
   }
 
-  getCrushItemById(id: string) {
-    return this.crushItems.find((ci) => ci.model.id === id);
+  getGeneralItemById(id: string) {
+    return this.generalItems.find((ci) => ci.model.id === id);
   }
 
   private _getDragArgs({target}: any) {
@@ -87,8 +87,8 @@ export class CandyCrushDiagram implements DraggableUiElement {
         this.target = this;
         break;
 
-      case 'crush-item':
-        this.target = this.getCrushItemById(id);
+      case 'general-item':
+        this.target = this.getGeneralItemById(id);
         this.target.onDrag();
         break;
     }
@@ -113,15 +113,9 @@ export class CandyCrushDiagram implements DraggableUiElement {
     this.dragging = false;
 
     switch (dragType) {
-      case 'diagram': {
-        break;
-      }
-      case 'crush-item': {
-        this.target = this.getCrushItemById(id);
+      case 'general-item': {
+        this.target = this.getGeneralItemById(id);
         this.target.onDragEnd();
-        break;
-      }
-      default: {
         break;
       }
     }

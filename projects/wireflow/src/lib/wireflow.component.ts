@@ -212,10 +212,6 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
     return this._heightTitle;
   }
 
-  get filteredPopulatedNodes() {
-    return this.populatedNodes;
-  }
-
   constructor(
     @Inject('moduleData') private moduleData: IWireflowModuleData,
     public ngxSmartModalService: NgxSmartModalService,
@@ -856,7 +852,6 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
           this.domContext,
           this.tweenLiteService,
           this.endGameNodesService.create(),
-          { x: -1000, y: -1000 }
         ).move({ x: -1000, y: -1000 });
 
         this.diagram.addEndGameNode(endGameNode);

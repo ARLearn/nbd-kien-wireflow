@@ -2,11 +2,11 @@ import { Injectable } from '@angular/core';
 import { Subject } from 'rxjs';
 
 import { BaseService } from '../../../core/services/base.service';
-import { CandyCrushItemModel } from '../models/CandyCrushItemModel';
+import { GeneralItemModel } from '../models/general-item.model';
 import { Point, UniqueIdGenerator} from '../../../utils';
 
 @Injectable()
-export class CandyCrashItemsService extends BaseService<CandyCrushItemModel> {
+export class GeneralItemsService extends BaseService<GeneralItemModel> {
   private move$ = new Subject<{ id: string, coords: Point }>();
 
   get onMove() {
@@ -19,11 +19,11 @@ export class CandyCrashItemsService extends BaseService<CandyCrushItemModel> {
     super(uniqueIdGenerator);
   }
 
-  createModel(generalItemId: number): CandyCrushItemModel {
+  createModel(generalItemId: number): GeneralItemModel {
     const model = {
-      id: `crush-item_${this.uniqueIdGenerator.generate()}`,
+      id: `general-item_${this.uniqueIdGenerator.generate()}`,
       generalItemId: generalItemId.toString(),
-    } as CandyCrushItemModel;
+    } as GeneralItemModel;
 
     this.models.push(model);
 

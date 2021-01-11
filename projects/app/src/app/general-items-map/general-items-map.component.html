@@ -1,0 +1,7 @@
+<div>
+  <button routerLink="/">Wireflow</button>
+</div>
+
+<ng-container *ngIf="data?.length">
+  <lib-general-items-map [messages]="data" [background]="'https://picsum.photos/seed/1/1920/800'" (onCoordinatesChange)="onCoordinatesChange($event)"></lib-general-items-map>
+</ng-container>

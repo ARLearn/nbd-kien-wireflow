@@ -55,7 +55,6 @@ export class DomNodeMock {
       y: '0px',
     };
 
-
     public querySelector(selector) { return new DomNodeMock(); }
     public querySelectorAll(selector) {
       return [ new DomNodeMock() ];

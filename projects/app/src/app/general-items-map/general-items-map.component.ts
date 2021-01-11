@@ -2,17 +2,17 @@ import { Component, OnInit } from '@angular/core';
 import { AppService } from '../app.service';
 
 @Component({
-  selector: 'app-candy-crush-main',
-  templateUrl: './candy-crush-main.component.html',
-  styleUrls: ['./candy-crush-main.component.scss']
+  selector: 'app-general-items-map-demo',
+  templateUrl: './general-items-map.component.html',
+  styleUrls: ['./general-items-map.component.scss']
 })
-export class CandyCrushMainComponent implements OnInit {
+export class GeneralItemsMapComponent implements OnInit {
   data = [];
 
   constructor(private service: AppService) { }
 
   ngOnInit() {
-    this.service.getCandyCrushData().subscribe((data) => this.data = data);
+    this.service.getMapData().subscribe((data) => this.data = data);
   }
 
   onCoordinatesChange($event: any) {

@@ -1,20 +1,20 @@
 import { async, ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { CandyCrushMainComponent } from './candy-crush-main.component';
+import { GeneralItemsMapComponent } from './general-items-map.component';
 
-describe('CandyCrushMainComponent', () => {
-  let component: CandyCrushMainComponent;
-  let fixture: ComponentFixture<CandyCrushMainComponent>;
+describe('GeneralItemsMapComponent', () => {
+  let component: GeneralItemsMapComponent;
+  let fixture: ComponentFixture<GeneralItemsMapComponent>;
 
   beforeEach(async(() => {
     TestBed.configureTestingModule({
-      declarations: [ CandyCrushMainComponent ]
+      declarations: [ GeneralItemsMapComponent ]
     })
     .compileComponents();
   }));
 
   beforeEach(() => {
-    fixture = TestBed.createComponent(CandyCrushMainComponent);
+    fixture = TestBed.createComponent(GeneralItemsMapComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

@@ -24,16 +24,6 @@ export class NodesManager {
         .forEach(item => this.diagramModel.addConnectorGeneralItemId(item.generalItemId));
     });
 
-    // result.push({
-    //   type: '',
-    //   id: 'end-game_0',
-    //   dependsOn: {},
-    //   inputs: [],
-    //   outputs: [],
-    //   ['isVisible']: false,
-    //   ['isSystem']: true,
-    // } as any);
-
     return result;
   }
 

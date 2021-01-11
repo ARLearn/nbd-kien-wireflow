@@ -1,16 +1,16 @@
+import { fakeAsync, TestBed, tick } from '@angular/core/testing';
+import { NgxSmartModalService } from 'ngx-smart-modal';
+import { of } from 'rxjs';
+
 import { WireflowComponent } from './wireflow.component';
-import {fakeAsync, TestBed, tick} from '@angular/core/testing';
-import {NgxSmartModalServiceMock} from './core/services/ngx-smart-modal.service.mock';
-import {NgxSmartModalService} from 'ngx-smart-modal';
-import {ServiceFactory} from './core/services/service-factory.service';
-import {ServiceFactory as ServiceResolverMock} from './core/services/service-factory.mock';
-import {UniqueIdGeneratorMock} from './utils/unique-id-generator.mock';
-import {UniqueIdGenerator} from './utils';
-import {of} from 'rxjs';
-import {messagesMock} from './mock/data.mock';
-import {ConnectorModel, NodeModel} from './core/models';
-import {DomNodeMock} from './core/dom-context.mock';
-import {escapeXml} from '@angular/compiler/src/i18n/serializers/xml_helper';
+import { NgxSmartModalServiceMock } from './core/services/ngx-smart-modal.service.mock';
+import { ServiceFactory } from './core/services/service-factory.service';
+import { ServiceFactory as ServiceResolverMock } from './core/services/service-factory.mock';
+import { UniqueIdGeneratorMock } from './utils/unique-id-generator.mock';
+import { UniqueIdGenerator } from './utils';
+import { messagesMock } from './mock/data.mock';
+import { NodeModel } from './core/models';
+import { DomNodeMock } from './core/dom-context.mock';
 
 describe('WireflowComponent', () => {
   let component: WireflowComponent;

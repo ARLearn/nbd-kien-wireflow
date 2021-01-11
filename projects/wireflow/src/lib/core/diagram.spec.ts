@@ -36,7 +36,6 @@ describe('Diagram', () => {
   let diagram;
 
   beforeEach(() => {
-
     TestBed.configureTestingModule({
       providers: [
         CoreUIFactoryMock,
@@ -1040,7 +1039,7 @@ describe('Diagram', () => {
     });
   });
 
-  describe('draggableSerivce events', () => {
+  describe('draggableService events', () => {
     beforeEach(() => {
       draggableServiceCreateSpy.and.callThrough();
 
@@ -1716,5 +1715,5 @@ describe('Diagram', () => {
       expect(result).toEqual({ id: 'connector_1', dragType: 'connector', target: domContextMock.fakeNode });
       expect(spy).toHaveBeenCalledWith('data-drag');
     });
-  })
+  });
 });
