@@ -5,12 +5,14 @@ import {TweenLiteService} from '../../core/services/tween-lite.service';
 import {GeneralItemsMapDomContext} from './general-items-map-dom-context';
 import {getNumberFromPixels} from '../../utils';
 import {GeneralItemsService} from './services/general-items.service';
+import {BaseUiElement} from '../../core/base-ui-element';
 
 
 export class GeneralItem extends BaseModelUiElement<GeneralItemModel> implements DraggableUiElement {
   get dragElement() { return this.nativeElement; }
 
   dragType: string;
+  tooltip: BaseUiElement;
 
   constructor(
     private domContext: GeneralItemsMapDomContext,
@@ -22,8 +24,15 @@ export class GeneralItem extends BaseModelUiElement<GeneralItemModel> implements
 
     this.show();
 
+    this.tooltip = new BaseUiElement(this.nativeElement.querySelector('.tooltip'), this.tweenLiteService);
+    this.tooltip.nativeElement.querySelector('.title-label').innerHTML = model.name;
+
+    this.tooltip.hide();
+
     this.nativeElement.setAttribute('data-drag', `${this.model.id}:general-item`);
     this.move({ x: 0, y: 0 });
+
+    this.nativeElement.onclick = () => this.onClick();
 
     this.domContext.generalItemsLayer.append(this.nativeElement);
   }
@@ -36,6 +45,10 @@ export class GeneralItem extends BaseModelUiElement<GeneralItemModel> implements
   }
 
   onDragEnd() {
-    this.service.move(this.model.id, this.coordinates)
+    this.service.move(this.model.id, this.coordinates);
+  }
+
+  onClick() {
+    this.service.click(this.model.id);
   }
 }

@@ -35,6 +35,7 @@ export class GeneralItemsMapDiagram implements DraggableUiElement {
       onDrag: () => this._dragTarget(),
       onDragEnd: e => this._stopDragging(this._getDragArgs(e)),
       onPress: e => this._onDragStart(this._getDragArgs(e)),
+      onClick: () => this._onDragClick(),
     });
   }
 
@@ -91,6 +92,10 @@ export class GeneralItemsMapDiagram implements DraggableUiElement {
         this.target = this.getGeneralItemById(id);
         this.target.onDrag();
         break;
+
+      case 'disabled':
+        this.target = null;
+        break;
     }
   }
 
@@ -119,5 +124,9 @@ export class GeneralItemsMapDiagram implements DraggableUiElement {
         break;
       }
     }
+  }
+
+  private _onDragClick() {
+    this.generalItems.forEach(item => !item.tooltip.isHidden() && item.tooltip.hide());
   }
 }

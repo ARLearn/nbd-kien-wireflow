@@ -33,7 +33,7 @@ describe('GeneralItemsService', () => {
     it('should add model to array', () => {
       const prevLen = service['models'].length;
 
-      service.createModel(1234567);
+      service.createModel(1234567, '123123');
 
       expect(service['models'].length).toBeGreaterThan(prevLen);
       expect(service['models'].length - 1).toBe(prevLen);
@@ -42,7 +42,7 @@ describe('GeneralItemsService', () => {
 
   describe('getById()', () => {
     it('should return existed item', () => {
-      service.createModel(1234567);
+      service.createModel(1234567, '123123');
 
       expect(service.getById('general-item_1')).toBeDefined();
     });

@@ -10,6 +10,7 @@ import { DraggableService } from '../core/services/draggable.service';
 import { GeneralItem } from './core/general-item';
 import { GeneralItemsService } from './core/services/general-items.service';
 import { GeneralItemMessage } from './GeneralItemMessage';
+import { getNumberFromPixels } from '../utils';
 
 @Component({
   selector: 'lib-general-items-map',
@@ -20,7 +21,14 @@ export class GeneralItemsMapComponent implements AfterViewInit, OnDestroy {
   @Input() messages: Partial<GeneralItemMessage>[];
   @Input() background: string;
 
+  @Input() height;
+  @Input() width;
+
+  @Input() tooltipsEnabled: boolean;
+  @Input() panEnabled = false;
+
   @Output() onCoordinatesChange = new EventEmitter();
+  @Output() onNodeClick = new EventEmitter();
 
   diagram: GeneralItemsMapDiagram;
 
@@ -34,6 +42,10 @@ export class GeneralItemsMapComponent implements AfterViewInit, OnDestroy {
 
   get onMove() {
     return this.generalItemsService.onMove;
+  }
+
+  get onClick() {
+    return this.generalItemsService.onClick;
   }
 
   constructor(private serviceResolver: ServiceFactory) { }
@@ -61,6 +73,17 @@ export class GeneralItemsMapComponent implements AfterViewInit, OnDestroy {
       this.draggableService,
     );
 
+    this.getImageParam(this.background)
+      .then(({ height, width }) => {
+        if (!this.height) {
+          this.height = height + 'px';
+        }
+        if (!this.width) {
+          this.width = width + 'px';
+        }
+      })
+      .catch((error) => console.log(error));
+
     this.initItems(this.messages);
     this.subscriptions.add(
       this.onMove.subscribe((args) => {
@@ -72,7 +95,22 @@ export class GeneralItemsMapComponent implements AfterViewInit, OnDestroy {
           ...message,
           customMapX: args.coords.x,
           customMapY: args.coords.y,
+          customMapXRel: args.coords.x / getNumberFromPixels(this.width),
+          customMapYRel: args.coords.y / getNumberFromPixels(this.height),
         } as Partial<GeneralItemMessage>);
+      })
+    );
+
+    this.subscriptions.add(
+      this.onClick.subscribe(({ id }) => {
+        const item = this.diagram.getGeneralItemById(id);
+
+        if (this.tooltipsEnabled) {
+          item.tooltip.toggle();
+        }
+
+        const message = this.messages.find(x => x.id.toString() === item.model.generalItemId);
+        this.onNodeClick.emit(message);
       })
     );
   }
@@ -81,7 +119,7 @@ export class GeneralItemsMapComponent implements AfterViewInit, OnDestroy {
     messages.forEach(message => {
       const item = new GeneralItem(
         this.domContext,
-        this.generalItemsService.createModel(message.id),
+        this.generalItemsService.createModel(message.id, message.name),
         this.tweenLiteService,
         this.generalItemsService,
       ).move({ x: message.customMapX, y: message.customMapY });
@@ -96,5 +134,21 @@ export class GeneralItemsMapComponent implements AfterViewInit, OnDestroy {
 
   ngOnDestroy() {
     this.subscriptions.unsubscribe();
+  }
+
+  public async getImageParam(url) {
+    return new Promise((resolve, reject) => {
+      const img = document.createElement('img');
+      img.src = url;
+      img.onerror = () => {
+        reject();
+      };
+      img.onload = () => {
+        const width = img.width;
+        const height = img.height;
+
+        resolve({ width, height });
+      };
+    });
   }
 }

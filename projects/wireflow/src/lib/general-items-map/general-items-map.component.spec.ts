@@ -65,6 +65,8 @@ describe('GeneralItemsMapComponent', () => {
 
   describe('onMove event', () => {
     beforeEach(() => {
+      component.height = '1000px';
+      component.width = '1000px';
       component.ngAfterViewInit();
     });
     it('should init onMove event', fakeAsync(() => {
@@ -82,6 +84,8 @@ describe('GeneralItemsMapComponent', () => {
         ...component.messages[0],
         customMapX: 25,
         customMapY: 25,
+        customMapXRel: 0.025,
+        customMapYRel: 0.025,
       });
     }));
   });

@@ -36,7 +36,7 @@ describe('GeneralItem', () => {
 
     item = new GeneralItem(
       domContextMock,
-      { id: 'general-item_1', generalItemId: '1' },
+      { id: 'general-item_1', generalItemId: '1', name: '1' },
       tweenLiteServiceMock,
       generalItemsService,
     );

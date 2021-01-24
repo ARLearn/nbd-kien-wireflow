@@ -18,4 +18,8 @@ export class GeneralItemsMapComponent implements OnInit {
   onCoordinatesChange($event: any) {
     console.log('FROM COORDINATE CHANGES', $event);
   }
+
+  onNodeClick($event: any) {
+    console.log('FROM NODE CLICK', $event);
+  }
 }

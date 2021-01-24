@@ -8,9 +8,14 @@ import { Point, UniqueIdGenerator} from '../../../utils';
 @Injectable()
 export class GeneralItemsService extends BaseService<GeneralItemModel> {
   private move$ = new Subject<{ id: string, coords: Point }>();
+  private click$ = new Subject<{ id: string }>();
 
   get onMove() {
     return this.move$.asObservable();
+  }
+
+  get onClick() {
+    return this.click$.asObservable();
   }
 
   constructor(
@@ -19,10 +24,11 @@ export class GeneralItemsService extends BaseService<GeneralItemModel> {
     super(uniqueIdGenerator);
   }
 
-  createModel(generalItemId: number): GeneralItemModel {
+  createModel(generalItemId: number, name: string): GeneralItemModel {
     const model = {
       id: `general-item_${this.uniqueIdGenerator.generate()}`,
       generalItemId: generalItemId.toString(),
+      name,
     } as GeneralItemModel;
 
     this.models.push(model);
@@ -36,5 +42,9 @@ export class GeneralItemsService extends BaseService<GeneralItemModel> {
 
   move(id: string, coords: Point) {
     this.move$.next({ id, coords });
+  }
+
+  click(id: string) {
+    this.click$.next({ id });
   }
 }

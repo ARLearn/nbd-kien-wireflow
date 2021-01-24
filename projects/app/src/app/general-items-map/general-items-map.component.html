@@ -3,5 +3,14 @@
 </div>
 
 <ng-container *ngIf="data?.length">
-  <lib-general-items-map [messages]="data" [background]="'https://picsum.photos/seed/1/1920/800'" (onCoordinatesChange)="onCoordinatesChange($event)"></lib-general-items-map>
+  <lib-general-items-map
+    [messages]="data"
+    [background]="'https://picsum.photos/seed/1/1920/800'"
+    height="400px"
+    width="500px"
+    [panEnabled]="false"
+    [tooltipsEnabled]="true"
+    (onCoordinatesChange)="onCoordinatesChange($event)"
+    (onNodeClick)="onNodeClick($event)"
+  ></lib-general-items-map>
 </ng-container>
