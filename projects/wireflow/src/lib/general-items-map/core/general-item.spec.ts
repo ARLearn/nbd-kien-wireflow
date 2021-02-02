@@ -54,6 +54,14 @@ describe('GeneralItem', () => {
     it('should return native element as draggable', () => {
       expect(item.nativeElement).toBe(item.dragElement);
     });
+
+    it('should add onclick handler for nativeElement', () => {
+      const spy = spyOn(generalItemsService, 'click');
+
+      item.nativeElement.onclick({} as any);
+
+      expect(spy).toHaveBeenCalled();
+    });
   });
 
   describe('onDrag', () => {

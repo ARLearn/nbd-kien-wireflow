@@ -1,20 +1,15 @@
 import { TestBed } from '@angular/core/testing';
 
 import { CoreUIFactoryMock } from '../../core/core-ui-factory.mock';
-import { DomContextMock } from '../../core/dom-context.mock';
 import { TweenLiteServiceMock } from '../../core/services/tween-lite.service.mock';
 import { UniqueIdGenerator } from '../../utils';
 import { DraggableServiceMock } from '../../core/services/draggable.service.mock';
 import { CoreUIFactory } from '../../core/core-ui-factory';
-import { DomContext } from '../../core/dom-context';
 import { TweenLiteService } from '../../core/services/tween-lite.service';
 import { DraggableService } from '../../core/services/draggable.service';
-import {GeneralItemsMapDomContext} from './general-items-map-dom-context';
-import {GeneralItemsMapDomContextMock} from './general-items-map-dom-context.mock';
-import {GeneralItemsMapDiagram} from './general-items-map-diagram';
-import {NodeShape} from '../../core/node-shape';
-import {Diagram} from '../../core/diagram';
-import {Connector} from '../../core/connector';
+import { GeneralItemsMapDomContext } from './general-items-map-dom-context';
+import { GeneralItemsMapDomContextMock } from './general-items-map-dom-context.mock';
+import { GeneralItemsMapDiagram } from './general-items-map-diagram';
 
 describe('GeneralItemsMapDiagram', () => {
   let coreUIFactoryMock;
@@ -241,7 +236,7 @@ describe('GeneralItemsMapDiagram', () => {
           .returnValue({ target: null, id: 'general-item_1', dragType: 'general-item' });
       });
 
-      it('should set target as diagram', () => {
+      it('should set diagram as target', () => {
         spyDragArgs
           .and
           .returnValue({ target: diagram, id: null, dragType: 'diagram' });
@@ -252,7 +247,7 @@ describe('GeneralItemsMapDiagram', () => {
         expect(diagram.target instanceof GeneralItemsMapDiagram).toBeTruthy();
       });
 
-      it('should set target as general-item', () => {
+      it('should set general-item as target', () => {
         diagram.generalItems = [
           { model: { id: 'general-item_1' }, onDrag: () => {} }
         ] as any;
@@ -265,6 +260,42 @@ describe('GeneralItemsMapDiagram', () => {
 
         expect(diagram.target).toBeTruthy();
         expect((diagram.target as any).model.id).toBe('general-item_1');
+      });
+
+      it('should set null for target', () => {
+        spyDragArgs
+          .and
+          .returnValue({ target: null, id: null, dragType: 'disabled' });
+
+        draggableService.options.onPress({});
+
+        expect(diagram.target).toBeNull();
+      });
+    });
+
+    describe('onClick()', () => {
+      beforeEach(() => {
+        diagram.generalItems = [
+          {
+            tooltip: {
+              isHidden: () => true,
+              hide: () => true,
+            }
+          },
+          {
+            tooltip: {
+              isHidden: () => false,
+              hide: () => true,
+            }
+          }
+        ] as any;
+      });
+
+      it('should emit click', () => {
+        const spy = spyOn(diagram.generalItems[1].tooltip, 'hide');
+        draggableService.options.onClick();
+
+        expect(spy).toHaveBeenCalled();
       });
     });
   });

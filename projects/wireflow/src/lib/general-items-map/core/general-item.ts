@@ -1,11 +1,11 @@
-import {BaseModelUiElement} from '../../core/base-model-ui-element';
-import {DraggableUiElement} from '../../core/draggable-ui-element';
-import {GeneralItemModel} from './models/general-item.model';
-import {TweenLiteService} from '../../core/services/tween-lite.service';
-import {GeneralItemsMapDomContext} from './general-items-map-dom-context';
-import {getNumberFromPixels} from '../../utils';
-import {GeneralItemsService} from './services/general-items.service';
-import {BaseUiElement} from '../../core/base-ui-element';
+import { BaseUiElement } from '../../core/base-ui-element';
+import { BaseModelUiElement } from '../../core/base-model-ui-element';
+import { DraggableUiElement } from '../../core/draggable-ui-element';
+import { GeneralItemsMapDomContext } from './general-items-map-dom-context';
+import { GeneralItemModel } from './models/general-item.model';
+import { TweenLiteService } from '../../core/services/tween-lite.service';
+import { GeneralItemsService } from './services/general-items.service';
+import { getNumberFromPixels } from '../../utils';
 
 
 export class GeneralItem extends BaseModelUiElement<GeneralItemModel> implements DraggableUiElement {

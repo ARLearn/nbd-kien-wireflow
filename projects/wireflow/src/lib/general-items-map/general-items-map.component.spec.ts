@@ -53,6 +53,44 @@ describe('GeneralItemsMapComponent', () => {
       component.ngAfterViewInit();
       expect(component.diagram.generalItems[1].isHidden).toBeTruthy();
     });
+
+    it('should await for height', fakeAsync(() => {
+      const spy = spyOn(component, 'getImageParam').and.returnValue(Promise.resolve({ height: 200 }));
+      component.ngAfterViewInit();
+
+      tick();
+
+      expect(component.height).toBe('200px');
+    }));
+
+    it('should not await for height', fakeAsync(() => {
+      component.height = '400px';
+      const spy = spyOn(component, 'getImageParam').and.returnValue(Promise.resolve({ height: 200 }));
+      component.ngAfterViewInit();
+
+      tick();
+
+      expect(component.height).toBe('400px');
+    }));
+
+    it('should await for width', fakeAsync(() => {
+      const spy = spyOn(component, 'getImageParam').and.returnValue(Promise.resolve({ width: 300 }));
+      component.ngAfterViewInit();
+
+      tick();
+
+      expect(component.width).toBe('300px');
+    }));
+
+    it('should not await for width', fakeAsync(() => {
+      component.width = '600px';
+      const spy = spyOn(component, 'getImageParam').and.returnValue(Promise.resolve({ width: 300 }));
+      component.ngAfterViewInit();
+
+      tick();
+
+      expect(component.width).toBe('600px');
+    }));
   });
 
   describe('ngOnDestroy', () => {
@@ -69,7 +107,7 @@ describe('GeneralItemsMapComponent', () => {
       component.width = '1000px';
       component.ngAfterViewInit();
     });
-    it('should init onMove event', fakeAsync(() => {
+    it('should emit onMove event', fakeAsync(() => {
       const obj = { handler: () => {} };
       const spy = spyOn(obj, 'handler');
       component.onCoordinatesChange.subscribe(obj.handler);
@@ -88,5 +126,65 @@ describe('GeneralItemsMapComponent', () => {
         customMapYRel: 0.025,
       });
     }));
+  });
+
+  describe('onClick event', () => {
+    beforeEach(() => {
+      component.ngAfterViewInit();
+    });
+    it('should emit onClick event', fakeAsync(() => {
+      const obj = { handler: () => {} };
+      const spy = spyOn(obj, 'handler');
+      component.onNodeClick.subscribe(obj.handler);
+
+      const item = component.diagram.generalItems[0];
+      item.onClick();
+
+      tick();
+
+      expect(spy).toHaveBeenCalledWith(component.messages[0]);
+    }));
+
+    it('should toggle tooltip', fakeAsync(() => {
+      component.tooltipsEnabled = true;
+
+      const item = component.diagram.generalItems[0];
+      const spy = spyOn(item.tooltip, 'toggle');
+
+      item.onClick();
+
+      tick();
+
+      expect(spy).toHaveBeenCalled();
+    }));
+  });
+
+  describe('getImageParam()', () => {
+    let imgSpy;
+    let imgObj;
+
+    beforeEach(() => {
+      imgObj = {
+        width: 500,
+        height: 400,
+        src: null,
+        onload: null,
+      };
+
+      imgSpy = spyOn(document, 'createElement').and.returnValue(imgObj);
+    });
+
+    it('should return height and width in promise', (done) => {
+      component.getImageParam('url.example.com')
+        .then(({ height, width }) => {
+
+          expect(width).toBe(500);
+          expect(height).toBe(400);
+          done();
+        });
+
+      imgObj.onload();
+      expect(imgSpy).toHaveBeenCalled();
+    });
   });
 });

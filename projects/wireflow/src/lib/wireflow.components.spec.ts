@@ -3251,4 +3251,135 @@ describe('WireflowComponent', () => {
       expect(dependency.timeDelta).toBe(2000);
     });
   });
+
+  describe('initEndGameNode()', () => {
+    let endGameNode;
+    let middlePoint;
+    beforeEach(() => {
+      component.messages = [];
+      component.populatedNodes = [
+        {
+          id: 123456,
+          authoringX: 10,
+          authoringY: 10,
+        }
+      ] as any;
+      component.populatedNodesPrev = [];
+      component.ngAfterViewInit();
+
+      endGameNode = {
+        inputs: [
+          {
+            model: {
+              connectors: [
+                {}
+              ]
+            }
+          }
+        ],
+        move() {},
+      };
+
+      middlePoint = {
+        move() {},
+      };
+
+      spyOn(component.wireflowManager, 'initNodeMessage');
+      spyOn(component['diagram'], 'getEndGameNode').and.returnValue(endGameNode);
+      spyOn(component['diagram'], 'getMiddlePointByConnector').and.returnValue(middlePoint);
+    });
+
+    it('should move endGame and middlePoint', () => {
+      const spyMp = spyOn(middlePoint, 'move');
+      const spyNode = spyOn(endGameNode, 'move');
+
+      component.endGameMessage.dependsOn = { type: 'some_type', generalItemId: '123456' };
+      component.initEndGameNode();
+
+      expect(spyMp).toHaveBeenCalledWith({
+        x: 250,
+        y: 70
+      });
+
+      expect(spyNode).toHaveBeenCalledWith({
+        x: 310,
+        y: 70
+      });
+    });
+  });
+
+  describe('endGameNodeCoordinatesChange', () => {
+    beforeEach(() => {
+      component.messages = [];
+      component.populatedNodes = [] as any;
+      component.populatedNodesPrev = [];
+      component.ngAfterViewInit();
+    });
+
+    it('should update end game node coordinates', fakeAsync(() => {
+      component.endGameNodesService.setCoordinates({ x: 20, y: 20 });
+      tick();
+
+      expect(component.endGameMessage.authoringX).toBe(20);
+      expect(component.endGameMessage.authoringY).toBe(20);
+    }));
+
+    it('should emit endsOnCoordinatesChange event', fakeAsync(() => {
+      const obj = { handler: () => {} };
+      const spy = spyOn(obj, 'handler');
+
+      component.endsOnCoordinatesChange.subscribe(obj.handler);
+
+      component.endGameNodesService.setCoordinates({ x: 20, y: 20 });
+      tick();
+
+      expect(spy).toHaveBeenCalled();
+    }));
+  });
+
+  describe('endsOnChange', () => {
+    beforeEach(() => {
+      component.messages = [];
+      component.populatedNodes = [] as any;
+      component.populatedNodesPrev = [];
+      // component.ngAfterViewInit();
+
+      component['stateEndsOn'] = {
+        old: {
+          key: 'val_111',
+        },
+        current: {
+          key: 'val_111',
+        },
+      } as any;
+    });
+
+    it('should process pipe', fakeAsync(() => {
+      const obj = { handler: () => {} };
+      const spy = spyOn(obj, 'handler');
+
+      component.endsOnChange.subscribe(obj.handler);
+
+      component['endGameStateSubject'].next({
+        key: 'value',
+      } as any);
+      tick();
+
+      expect(spy).toHaveBeenCalledWith({ key: 'value' });
+    }));
+
+    it('should not call subscriber', fakeAsync(() => {
+      const obj = { handler: () => {} };
+      const spy = spyOn(obj, 'handler');
+
+      component.endsOnChange.subscribe(obj.handler);
+
+      component['endGameStateSubject'].next({
+        key: 'val_111',
+      } as any);
+      tick();
+
+      expect(spy).not.toHaveBeenCalled();
+    }));
+  });
 });
