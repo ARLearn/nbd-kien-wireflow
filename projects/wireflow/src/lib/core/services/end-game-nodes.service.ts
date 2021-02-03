@@ -30,7 +30,8 @@ export class EndGameNodesService extends BaseService<EndGameNodeModel> {
 
   create() {
     const model = {
-      id: `end-game_${this.uniqueIdGenerator.generate()}`,
+      // starts from 1
+      id: `end-game_${this.uniqueIdGenerator.generate() + 1}`,
       inputModels: [],
     } as EndGameNodeModel;
 

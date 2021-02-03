@@ -251,14 +251,15 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
       .pipe(
         map((current) => {
           const old = this.stateEndsOn.old;
+          const curr = current || {};
 
-          if (hasDeepDiff(current, old)) {
-            return current;
+          if (hasDeepDiff(curr, old)) {
+            return curr;
           }
 
-          return null;
+          return undefined;
         }),
-        filter(current => !!current),
+        filter(Boolean),
       );
 
     this.selectMessage = new Subject<GameMessageCommon>();
@@ -290,7 +291,7 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
     }));
 
     this.subscription.add(this.endGameStateSubject.subscribe(dep => {
-      this.stateEndsOn = { old: this.stateEndsOn.current, current: clone(dep) };
+      this.stateEndsOn = { old: this.stateEndsOn.current, current: clone(dep || {}) };
     }));
   }
 

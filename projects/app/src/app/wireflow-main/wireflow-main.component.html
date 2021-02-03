@@ -7,7 +7,7 @@
 <div *ngIf="messages">
   <lib-wireflow
     [messages]="messages"
-    [endsOnDisabled]="true"
+    [endsOnDisabled]="false"
     (messagesChange)="messagesChange($event)"
     (selectMessage)="selectMessage($event)"
     (deselectMessage)="deselectMessage($event)"
