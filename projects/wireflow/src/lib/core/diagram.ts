@@ -427,8 +427,9 @@ export class Diagram implements DraggableUiElement {
         if (this.openedConnector) {
           this.openedConnector.onDragEnd(node.inputs[0]);
           this.openedConnector = null;
+        } else {
+          node.onDragEnd();
         }
-        node.onDragEnd();
         break;
       }
       case 'diagram': {

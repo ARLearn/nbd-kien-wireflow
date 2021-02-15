@@ -5,6 +5,7 @@ export * from './geometry';
 export * from './google-map-circle';
 export * from './map';
 export * from './minBy';
+export * from './maxBy';
 export * from './number';
 export * from './object';
 export * from './profile';

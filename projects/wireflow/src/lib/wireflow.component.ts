@@ -11,15 +11,16 @@ import {
   ViewEncapsulation,
   DoCheck,
   AfterViewChecked,
-  ChangeDetectorRef, Inject,
+  ChangeDetectorRef,
+  Inject,
 } from '@angular/core';
 import { Observable, Subject, Subscription } from 'rxjs';
-import {distinct, filter, first, map, skip} from 'rxjs/operators';
+import { distinct, filter, first, map } from 'rxjs/operators';
 import { TranslateService } from '@ngx-translate/core';
-
 import { NgxSmartModalService } from 'ngx-smart-modal';
+
 import { Diagram } from './core/diagram';
-import {Dependency, GameMessageCommon} from './models/core';
+import { Dependency, GameMessageCommon } from './models/core';
 import { Connector } from './core/connector';
 import {
   clone,
@@ -27,9 +28,9 @@ import {
   getDistance,
   Rectangle,
   minBy,
+  maxBy,
   Point,
   hasDeepDiff,
-  UniqueIdGenerator,
   sleep,
   getStaticMapWithCircle
 } from './utils';
@@ -48,11 +49,10 @@ import { TweenLiteService } from './core/services/tween-lite.service';
 import { IWireflowModuleData } from './wireflow.module';
 import { GeolocationService } from './core/services/geolocation.service';
 import { DraggableService } from './core/services/draggable.service';
-import {DiagramModel} from './core/models/DiagramModel';
-import {ServiceFactory} from './core/services/service-factory.service';
-import {EndGameNode} from './core/end-game-node';
-import {EndGameNodesService} from './core/services/end-game-nodes.service';
-import {maxBy} from "./utils/maxBy";
+import { DiagramModel} from './core/models/DiagramModel';
+import { ServiceFactory } from './core/services/service-factory.service';
+import { EndGameNode } from './core/end-game-node';
+import { EndGameNodesService } from './core/services/end-game-nodes.service';
 
 interface MessageEditorStateModel {
   messages: GameMessageCommon[];
