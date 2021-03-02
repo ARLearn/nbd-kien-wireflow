@@ -1187,6 +1187,13 @@ describe('Diagram', () => {
             ],
           }
         ];
+
+        diagram.endGameNodes = [
+          {
+            onDragEnd: () => {},
+            inputs: [],
+          },
+        ];
       });
 
       it('should call target.onDragEnd', () => {
@@ -1333,6 +1340,36 @@ describe('Diagram', () => {
 
         expect(spy).toHaveBeenCalledWith(1);
       });
+
+      it('should call onDragEnd for opened connector if target is end-game', () => {
+        diagram.openedConnector = new Connector(
+          coreUIFactoryMock,
+          domContextMock,
+          connectorsService,
+          tweenLiteServiceMock,
+          {id: 'connector_1', subType: 'scantag', dependencyType: ''}
+        );
+
+        spyDragArgs.and.returnValue({ id: 'end-game_1', dragType: 'end-game' });
+
+        const spy = spyOn(diagram.openedConnector, 'onDragEnd');
+        const spyNode = spyOn(diagram.endGameNodes[0], 'onDragEnd');
+
+        draggableService.options.onDragEnd({});
+
+        expect(spy).toHaveBeenCalled();
+        expect(spyNode).not.toHaveBeenCalled();
+      });
+
+      it('should call onDragEnd for end-game', () => {
+        spyDragArgs.and.returnValue({ id: 'end-game_1', dragType: 'end-game' });
+
+        const spyNode = spyOn(diagram.endGameNodes[0], 'onDragEnd');
+
+        draggableService.options.onDragEnd({});
+
+        expect(spyNode).toHaveBeenCalled();
+      });
     });
 
     describe('onPress()', () => {
@@ -1382,6 +1419,14 @@ describe('Diagram', () => {
               }
             ],
           }
+        ];
+
+        diagram.endGameNodes = [
+          {
+            model: {
+              id: 'end-game_1',
+            },
+          },
         ];
       });
 
@@ -1489,6 +1534,17 @@ describe('Diagram', () => {
 
         expect(diagram.target).toBeTruthy();
         expect(diagram.target.model.id).toBe('middle-point_1');
+      });
+
+      it('should set target as end-game', () => {
+        spyDragArgs
+          .and
+          .returnValue({ target: null, id: 'end-game_1', dragType: 'end-game' });
+
+        draggableService.options.onPress({});
+
+        expect(diagram.target).toBeTruthy();
+        expect(diagram.target.model.id).toBe('end-game_1');
       });
     });
 
