@@ -142,7 +142,6 @@ export class WireflowManager {
 
   createChildMiddlePointForOutputConnector(message, type, connector: Connector, middlePoint: MiddlePoint, coords, options, notifyChanges) {
     let dependency;
-
     if (middlePoint.dependency.type.includes('TimeDependency')) {
       dependency = middlePoint.dependency.offset;
     } else {
@@ -150,12 +149,13 @@ export class WireflowManager {
         .dependency
         .dependencies
         .find(x =>
-          (x.action === connector.outputPort.model.action ||
+          ((x.action === connector.outputPort.model.action && x.generalItemId && x.generalItemId.toString() === connector.outputPort.model.generalItemId.toString()) ||
             (connector.model.proximity &&
               connector.model.proximity.lat === x.lat &&
               connector.model.proximity.lng === x.lng &&
               connector.model.proximity.radius === x.radius))
         );
+
     }
 
     const newDep = { ...dependency };
@@ -188,10 +188,13 @@ export class WireflowManager {
         .setInputPort(this.diagram.getInputPortByGeneralItemId(message.id))
         .setParentMiddlePoint(middlePoint);
 
+
     middlePoint.addChildMiddlePoint(mp);
 
     connector.remove({ removeDependency: false, removeVirtualNode: false });
+
     this.initMiddlePointGroup(message, mp, dependency.dependencies || [dependency.offset]);
+
 
     mp.move(coords)
       .init();
@@ -339,7 +342,7 @@ export class WireflowManager {
         return p.model.generalItemId.toString() === dep.generalItemId.toString() && p.model.action === dep.action
       });
 
-      if (!dep.type.includes('Proximity') && !portExists) { return; }
+      if (!dep.type || (!dep.type.includes('Proximity') && !portExists)) { return; }
 
       const model = this.connectorsService.createConnectorModel(dep.type, dep.subtype);
       const connector = new Connector(this.coreUiFactory, this.domContext, this.connectorsService, this.tweenLiteService, model);

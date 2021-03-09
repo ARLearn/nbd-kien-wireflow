@@ -536,13 +536,14 @@ describe('WireflowManager', () => {
         {id: 'connector_1', subType: 'scantag', dependencyType: ''}
       );
 
-      connector.setOutputPort({ model: { action: 'read', connectors: [] } } as any);
+      connector.setOutputPort({ model: { action: 'read', generalItemId: '123123123', connectors: [] } } as any);
 
       dependency = {
         type: 'org.celstec.arlearn2.beans.dependencies.OrDependency',
         dependencies: [
           {
-            action: 'read'
+            action: 'read',
+            generalItemId: '123123123',
           } as any
         ],
       } as Dependency;
@@ -602,7 +603,7 @@ describe('WireflowManager', () => {
 
       expect(mp.dependency).toEqual({
         type: 'TimeDependency',
-        offset: { action: 'read' },
+        offset: { action: 'read', generalItemId: '123123123' },
         timeDelta: 200,
       });
     });
@@ -612,7 +613,7 @@ describe('WireflowManager', () => {
 
       expect(mp.dependency).toEqual({
         type: 'AndDependency',
-        dependencies: [ { action: 'read' } ],
+        dependencies: [ { action: 'read', generalItemId: '123123123' } ],
       });
     });
 
