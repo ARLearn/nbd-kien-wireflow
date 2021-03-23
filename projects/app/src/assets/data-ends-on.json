@@ -1,0 +1,169 @@
+[
+  {
+    "type": "org.celstec.arlearn2.beans.generalItem.NarratorItem",
+    "gameId": "5634472569470976",
+    "deleted": false,
+    "lastModificationDate": "1616140758473",
+    "id": "5713819070365696",
+    "scope": "user",
+    "name": "lot's of text",
+    "description": "test",
+    "dependsOn": {
+      "type": "org.celstec.arlearn2.beans.dependencies.ActionDependency",
+      "action": "read",
+      "generalItemId": "5631832271880192"
+    },
+    "autoLaunch": false,
+    "authoringX": 922.0,
+    "authoringY": 327.0,
+    "heading": "Benieuwd welke camera bij jou past? Scan dan de qr code op elk model",
+    "richText": "This text ... This text ...This text ... This text ...This text ... This text ...This text ... This text ...This text ... This text ...This text ... This text ...This text ... This text ...This text .",
+    "message": true
+  },
+  {
+    "type": "org.celstec.arlearn2.beans.generalItem.NarratorItem",
+    "gameId": "5634472569470976",
+    "deleted": false,
+    "lastModificationDate": "1616140825967",
+    "id": "5723644344926208",
+    "scope": "user",
+    "name": "gif",
+    "description": "verstuur",
+    "dependsOn": {
+      "type": "org.celstec.arlearn2.beans.dependencies.ActionDependency",
+      "action": "answer_WugpH",
+      "generalItemId": "5196933010292736"
+    },
+    "autoLaunch": false,
+    "authoringX": 1556.0,
+    "authoringY": 111.0,
+    "fileReferences": [
+      {
+        "type": "org.celstec.arlearn2.beans.generalItem.FileReference",
+        "key": "background",
+        "fileReference": "/game/5634472569470976/gif/sprinklefest5.gif"
+      }
+    ],
+    "richText": "Hier komt wet tekst..Hier komt wet tekst..Hier komt wet tekst..Hier komt wet tekst..Hier komt wet  Hier komt wet tekst..Hier komt wet tekst..Hier komt wet tekst..Hier komt tekst..Hier komt wet tekst..",
+    "message": true
+  },
+  {
+    "type": "org.celstec.arlearn2.beans.generalItem.AudioQuestion",
+    "gameId": "5634472569470976",
+    "deleted": false,
+    "lastModificationDate": "1614255142689",
+    "id": "5729378931572736",
+    "scope": "user",
+    "name": "antwoord met geluid",
+    "description": "test",
+    "autoLaunch": false,
+    "authoringX": 19.0,
+    "authoringY": 167.0,
+    "richText": "maak een opname van de wind",
+    "message": true
+  },
+  {
+    "type": "org.celstec.arlearn2.beans.generalItem.ScanTag",
+    "gameId": "5634472569470976",
+    "deleted": false,
+    "lastModificationDate": "1607506400300",
+    "id": "5731716400414720",
+    "scope": "user",
+    "name": "Scanner",
+    "description": "",
+    "dependsOn": {
+      "type": "org.celstec.arlearn2.beans.dependencies.ActionDependency",
+      "action": "read",
+      "generalItemId": "5631159471964160"
+    },
+    "autoLaunch": false,
+    "authoringX": 756.0,
+    "authoringY": 63.0,
+    "message": true
+  },
+  {
+    "type": "org.celstec.arlearn2.beans.generalItem.SingleChoiceTest",
+    "gameId": "5634472569470976",
+    "deleted": false,
+    "lastModificationDate": "1616405525686",
+    "id": "5737833507586048",
+    "scope": "user",
+    "name": "plain sc",
+    "description": "",
+    "dependsOn": {
+      "type": "org.celstec.arlearn2.beans.dependencies.ActionDependency",
+      "action": "324324",
+      "generalItemId": "5731716400414720"
+    },
+    "autoLaunch": false,
+    "authoringX": 1024.0,
+    "authoringY": 204.0,
+    "fileReferences": [
+      {
+        "type": "org.celstec.arlearn2.beans.generalItem.FileReference",
+        "key": "background",
+        "fileReference": "/game/5634472569470976/background4.jpg"
+      }
+    ],
+    "primaryColor": "#194d2a",
+    "answers": [
+      {
+        "type": "org.celstec.arlearn2.beans.generalItem.MultipleChoiceAnswerItem",
+        "isCorrect": true,
+        "feedback": "Deze optie is correct. Goed gedaan",
+        "answer": "optie1",
+        "id": "n1zfw"
+      },
+      {
+        "type": "org.celstec.arlearn2.beans.generalItem.MultipleChoiceAnswerItem",
+        "isCorrect": false,
+        "feedback": "Deze optie is fout. Probeer opnieuw",
+        "answer": "optie 2",
+        "id": "UBkZS"
+      }
+    ],
+    "text": "optie 1 is juist",
+    "showFeedback": true,
+    "message": true
+  },
+  {
+    "type": "org.celstec.arlearn2.beans.generalItem.TextQuestion",
+    "gameId": "5634472569470976",
+    "deleted": false,
+    "lastModificationDate": "1614255960515",
+    "id": "5742962369626112",
+    "scope": "user",
+    "name": "Dit is een antwoord met tekst",
+    "description": "",
+    "dependsOn": {
+      "type": "org.celstec.arlearn2.beans.dependencies.ActionDependency",
+      "action": "read",
+      "generalItemId": "5729378931572736"
+    },
+    "autoLaunch": false,
+    "authoringX": 107.0,
+    "authoringY": 503.0,
+    "message": true
+  },
+  {
+    "type": "org.celstec.arlearn2.beans.generalItem.OpenUrl",
+    "gameId": "5634472569470976",
+    "deleted": false,
+    "lastModificationDate": "1616140812122",
+    "id": "6238482611568640",
+    "scope": "user",
+    "name": "url",
+    "description": "verder",
+    "dependsOn": {
+      "type": "org.celstec.arlearn2.beans.dependencies.ActionDependency",
+      "action": "read",
+      "generalItemId": "5713819070365696"
+    },
+    "autoLaunch": false,
+    "authoringX": 1182.0,
+    "authoringY": 646.0,
+    "primaryColor": "#f5a623",
+    "url": "https://www.google.com",
+    "message": true
+  }
+]

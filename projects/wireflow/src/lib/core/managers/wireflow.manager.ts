@@ -310,7 +310,6 @@ export class WireflowManager {
   initMiddlePointGroup(message: any, input: MiddlePoint, outputs: any) {
     const dependency = outputs[0];
     const shape = this.diagram.getShapeByGeneralItemId(message.id);
-
     const outConns = outputs.map(dep => {
       if (dep.dependencies || dep.offset) {
         const newMp =

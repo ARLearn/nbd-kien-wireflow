@@ -345,7 +345,7 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
   }
 
   initEndGameNode() {
-    if (this.endGameMessage[this.selector] && !this.endGameMessage['initNodeMessageDone']) {
+    if (this.endGameMessage[this.selector]) {
       if (!this.endGameMessage[this.selector].type) {
         const unvirtual = this.populatedNodes.filter(f => !f['virtual']);
         const last = maxBy(unvirtual, m => m.authoringX + m.authoringY);
@@ -353,13 +353,13 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
         if (last) {
           this.diagram.getEndGameNode().move({ x: last.authoringX + 300, y: last.authoringY + 60 });
         }
-        this.endGameMessage['initNodeMessageDone'] = true;
         return;
       }
+
       const nodes = this.getDependentNodesForEndGame();
 
       if (nodes.length > 0) {
-        this.wireflowManager.initNodeMessage(this.endGameMessage);
+        this.initState([this.endGameMessage]);
 
         const endGame = this.diagram.getEndGameNode();
         const connector = endGame.inputs[0].model.connectors[0];
@@ -367,8 +367,6 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
 
         endGame && nodes[0] && endGame.move({ x: nodes[0].authoringX + 300, y: nodes[0].authoringY + 60 });
         mp && nodes[0] && mp.move({ x: nodes[0].authoringX + 240, y: nodes[0].authoringY + 60 });
-
-        this.endGameMessage['initNodeMessageDone'] = true;
       }
     }
   }

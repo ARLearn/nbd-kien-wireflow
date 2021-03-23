@@ -17,7 +17,7 @@ export class WireflowMainComponent implements OnInit {
 
   endsOn = {
     action: 'read',
-    generalItemId: 5728005179572224,
+    generalItemId: 6238482611568640,
     type: 'org.celstec.arlearn2.beans.dependencies.ActionDependency',
   };
 

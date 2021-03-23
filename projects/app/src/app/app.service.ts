@@ -28,7 +28,7 @@ export class AppService {
   private _getData() {
     // return this.http.get<any[]>('assets/data_100.json');
     // return this.http.get<any[]>('assets/data.json');
-    return this.http.get<any[]>('assets/data-ngx.json');
+    // return this.http.get<any[]>('assets/data-ngx.json');
     // return this.http.get<any[]>('assets/data2.json');
     // return this.http.get<any[]>('assets/data3.json');
     // return this.http.get<any[]>('assets/data4.json');
@@ -40,6 +40,7 @@ export class AppService {
     // return this.http.get<any[]>('assets/data_10_text-question.json');
     // return this.http.get<any[]>('assets/data_11_combination-lock.json');
     // return this.http.get<{ entities: any[] }>('assets/mediaquest-messages.json').pipe(map(response => Object.values(response.entities)));
+    return this.http.get<any[]>('assets/data-ends-on.json');
   }
 
   private _getMapData() {
