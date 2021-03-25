@@ -150,6 +150,7 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
   private lastGeneralItemId: string;
   private processing = false;
   private lastAddedPort: any;
+  private isDestroyed = false;
 
   private chunkLoadingStarted$ = new Subject<boolean>();
   private chunkLoaded$ = new Subject<boolean>();
@@ -845,6 +846,11 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
     }));
 
     setTimeout(() => {
+      // When we destroy wireflow component in <1 second after it's creation, this code still executes, and it causes another wireflow instance to crash. 
+      if (this.isDestroyed) {
+        return;
+      }
+
       if (!this.endsOnDisabled) {
         const endGameNode = new EndGameNode(
           this.endGameNodesService,
@@ -1522,6 +1528,7 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
 
   ngOnDestroy() {
     this.subscription.unsubscribe();
+    this.isDestroyed = true;
   }
 
   openOutputActionModal(node: GameMessageCommon) {
