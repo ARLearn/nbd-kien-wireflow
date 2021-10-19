@@ -64,7 +64,8 @@ export class NodesManager {
       );
     }
 
-    if (message.type.includes('SingleChoice') || message.type.includes('CombinationLock') || message.type.includes('MultipleChoice')) {
+    if (message.type.includes('SingleChoice') || message.type.includes('CombinationLock') || message.type.includes('CodeWord') || message.type.includes('MultipleChoice')) {
+      console.log('inside combinationlock/code word');
       outputs.push(
         {
           type: 'org.celstec.arlearn2.beans.dependencies.ActionDependency',
