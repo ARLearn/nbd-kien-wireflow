@@ -24,7 +24,7 @@
 
   .connector-path {
     stroke: #3da8d9;
-    stroke-width: 3;
+    stroke-width: 4;
     fill: none;
     transform: translate(3px, 0px);
   }
@@ -35,7 +35,8 @@
     fill: none;
 
     &--selected {
-      stroke: #6cd2ff;
+      stroke: #f2e2e0;
+      stroke-width: 6;
     }
   }
 

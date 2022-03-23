@@ -60,7 +60,7 @@ describe('NodeShape', () => {
       dependencyType: 'ActionDependency',
       inputModels: [],
       outputModels: []
-    }, { x: 0, y: 0 });
+    }, { x: 0, y: 0 }, 10);
 
     shape.inputs = [portMock];
     shape.outputs = [portMock, portMock, portMock];

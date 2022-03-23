@@ -14,8 +14,8 @@
       "generalItemId": "5631832271880192"
     },
     "autoLaunch": false,
-    "authoringX": 922.0,
-    "authoringY": 327.0,
+    "authoringX": 920.0,
+    "authoringY": 330.0,
     "heading": "Benieuwd welke camera bij jou past? Scan dan de qr code op elk model",
     "richText": "This text ... This text ...This text ... This text ...This text ... This text ...This text ... This text ...This text ... This text ...This text ... This text ...This text ... This text ...This text .",
     "message": true
@@ -57,8 +57,8 @@
     "name": "antwoord met geluid",
     "description": "test",
     "autoLaunch": false,
-    "authoringX": 19.0,
-    "authoringY": 167.0,
+    "authoringX": 20.0,
+    "authoringY": 170.0,
     "richText": "maak een opname van de wind",
     "message": true
   },

@@ -53,7 +53,7 @@ describe('NodePort', () => {
       dependencyType: 'ActionDependency',
       inputModels: [],
       outputModels: []
-    }, {x: 0, y: 0});
+    }, {x: 0, y: 0}, 10);
 
     const portModel = { id: 'port_1', generalItemId: '123213123', action: 'read', isInput: false, connectors: [] } as PortModel;
 
@@ -80,7 +80,7 @@ describe('NodePort', () => {
         dependencyType: 'ProximityDependency',
         inputModels: [],
         outputModels: []
-      }, {x: 0, y: 0});
+      }, {x: 0, y: 0},10);
 
       const portModel = { id: 'port_1', generalItemId: '123213123', action: 'read', isInput: false, connectors: [] } as PortModel;
 

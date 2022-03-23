@@ -1093,14 +1093,14 @@ describe('Diagram', () => {
             tweenLiteServiceMock,
             domContextMock.fakeNode,
             { id: 'shape_1', outputModels: [], inputModels: [], dependencyType: '', generalItemId: '123' },
-            { x: 1, y: 1 }
+            { x: 1, y: 1 } ,10
           ),
           new NodeShape(
             nodesService,
             tweenLiteServiceMock,
             domContextMock.fakeNode,
             { id: 'shape_2', outputModels: [], inputModels: [], dependencyType: '', generalItemId: '345' },
-            { x: 1, y: 1 }
+            { x: 1, y: 1 }, 10
           ),
         ];
 
@@ -1460,7 +1460,7 @@ describe('Diagram', () => {
             tweenLiteServiceMock,
             domContextMock.fakeNode,
             { id: 'shape_1', outputModels: [], inputModels: [], dependencyType: '', generalItemId: '123' },
-            { x: 1, y: 1 }
+            { x: 1, y: 1 }, 10
             ),
         ];
 
@@ -1481,7 +1481,7 @@ describe('Diagram', () => {
             tweenLiteServiceMock,
             domContextMock.fakeNode,
             { id: 'shape_1', outputModels: [], inputModels: [], dependencyType: '', generalItemId: '123' },
-            { x: 1, y: 1 }
+            { x: 1, y: 1 }, 10
           ),
         ];
 
@@ -1502,7 +1502,7 @@ describe('Diagram', () => {
             tweenLiteServiceMock,
             domContextMock.fakeNode,
             { id: 'shape_1', outputModels: [], inputModels: [], dependencyType: '', generalItemId: '123' },
-            { x: 1, y: 1 }
+            { x: 1, y: 1 }, 10
           ),
         ];
 
@@ -1664,7 +1664,7 @@ describe('Diagram', () => {
           tweenLiteServiceMock,
           domContextMock.fakeNode,
           { id: 'shape_1', outputModels: [], inputModels: [], dependencyType: '', generalItemId: '123' },
-          { x: 1, y: 1 }
+          { x: 1, y: 1 },10
         );
         diagram['nodeSelectedOnDragging'] = true;
         const spy = spyOn(nodesService, 'toggleSelect');

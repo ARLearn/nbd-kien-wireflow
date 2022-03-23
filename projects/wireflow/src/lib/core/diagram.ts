@@ -410,6 +410,7 @@ export class Diagram implements DraggableUiElement {
   }
 
   private _stopDragging({id, dragType}) {
+
     this.dragging = false;
     this.nodeSelectedOnDragging = false;
 

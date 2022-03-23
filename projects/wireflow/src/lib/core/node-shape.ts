@@ -1,15 +1,15 @@
-import { NodePort } from './node-port';
-import { getNumberFromPixels, Point } from '../utils';
-import { DraggableUiElement } from './draggable-ui-element';
-import { BaseModelUiElement } from './base-model-ui-element';
-import { NodeModel } from './models';
-import { NodesService } from './services/nodes.service';
-import { TweenLiteService } from './services/tween-lite.service';
+import {NodePort} from './node-port';
+import {getNumberFromPixels, Point} from '../utils';
+import {DraggableUiElement} from './draggable-ui-element';
+import {BaseModelUiElement} from './base-model-ui-element';
+import {NodeModel} from './models';
+import {NodesService} from './services/nodes.service';
+import {TweenLiteService} from './services/tween-lite.service';
 
 export class NodeShape extends BaseModelUiElement<NodeModel> implements DraggableUiElement {
   id: string;
   inputs = [] as NodePort[];
-  outputs = [] as  NodePort[];
+  outputs = [] as NodePort[];
 
   constructor(
     private service: NodesService,
@@ -17,6 +17,7 @@ export class NodeShape extends BaseModelUiElement<NodeModel> implements Draggabl
     nativeElement: HTMLElement,
     opts: NodeModel,
     point: Point,
+    public gridSize: number
   ) {
     super(
       nativeElement,
@@ -33,14 +34,19 @@ export class NodeShape extends BaseModelUiElement<NodeModel> implements Draggabl
     this.nativeElement.onclick = this._onClick.bind(this);
   }
 
-  get dragElement() { return this.nativeElement; }
-  get dragType() { return 'shape'; }
+  get dragElement() {
+    return this.nativeElement;
+  }
+
+  get dragType() {
+    return 'shape';
+  }
 
   initChildren() {
-    const inputElements  = Array.from<HTMLElement>(this.nativeElement.querySelectorAll('.input-field'));
+    const inputElements = Array.from<HTMLElement>(this.nativeElement.querySelectorAll('.input-field'));
     const outputElements = Array.from<HTMLElement>(this.nativeElement.querySelectorAll('.output-field'));
 
-    const inputs  = inputElements.map(el => ({
+    const inputs = inputElements.map(el => ({
       generalItemId: el.getAttribute('general-item-id')
     }));
     const outputs = outputElements.map(el => ({
@@ -70,10 +76,15 @@ export class NodeShape extends BaseModelUiElement<NodeModel> implements Draggabl
   }
 
   onDragEnd() {
-    const x = getNumberFromPixels(this.nativeElement['_gsap'].x);
-    const y = getNumberFromPixels(this.nativeElement['_gsap'].y);
+    let x = getNumberFromPixels(this.nativeElement['_gsap'].x) + (this.gridSize / 2);
+    let y = getNumberFromPixels(this.nativeElement['_gsap'].y) + (this.gridSize / 2);
     this.nativeElement.classList.remove('no-events');
-    this.service.setNodeCoordinates(this.model.generalItemId, { x, y });
+    if (this.gridSize != 0) {
+      x = x - (x % this.gridSize);
+      y = y - (y % this.gridSize);
+      this.move({x, y});
+    }
+    this.service.setNodeCoordinates(this.model.generalItemId, {x, y});
   }
 
   remove() {

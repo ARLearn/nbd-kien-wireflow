@@ -83,6 +83,8 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
   @Input() noimage: boolean = false;
   @Input() endsOn = {};
   @Input() endsOnDisabled = false;
+  @Input() showGrid = true;
+  @Input() gridSize = 0;
 
   @Output() messagesChange: Observable<GameMessageCommon[]>;
   @Output() selectMessage: Subject<GameMessageCommon>;
@@ -382,6 +384,11 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
   ngOnChanges(changes: SimpleChanges): void {
     if (changes.lang) {
       this.translate.setDefaultLang(changes.lang.currentValue);
+    }
+    if (changes.gridSize && this.diagram) {
+      (this.diagram.shapes ||[]).forEach(s => {
+        s.gridSize = this.gridSize;
+      })
     }
   }
 
@@ -750,7 +757,7 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
       const element = this.domContext.querySelector(`.node-container[general-item-id="${ message.id }"]`) as HTMLElement;
 
       if (!this.diagram.shapeExist(model.generalItemId)) {
-        const shape = new NodeShape(this.nodesService, this.tweenLiteService, element, model, point);
+        const shape = new NodeShape(this.nodesService, this.tweenLiteService, element, model, point, this.gridSize);
         this.diagram.shapes.push(shape);
         shape.initChildren();
       }
@@ -846,7 +853,7 @@ export class WireflowComponent implements OnInit, DoCheck, AfterViewInit, OnChan
     }));
 
     setTimeout(() => {
-      // When we destroy wireflow component in <1 second after it's creation, this code still executes, and it causes another wireflow instance to crash. 
+      // When we destroy wireflow component in <1 second after it's creation, this code still executes, and it causes another wireflow instance to crash.
       if (this.isDestroyed) {
         return;
       }
